@@ -136,7 +136,7 @@ module SI
     def invoke!
       @result = @receiver.__send__(@selector, *@arguments)
     rescue Exception => exc
-      EncapsulatedException.new(exc)
+      EncapsulatedException.new(exc).denormalize!
     end
 
     def create_identifier!
@@ -144,7 +144,7 @@ module SI
     end
   end
 
-  # !SLIDE :index 6
+  # !SLIDE :index 7
   # Response
   #
   # Encapsulate the response returned to the Client.
@@ -156,13 +156,25 @@ module SI
     end
   end
 
-  # !SLIDE: :index 7
+  # !SLIDE :index 6
+  # Encapsulated Exception
+  #
   # Wrapper for exceptions raised in the Service.
   class EncapsulatedException
     attr_accessor :exception, :exception_class, :exception_message, :exception_backtrace
 
     def initialize exc
       @exception = exc
+    end
+
+    def denormalize!
+      if @exception
+        @exception_class = @exception.class
+        @exception_message = @exception.message
+        @exception_backtrace = @exception.backtrace
+        @exception = nil
+      end
+      self
     end
 
     def invoke!
@@ -306,10 +318,6 @@ module SI
     # @@@
     class Multi < self
       attr_accessor :encoders
-
-      def initialize_before_opts
-        @encoders = [ ]
-      end
 
       def _encode obj
         encoders.each do | e |
@@ -499,10 +507,13 @@ module SI
 
 
     # !SLIDE :index 520
-    # IO Transport Support
-    module IOSendRecv
+    # Payload IO for Transport
+    #
+    # * Line containing the number of bytes in the payload
+    # * The payload
+    # * Blank line
+    module PayloadIO
       def _write payload, port
-        payload = payload.to_s
         port.puts payload.size
         port.write payload
         port.puts EMPTY_STRING
@@ -533,7 +544,7 @@ module SI
     # Deliver to a file.
     # Can be used as a log or named pipe service.
     class File < self
-      include IOSendRecv # send, recv
+      include PayloadIO # send, recv
 
       attr_accessor :file, :io
 
@@ -602,7 +613,7 @@ module SI
     # !SLIDE :index 910
     # TCP Socket Transport
     class TcpSocket < self
-      include IOSendRecv
+      include PayloadIO
       attr_accessor :port, :address
       
       def io 
@@ -652,7 +663,7 @@ module SI
       end
 
       class Server < GServer
-        include IOSendRecv
+        include PayloadIO
 
         def initialize transport, *args
           @transport = transport
@@ -677,7 +688,7 @@ module SI
               begin
                 if request_ok 
                   unless result_ok
-                    result = EncapsulatedException(exception)
+                    result = EncapsulatedException.new(exception).denormalize!
                   end
                   @transport._write(@transport.encoder.encode(result), port)
                 end
