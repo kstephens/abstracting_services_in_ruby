@@ -40,7 +40,7 @@ require 'socket'
 # ** Intercept Request
 # ** Initiate Transport
 # ** Deliver Request  \__ Transport
-# ** Receive Response /
+# ** Receive Request  /
 # ** Encode Object    \__ Coder
 # ** Decode Object    /
 #
@@ -103,7 +103,7 @@ module SI
       msg = String === msg ? msg : _log_format(msg)
       _log { "#{msg} => ..." }
       result = yield
-      _log { "#{msg} => #{result.inspect}" }
+      _log { "#{msg} => \n    #{result.inspect}" }
       result
     end
 
@@ -136,7 +136,7 @@ module SI
     def invoke!
       @result = @receiver.__send__(@selector, *@arguments)
     rescue Exception => exc
-      EncapsulatedException.new(exc).denormalize!
+      EncapsulatedException.new(exc)
     end
 
     def create_identifier!
@@ -150,6 +150,7 @@ module SI
   # Encapsulate the response returned to the Client.
   class Response
     attr_accessor :request, :result
+    attr_accessor :identifier, :server, :timestamp # optional
 
     def initialize req, res = nil
       @request, @result = req, res
@@ -161,28 +162,16 @@ module SI
   #
   # Wrapper for exceptions raised in the Service.
   class EncapsulatedException
-    attr_accessor :exception, :exception_class, :exception_message, :exception_backtrace
+    attr_accessor :exception_class, :exception_message, :exception_backtrace
 
     def initialize exc
-      @exception = exc
-    end
-
-    def denormalize!
-      if @exception
-        @exception_class = @exception.class
-        @exception_message = @exception.message
-        @exception_backtrace = @exception.backtrace
-        @exception = nil
-      end
-      self
+      @exception_class     = exc.class.name
+      @exception_message   = exc.message
+      @exception_backtrace = exc.backtrace
     end
 
     def invoke!
-      if @exception
-        raise @exception
-      else
-        raise @exception_class, @exception_message, @exception_backtrace
-      end
+      raise eval("::#{@exception_class}"), @exception_message, @exception_backtrace
     end
   end
 
@@ -400,30 +389,26 @@ module SI
     # !SLIDE :index 10
     # Transport#deliver 
     # Encode request, deliver, decode result.
-    def deliver request
-      result = nil
-
+    def deliver_request request
       request.create_identifier! if needs_request_identifier?
-
-      _log_result [ :deliver, request ] do
+      _log_result [ :deliver_request, :request, request ] do
         request = encoder.encode(request)
-        result = _deliver(request)
-        result = decoder.decode(result)
-        if EncapsulatedException === result
-          result.invoke!
-        end
+        response = _deliver_request(request)
+        response = decoder.decode(response)
+        _log { [ :deliver_request, :response, response ] }
+        response = response.result if Response === response
+        response = response.invoke! if EncapsulatedException === response
+        response
       end
-    
-      result
     end
 
     # !SLIDE :index 10
     # Transport#receive
-    # Receive request payload from port
-    def receive port
-      _log_result [ :receive, port ] do
-        request_payload = _receive(port)
-        request = encoder.decode(request_payload)
+    # Receive request payload from port.
+    def receive_request port
+      _log_result [ :receive_request, :port, port ] do
+        payload = _receive_request(port)
+        encoder.decode(payload)
       end
     end
     # !SLIDE END
@@ -431,8 +416,8 @@ module SI
     def _subclass_responsibility *args
       raise "subclass responsibility"
     end
-    alias :_deliver :_subclass_responsibility
-    alias :_receive :_subclass_responsibility
+    alias :_deliver_request :_subclass_responsibility
+    alias :_receive_request :_subclass_responsibility
 
     # !SLIDE pause
     # !SLIDE :index 11
@@ -454,8 +439,11 @@ module SI
     end
 
     def invoke_request! request
-      _log_result [ :invoke!, request ] do
-        request.invoke!
+      _log_result [ :invoke_request!, request ] do
+        result = request.invoke!
+        response = Response.new(request, result)
+        _log { [ :invoke_request!, :response, response ] }
+        response
       end
     end
     # !SLIDE END
@@ -470,7 +458,7 @@ module SI
     #
     # Never deliver.
     class Null < self
-      def _deliver request
+      def _deliver_request request
         nil
       end
     end
@@ -482,7 +470,7 @@ module SI
     #
     # Deliver to same process.
     class Local < self
-      def _deliver request
+      def _deliver_request request
         request.invoke!
       end
     end
@@ -494,7 +482,7 @@ module SI
     #
     # Deliver to a forked subprocess.
     class Subprocess < Local
-      def _deliver request
+      def _deliver_request request
         Process.fork do 
           super
         end
@@ -548,13 +536,13 @@ module SI
 
       attr_accessor :file, :io
 
-      def _deliver request
+      def _deliver_request request
         _write request, io
         close if ::File.pipe?(file)
         nil
       end
 
-      def _receive port
+      def _receive_request port
         _read port
       end
 
@@ -578,8 +566,8 @@ module SI
       def service_port! port
         until port.eof?
           begin
-            request = receive(port)
-            result = invoke_request! request
+            request = receive_request(port)
+            result = invoke_request!(request)
             # Nowhere to send the result!
           rescue Exception => err
             _log [ :server_error, err ]
@@ -630,12 +618,12 @@ module SI
           end
       end
 
-      def _deliver request
+      def _deliver_request request
         _write request, io
         _read io
       end
 
-      def _receive port
+      def _receive_request port
         _read port
       end
 
@@ -677,7 +665,7 @@ module SI
           @mutex.synchronize do
             begin
               request = request_ok = result = result_ok = exception = nil
-              request = @transport.receive(port)
+              request = @transport.receive_request(port)
               request_ok = true
               result = @transport.invoke_request!(request)
               result_ok = true
@@ -688,7 +676,7 @@ module SI
               begin
                 if request_ok 
                   unless result_ok
-                    result = EncapsulatedException.new(exception).denormalize!
+                    result = EncapsulatedException.new(exception)
                   end
                   @transport._write(@transport.encoder.encode(result), port)
                 end
@@ -714,7 +702,7 @@ module SI
     class HTTP < self
       attr_accessor :uri
 
-      def _deliver request
+      def _deliver_request request
         # ...
       end
     end
@@ -728,10 +716,10 @@ module SI
     class Multi < self
       attr_accessor :transports
 
-      def _deliver request
+      def _deliver_request request
         result = nil
         transports.each do | transport |
-          result = transport.deliver(transport)
+          result = transport.deliver_request(request)
         end
         result
       end
@@ -783,8 +771,8 @@ module SI
       def method_missing selector, *arguments
         raise ArgumentError, "block given" if block_given?
         _log { "method_missing #{selector.inspect} #{arguments.inspect}" }
-        message = Request.new(receiver, selector, arguments)
-        result = transport.deliver(message)
+        request = Request.new(receiver, selector, arguments)
+        result = transport.deliver_request(request)
         result
       end
     end
