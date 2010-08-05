@@ -2,7 +2,10 @@ SCARLET = File.expand_path("~/local/src/scarlet/bin/scarlet")
 ENV['SCARLET'] ||= SCARLET
 
 
-task :default => [ :test, :slides ]
+task :default => [ 
+                  :slides,
+                  :test, 
+                 ]
 
 task :test do
   sh "ruby asir.rb"

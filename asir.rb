@@ -1,6 +1,7 @@
 require 'yaml'
 require 'digest/sha1'
-
+require 'gserver'
+require 'socket'
 
 # !SLIDE :index 1
 # Abstracting Services in Ruby
@@ -465,48 +466,28 @@ module SI
     # !SLIDE END
 
 
-    # !SLIDE :index 510
-    # File Transport
-    #
-    # Deliver to a file.
-    # Can be used as a log or named pipe service.
-    class File < self
-      attr_accessor :file, :io
-
-      # !SLIDE :index 511
-      # File#_deliver(request)
-      def _deliver request
-        request = request.to_s
-        io.puts request.size
-        io.write request
-        io.puts EMPTY_STRING
-        io.flush
-        close if ::File.pipe?(file)
-        nil
+    # !SLIDE :index 520
+    # IO Transport Support
+    module IOSendRecv
+      def _write payload, port
+        payload = payload.to_s
+        port.puts payload.size
+        port.write payload
+        port.puts EMPTY_STRING
+        _log { "  _write #{payload.inspect}" }
+        port.flush
       end
 
-      # !SLIDE :index 512
-      # File#_receive(port)
-      def _receive port
-        size = port.readline
-        size.chomp!
-        size = size.to_i
-        _log { "  _receive size   = #{size.inspect}" }
-        result = port.read(size)
-        _log { "  _receive result = #{result.inspect}" }
+      def _read port
+        size = port.readline.chomp.to_i
+        _log { "  _read size    = #{size.inspect}" }
+        payload = port.read(size)
+        _log { "  _read payload = #{payload.inspect}" }
         port.readline
-        result
+        payload
       end
-
-      # !SLIDE :index 513
-      # File Transport Support
 
       def needs_request_identifier?; true; end
-
-      def io
-        @io ||=
-          ::File.open(file, "w+")
-      end
 
       def close
         if @io
@@ -514,7 +495,35 @@ module SI
           @io = nil
         end
       end
+    end
 
+    # !SLIDE :index 510
+    # File Transport
+    #
+    # Deliver to a file.
+    # Can be used as a log or named pipe service.
+    class File < self
+      include IOSendRecv # send, recv
+
+      attr_accessor :file, :io
+
+      def _deliver request
+        _write request, io
+        close if ::File.pipe?(file)
+        nil
+      end
+
+      def _receive port
+        _read port
+      end
+
+      # !SLIDE :index 513
+      # File Transport Support
+    
+      def io
+        @io ||=
+          ::File.open(file, "w+")
+      end
 
       # !SLIDE :index 560
       # Process (recieve) requests from a file.
@@ -536,7 +545,6 @@ module SI
           end
         end
       end
-
 
       # !SLIDE :index 611
       # Named Pipe Server
@@ -561,13 +569,78 @@ module SI
     end
 
 
-    # !SLIDE
+    # !SLIDE :index 910
     # TCP Socket Transport
     #
     # Deliver via TCP.
-    class Socket < self
-      attr_accessor :address, :port
-      # ...
+    class TcpSocket < self
+      include IOSendRecv
+      attr_accessor :port, :address
+      
+      def io 
+        @io ||=
+          begin
+            sock = Socket.new(Socket::AF_INET, Socket::SOCK_STREAM, 0)
+            sockaddr = Socket.pack_sockaddr_in(port, address || '127.0.0.1')
+            sock.connect(sockaddr)
+            sock
+          end
+      end
+
+      def _deliver request
+        _write request, io
+        _read io
+      end
+
+      # !SLIDE :index 920
+      # TCP Socket Server
+
+      def prepare_socket_server!
+        _log :prepare_socket_server!
+        @server = Server.new(self, port, address || '0.0.0.0')
+      end
+
+      def run_socket_server!
+        _log :run_socket_server!
+        @running = true
+        while @running
+          @server.start
+          @server.tcpServerThread.join
+        end
+      end
+
+      class ::GServer
+        attr_reader :tcpServerThread
+      end
+
+      class Server < GServer
+        include IOSendRecv
+
+        def initialize transport, *args
+          @transport = transport
+          @mutex = Mutex.new
+          super *args
+        end
+
+        def serve port 
+          _log {" serve: connected" }
+          
+          @mutex.synchronize do
+            begin
+              request = @transport.receive(port)
+              result = @transport.invoke_request!(request)
+              send(@transport.encoder.encode(result), port)
+            rescue Exception => err
+              _log [ :error, err ]
+            end
+          end
+
+          _log { "serve: disconnected" }
+        end
+ 
+      end
+
+      # !SLIDE END
     end
 
 
@@ -812,6 +885,32 @@ SomeService.client.transport.close
 sleep 2
 
 Process.kill 9, child_pid
+
+
+# !SLIDE :index 901 :capture_code_output true
+# Socket service with signature
+
+File.unlink(service_fifo = "service.fifo") rescue nil
+SomeService.client.transport = SI::Transport::TcpSocket.new(:port => 51515)
+SomeService.client.transport.encoder = 
+  SI::Coder::Multi.new(:encoders =>
+                         [ SI::Coder::Marshal.new,
+                           SI::Coder::Sign.new(:secret => 'abc123'),
+                           SI::Coder::Yaml.new,
+                         ])
+
+SomeService.client.transport.prepare_socket_server!
+child_pid = Process.fork do 
+  SomeService.client.transport.run_socket_server!
+end
+
+pr SomeService.client.do_it(1, 2)
+
+SomeService.client.transport.close
+sleep 2
+
+Process.kill 9, child_pid
+
 
 # !SLIDE END
 
