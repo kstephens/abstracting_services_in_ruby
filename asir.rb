@@ -492,7 +492,7 @@ module SI
         size.chomp!
         size = size.to_i
         _log { "  _receive size   = #{size.inspect}" }
-        result = io.read(size)
+        result = port.read(size)
         _log { "  _receive result = #{result.inspect}" }
         port.readline
         result
@@ -515,33 +515,49 @@ module SI
         end
       end
 
-      # !SLIDE :index 610
-      # Named pipe server.
 
-      def prepare_server
-        _log :prepare_server
+      # !SLIDE :index 560
+      # Process (recieve) requests from a file.
+
+      def service_file!
+        ::File.open(file, "r") do | port |
+          service_port! port
+        end
+      end
+
+      def service_port! port
+        until port.eof?
+          begin
+            request = receive(port)
+            result = invoke_request! request
+            # Nowhere to send the result!
+          rescue Exception => err
+            _log [ :server_error, err ]
+          end
+        end
+      end
+
+
+      # !SLIDE :index 611
+      # Named Pipe Server
+
+      def prepare_fifo_server!
+        _log :prepare_fifo_server!
         unless ::File.exist? file
           system(cmd = "mkfifo #{file.inspect}") || (raise "cannot run #{cmd.inspect}")
           system(cmd = "chmod 666 #{file.inspect}") || (raise "cannot run #{cmd.inspect}")
         end
       end
 
-      def server
-        _log :server
+      def run_fifo_server!
+        _log :run_fifo_server!
         @running = true
         while @running
-          ::File.open(file, "r") do | io |
-            begin
-              request = receive io
-              io.close
-              result = invoke_request! request
-              # Nowhere to send the result!
-            rescue Exception => err
-              _log [ :server_error, err ]
-            end
-          end
+          service_file!
         end
       end
+
+      # !SLIDE END
     end
 
 
@@ -553,6 +569,7 @@ module SI
       attr_accessor :address, :port
       # ...
     end
+
 
     # !SLIDE
     # HTTP Transport
@@ -566,6 +583,29 @@ module SI
       end
     end
     # !SLIDE END
+
+
+    # !SLIDE
+    # Multi Transport
+    #
+    # Deliver via multiple Transports.
+    class Multi < self
+      attr_accessor :transports
+
+      def _deliver request
+        result = nil
+        transports.each do | transport |
+          result = transport.deliver(transport)
+        end
+        result
+      end
+
+      def needs_request_identifier?
+        transports.any? { | t | needs_request_identifier? }
+      end
+    end
+    # !SLIDE END
+
     # !SLIDE resume
   end
   # !SLIDE END
@@ -612,7 +652,9 @@ module SI
         result
       end
     end
+    # !SLIDE END
   end
+  # !SLIDE END
 end
 # !SLIDE END
 
@@ -660,25 +702,21 @@ def pr result
   puts PP.pp([ :result, result ], '')
 end
 
-puts "client pid #{$$}"
-
-# !SLIDE :index 102
+# !SLIDE :index 102 :capture_code_output true
 # Call service directly
 pr SomeService.do_it(1, 2)
 
-# !SLIDE :index 301
+# !SLIDE :index 301 :capture_code_output true
 # In-core, in-process service
 pr SomeService.client.do_it(1, 2)
-pr SomeService.client.do_it(3, 4)
 
-# !SLIDE :index 401
+# !SLIDE :index 401 :capture_code_output true
 # One-way, asynchronous subprocess service
 SomeService.client.transport = SI::Transport::Subprocess.new
 
 pr SomeService.client.do_it(1, 2)
-pr SomeService.client.do_it(3, 4)
 
-# !SLIDE :index 501
+# !SLIDE :index 501 :capture_code_output true
 # One-way, file log service
 
 File.unlink(service_log = "service.log") rescue nil
@@ -688,30 +726,43 @@ SomeService.client.transport.encoder = SI::Coder::Yaml.new
 pr SomeService.client.do_it(1, 2)
 pr SomeService.client.do_it(3, 4)
 
+SomeService.client.transport.close
+
 puts "#{service_log.inspect} contents:"
 puts File.read(service_log)
+
+# !SLIDE :index 550 :capture_code_output true
+# Replay file log
+
+SomeService.client.transport = SI::Transport::File.new(:file => service_log)
+SomeService.client.transport.encoder = SI::Coder::Yaml.new
+
+SomeService.client.transport.service_file!
+
 File.unlink(service_log) rescue nil
 
-# !SLIDE :index 601
+# !SLIDE :index 601 :capture_code_output true
 # One-way, named pipe service
 
 File.unlink(service_fifo = "service.fifo") rescue nil
 SomeService.client.transport = SI::Transport::File.new(:file => service_fifo)
 SomeService.client.transport.encoder = SI::Coder::Yaml.new
 
-SomeService.client.transport.prepare_server
+SomeService.client.transport.prepare_fifo_server!
 child_pid = Process.fork do 
-  SomeService.client.transport.server
+  SomeService.client.transport.run_fifo_server!
 end
 
-SomeService.client.do_it(1, 2)
+pr SomeService.client.do_it(1, 2)
+
+SomeService.client.transport.close
 
 sleep 2
 
 Process.kill 9, child_pid
 
 
-# !SLIDE :index 701
+# !SLIDE :index 701 :capture_code_output true
 # One-way, named pipe service with signature
 
 File.unlink(service_fifo = "service.fifo") rescue nil
@@ -723,19 +774,20 @@ SomeService.client.transport.encoder =
                            SI::Coder::Yaml.new,
                          ])
 
-SomeService.client.transport.prepare_server
+SomeService.client.transport.prepare_fifo_server!
 child_pid = Process.fork do 
-  SomeService.client.transport.server
+  SomeService.client.transport.run_fifo_server!
 end
 
-SomeService.client.do_it(1, 2)
+pr SomeService.client.do_it(1, 2)
 
+SomeService.client.transport.close
 sleep 2
 
 Process.kill 9, child_pid
 
 
-# !SLIDE :index 801
+# !SLIDE :index 801 :capture_code_output true
 # One-way, named pipe service with invalid signature
 
 File.unlink(service_fifo = "service.fifo") rescue nil
@@ -747,15 +799,16 @@ SomeService.client.transport.encoder =
                            SI::Coder::Yaml.new,
                          ])
 
-SomeService.client.transport.prepare_server
+SomeService.client.transport.prepare_fifo_server!
 child_pid = Process.fork do 
-  SomeService.client.transport.server
+  SomeService.client.transport.run_fifo_server!
 end
 
 SomeService.client.transport.encoder.encoders[1].secret = 'I dont know the secret! :('
 
-SomeService.client.do_it(1, 2)
+pr SomeService.client.do_it(1, 2)
 
+SomeService.client.transport.close
 sleep 2
 
 Process.kill 9, child_pid

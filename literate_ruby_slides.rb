@@ -1,10 +1,13 @@
 #!/usr/bin/env ruby
 
 class LiterateRubySlideGenerator
+  attr_reader :slides, :lines
+
   def initialize
     @slide_stack = [ ]
     @slide = nil
     @slides = [ ]
+    @lines = [ ]
   end
   
   def process_file file_name
@@ -20,6 +23,7 @@ class LiterateRubySlideGenerator
       @file_line += 1
       
       # $stderr.puts "#{@file_name}:#{"%5d" % @file_line}: #{line}"
+      @lines << line
 
       case line
       when /^(\s*)\#\s*!SLIDE\s*(.*)/
@@ -38,7 +42,9 @@ class LiterateRubySlideGenerator
 
         case command
         when /^end\b/i
-          end_slide
+          while @slide && indention <= @slide.indention
+            end_slide
+          end
         when /^(\w+)\s+(\S+)/
           slot, value = $1, $2
           @slide.send(:"#{slot}=", $2)
@@ -72,6 +78,7 @@ class LiterateRubySlideGenerator
     @slide_stack.push @slide
     parent_slide = @slide
     @slide = Slide.new opts
+    @slide.owner = self
     @slide.superslide = parent_slide
     @slide.file_name = @file_name
     @slide.file_line = @file_line
@@ -105,7 +112,10 @@ class LiterateRubySlideGenerator
   
 
   class Slide
-    attr_accessor :index, :name, :file_name, :file_line, :title, :superslide, :subslides, :lines, :indention
+    attr_accessor :index, :name, :file_name, :file_line, :title
+    attr_accessor :owner, :superslide, :subslides
+    attr_accessor :lines, :indention
+    attr_accessor :capture_code_output
 
     attr_accessor :paused
 
@@ -178,35 +188,50 @@ class LiterateRubySlideGenerator
 
       unless code.empty?
         io.puts "@@@ ruby"
-
-        # Render slide code.
-        superslides.reverse.each do | s |
-          io.puts s.ruby_block_start_line if s.ruby_block_start_line
-        end
-        
-        last_line = nil
-        code.each do | line |
-          last_line = line
-          case line
-          when Slide
-            line.render_subslide io
-          else
-            io.puts line
-          end
-        end
-        
-        if ruby_block_start_line && indention == '' && last_line != 'end'
-          io.puts "end"
-        end
-
-        superslides.each do | s |
-          io.puts s.ruby_block_end_line if s.ruby_block_end_line
-        end
-
+        render_slide_code io
         io.puts "@@@"
         io.puts ""
+
+        if capture_code_output
+          io.puts "!SLIDE"
+          io.puts ""
+          io.puts "h1. #{title_string} - Output"
+          io.puts ""
+          io.puts "@@@"
+          io.puts capture_code_output!.gsub(/^\s+/, '')
+          io.puts "@@@"
+          io.puts ""
+        end
+      
       end
       
+    end
+
+
+    def render_slide_code io
+      # Render slide code.
+      superslides.reverse.each do | s |
+        io.puts s.ruby_block_start_line if s.ruby_block_start_line
+      end
+      
+      last_line = nil
+      code.each do | line |
+        last_line = line
+        case line
+        when Slide
+          line.render_subslide io
+        else
+          io.puts line
+        end
+      end
+      
+      if ruby_block_start_line && indention == '' && last_line != 'end'
+        io.puts "end"
+      end
+      
+      superslides.each do | s |
+        io.puts s.ruby_block_end_line if s.ruby_block_end_line
+      end
     end
 
 
@@ -292,6 +317,53 @@ class LiterateRubySlideGenerator
     def ruby_block_end_line
       (@ruby_block_end_line ||= [ ruby_block_start_line ? "#{indention}end" : nil ]).first
     end
+
+
+    def capture_code_output!
+      file = "capture.txt"
+      rb = "capture.rb"
+
+      prog = [ ]
+      prog << <<"END"
+    def __capture_stream cur_stream, new_stream
+      old_stream = cur_stream.clone
+      cur_stream.reopen(new_stream)
+      yield
+    ensure
+      cur_stream.reopen(old_stream)
+    end
+
+END
+
+      owner.lines[0 ... file_line].each do | lines |
+        prog << lines
+      end
+
+      prog << <<"END"
+      File.open(#{file.inspect}, 'w') do | log |
+        __capture_stream $stdout, log do
+          __capture_stream $stderr, log do
+END
+    
+      code.each do | line |
+        prog << line
+      end
+    
+      prog << <<"END"
+          end
+        end
+      end
+      exit 0
+END
+      prog = prog * "\n"
+      File.open(rb, "w+") { | fh | fh.puts prog }
+      system("ruby #{rb.inspect} >/dev/null 2>&1")
+    
+      File.read(file)
+    ensure
+      File.unlink(file) rescue nil
+      File.unlink(rb) rescue nil
+    end
   end
 end
 
@@ -304,5 +376,8 @@ ARGV.each do | file_name |
 end
 
 obj.render_slides($stdout)
+
+exit 0
+
 
 
