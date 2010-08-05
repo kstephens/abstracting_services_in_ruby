@@ -173,7 +173,7 @@ module SI
       end
     end
 
-    def _subclass_responsibility
+    def _subclass_responsibility *args
       raise "subclass responsibility"
     end
     alias :_encode :_subclass_responsibility
@@ -388,7 +388,7 @@ module SI
     end
     # !SLIDE END
 
-    def _subclass_responsibility
+    def _subclass_responsibility *args
       raise "subclass responsibility"
     end
     alias :_deliver :_subclass_responsibility
@@ -592,6 +592,10 @@ module SI
         _read io
       end
 
+      def _receive port
+        _read port
+      end
+
       # !SLIDE :index 920
       # TCP Socket Server
 
@@ -623,19 +627,19 @@ module SI
         end
 
         def serve port 
-          _log {" serve: connected" }
+          @transport._log {" serve: connected" }
           
           @mutex.synchronize do
             begin
               request = @transport.receive(port)
               result = @transport.invoke_request!(request)
-              send(@transport.encoder.encode(result), port)
+              @transport._write(@transport.encoder.encode(result), port)
             rescue Exception => err
-              _log [ :error, err ]
+              @transport._log [ :error, err ]
             end
           end
 
-          _log { "serve: disconnected" }
+          @transport._log { "serve: disconnected" }
         end
  
       end
