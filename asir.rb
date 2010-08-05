@@ -110,7 +110,7 @@ module SI
     def _log_format obj
       case obj
       when Exception
-        "#{obj.inspect}\n#{obj.backtrace * "\n"}"
+        "#{obj.inspect}\n    #{obj.backtrace * "\n    "}"
       when Array
         obj.map { | x | _log_format x } * ", "
       else
@@ -125,15 +125,18 @@ module SI
   #
   # Encapsulate the request message from the Client to be handled by the Service.
   class Request
-    attr_accessor :receiver, :selector, :arguments, :result
-    attr_accessor :identifier, :hostname, :timestamp # optional
+    attr_accessor :receiver, :receiver_class, :selector, :arguments, :result
+    attr_accessor :identifier, :client, :timestamp # optional
 
     def initialize r, s, a
       @receiver, @selector, @arguments = r, s, a
+      @receiver_class = @receiver.class
     end
 
     def invoke!
       @result = @receiver.__send__(@selector, *@arguments)
+    rescue Exception => exc
+      EncapsulatedException.new(exc)
     end
 
     def create_identifier!
@@ -153,7 +156,25 @@ module SI
     end
   end
 
-  # !SLIDE :index 7
+  # !SLIDE: :index 7
+  # Wrapper for exceptions raised in the Service.
+  class EncapsulatedException
+    attr_accessor :exception, :exception_class, :exception_message, :exception_backtrace
+
+    def initialize exc
+      @exception = exc
+    end
+
+    def invoke!
+      if @exception
+        raise @exception
+      else
+        raise @exception_class, @exception_message, @exception_backtrace
+      end
+    end
+  end
+
+  # !SLIDE :index 8
   # Coder 
   #
   # Define encoding and decoding for Requests and Responses along a Transport.
@@ -234,8 +255,12 @@ module SI
       def _encode obj
         case obj
         when Request
-          obj = obj.dup
-          obj.receiver = obj.receiver.name
+          case obj.receiver
+          when Module
+            obj = obj.dup
+            obj.receiver = obj.receiver.name
+            obj.receiver_class = obj.receiver_class.name
+          end
         end
         ::YAML::dump(obj)
       end
@@ -245,7 +270,11 @@ module SI
         obj = ::YAML::load(obj)
         case obj
         when Request
-          obj.receiver = eval(obj.receiver)
+          case obj.receiver_class
+          when 'Module', 'Class'
+            obj.receiver = eval("::#{obj.receiver}")
+            obj.receiver_class = eval("::#{obj.receiver_class}")
+          end
         end
         obj
       end
@@ -346,7 +375,7 @@ module SI
   # !SLIDE END
 
 
-  # !SLIDE :index 8
+  # !SLIDE :index 9
   # Transport
   #
   # Client: Deliver a Request to the Service.
@@ -360,7 +389,7 @@ module SI
 
     attr_accessor :encoder, :decoder
 
-    # !SLIDE :index 9
+    # !SLIDE :index 10
     # Transport#deliver 
     # Encode request, deliver, decode result.
     def deliver request
@@ -372,6 +401,9 @@ module SI
         request = encoder.encode(request)
         result = _deliver(request)
         result = decoder.decode(result)
+        if EncapsulatedException === result
+          result.invoke!
+        end
       end
     
       result
@@ -487,8 +519,6 @@ module SI
         payload
       end
 
-      def needs_request_identifier?; true; end
-
       def close
         if @io
           @io.close 
@@ -571,8 +601,6 @@ module SI
 
     # !SLIDE :index 910
     # TCP Socket Transport
-    #
-    # Deliver via TCP.
     class TcpSocket < self
       include IOSendRecv
       attr_accessor :port, :address
@@ -580,10 +608,14 @@ module SI
       def io 
         @io ||=
           begin
+            addr = address || '127.0.0.1'
+            _log { "connect #{addr}:#{port}" }
             sock = Socket.new(Socket::AF_INET, Socket::SOCK_STREAM, 0)
-            sockaddr = Socket.pack_sockaddr_in(port, address || '127.0.0.1')
+            sockaddr = Socket.pack_sockaddr_in(port, addr)
             sock.connect(sockaddr)
             sock
+          rescue Exception => err
+            raise Error, "Cannot connect to #{addr}:#{port}: #{err.inspect}", err.backtrace
           end
       end
 
@@ -600,14 +632,16 @@ module SI
       # TCP Socket Server
 
       def prepare_socket_server!
-        _log :prepare_socket_server!
-        @server = Server.new(self, port, address || '0.0.0.0')
+        addr = address || '0.0.0.0'
+        _log { "prepare_socket_server! #{addr}:#{port}" }
+        @server = Server.new(self, port, addr)
       end
 
       def run_socket_server!
         _log :run_socket_server!
         @running = true
         while @running
+          _log { "run_socket_server! running" }
           @server.start
           @server.tcpServerThread.join
         end
@@ -631,11 +665,25 @@ module SI
           
           @mutex.synchronize do
             begin
+              request = request_ok = result = result_ok = exception = nil
               request = @transport.receive(port)
+              request_ok = true
               result = @transport.invoke_request!(request)
-              @transport._write(@transport.encoder.encode(result), port)
-            rescue Exception => err
-              @transport._log [ :error, err ]
+              result_ok = true
+            rescue Exception => exc
+              exception = exc
+              @transport._log [ :request_error, exc ]
+            ensure
+              begin
+                if request_ok 
+                  unless result_ok
+                    result = EncapsulatedException(exception)
+                  end
+                  @transport._write(@transport.encoder.encode(result), port)
+                end
+              rescue Exception => exc
+                @transport._log [ :response_error, exc ]
+              end
             end
           end
 
@@ -744,6 +792,9 @@ module SomeService
   def do_it x, y
     x * y + 42
   end
+  def do_raise msg
+    raise msg
+  end
   extend self
 end
 
@@ -764,6 +815,9 @@ module SomeService
     _log_result [ :do_it, x, y ] do 
       x * y + 42
     end
+  end
+  def do_raise msg
+    raise msg
   end
   extend self
 end
@@ -789,38 +843,46 @@ pr SomeService.client.do_it(1, 2)
 
 # !SLIDE :index 401 :capture_code_output true
 # One-way, asynchronous subprocess service
+begin
 SomeService.client.transport = SI::Transport::Subprocess.new
 
 pr SomeService.client.do_it(1, 2)
+end
 
 # !SLIDE :index 501 :capture_code_output true
 # One-way, file log service
 
+begin
 File.unlink(service_log = "service.log") rescue nil
 SomeService.client.transport = SI::Transport::File.new(:file => service_log)
 SomeService.client.transport.encoder = SI::Coder::Yaml.new
 
 pr SomeService.client.do_it(1, 2)
-pr SomeService.client.do_it(3, 4)
 
+ensure
 SomeService.client.transport.close
 
 puts "#{service_log.inspect} contents:"
 puts File.read(service_log)
+end
 
 # !SLIDE :index 550 :capture_code_output true
 # Replay file log
 
+begin
 SomeService.client.transport = SI::Transport::File.new(:file => service_log)
 SomeService.client.transport.encoder = SI::Coder::Yaml.new
 
 SomeService.client.transport.service_file!
 
+ensure
 File.unlink(service_log) rescue nil
+end
 
 # !SLIDE :index 601 :capture_code_output true
 # One-way, named pipe service
 
+begin
 File.unlink(service_fifo = "service.fifo") rescue nil
 SomeService.client.transport = SI::Transport::File.new(:file => service_fifo)
 SomeService.client.transport.encoder = SI::Coder::Yaml.new
@@ -832,16 +894,16 @@ end
 
 pr SomeService.client.do_it(1, 2)
 
+ensure
 SomeService.client.transport.close
-
 sleep 2
-
 Process.kill 9, child_pid
-
+end
 
 # !SLIDE :index 701 :capture_code_output true
 # One-way, named pipe service with signature
 
+begin
 File.unlink(service_fifo = "service.fifo") rescue nil
 SomeService.client.transport = SI::Transport::File.new(:file => service_fifo)
 SomeService.client.transport.encoder = 
@@ -858,15 +920,17 @@ end
 
 pr SomeService.client.do_it(1, 2)
 
+ensure
 SomeService.client.transport.close
 sleep 2
-
 Process.kill 9, child_pid
+end
 
 
 # !SLIDE :index 801 :capture_code_output true
 # One-way, named pipe service with invalid signature
 
+begin
 File.unlink(service_fifo = "service.fifo") rescue nil
 SomeService.client.transport = SI::Transport::File.new(:file => service_fifo)
 SomeService.client.transport.encoder = 
@@ -885,23 +949,20 @@ SomeService.client.transport.encoder.encoders[1].secret = 'I dont know the secre
 
 pr SomeService.client.do_it(1, 2)
 
+ensure
 SomeService.client.transport.close
 sleep 2
-
 Process.kill 9, child_pid
+end
 
 
 # !SLIDE :index 901 :capture_code_output true
-# Socket service with signature
+# Socket service
 
-File.unlink(service_fifo = "service.fifo") rescue nil
-SomeService.client.transport = SI::Transport::TcpSocket.new(:port => 51515)
+begin
+SomeService.client.transport = SI::Transport::TcpSocket.new(:port => 50901)
 SomeService.client.transport.encoder = 
-  SI::Coder::Multi.new(:encoders =>
-                         [ SI::Coder::Marshal.new,
-                           SI::Coder::Sign.new(:secret => 'abc123'),
-                           SI::Coder::Yaml.new,
-                         ])
+    SI::Coder::Marshal.new
 
 SomeService.client.transport.prepare_socket_server!
 child_pid = Process.fork do 
@@ -910,10 +971,34 @@ end
 
 pr SomeService.client.do_it(1, 2)
 
+ensure
 SomeService.client.transport.close
 sleep 2
-
 Process.kill 9, child_pid
+end
+
+# !SLIDE :index 1001 :capture_code_output true
+# Socket service with forwarded exception.
+
+begin
+SomeService.client.transport = SI::Transport::TcpSocket.new(:port => 51001)
+SomeService.client.transport.encoder = 
+    SI::Coder::Marshal.new
+
+SomeService.client.transport.prepare_socket_server!
+child_pid = Process.fork do 
+  SomeService.client.transport.run_socket_server!
+end
+
+pr SomeService.client.do_raise("Raise Me!")
+
+rescue Exception => err
+  pr [ :exception, err ]
+ensure
+SomeService.client.transport.close
+sleep 2
+Process.kill 9, child_pid
+end
 
 
 # !SLIDE END
