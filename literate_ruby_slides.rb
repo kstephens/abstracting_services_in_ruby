@@ -1,9 +1,12 @@
 #!/usr/bin/env ruby
 
 require 'erb'
+require 'pp'
 
 class LiterateRubySlideGenerator
   EMPTY_HASH = { }.freeze
+  EMPTY_ARRAY = [ ].freeze
+  EMPTY_STRING = ''.freeze
 
   attr_reader :slides, :lines
 
@@ -270,16 +273,32 @@ class LiterateRubySlideGenerator
         io.puts ""
 
         if capture_code_output
-          io.puts "!SLIDE"
-          io.puts ""
-          io.puts "h1. #{title_string} - Output"
-          io.puts ""
-          io.puts "@@@"
-          io.puts capture_code_output!.gsub(/^\s+/, '')
-          io.puts "@@@"
-          io.puts ""
+          lines_per_slide = 15
+          $stderr.puts "  Code Output:"
+          @code_output = capture_code_output!
+          code_output_lines = @code_output.split("\n")
+          # $stderr.puts PP.pp(code_output_lines, '')
+          $stderr.puts "    #{code_output_lines.size} lines (#{lines_per_slide} lines / page)"
+          # Prevent empty pages
+          code_output_lines << EMPTY_STRING if code_output_lines.empty? 
+          page = 0
+          until code_output_lines.empty?
+            page += 1
+            page_lines = code_output_lines[0, lines_per_slide]
+            code_output_lines[0, lines_per_slide] = EMPTY_ARRAY
+            break if page_lines.empty?
+            $stderr.puts "    Page #{page} - #{page_lines.size} lines"
+            io.puts "!SLIDE"
+            io.puts ""
+            io.puts "h1. #{title_string} - Output #{page > 1 ? "- Page #{page}" : ""}"
+            io.puts ""
+            io.puts "@@@"
+            io.puts page_lines * "\n"
+            io.puts "@@@"
+            io.puts "MORE ..." unless code_output_lines.empty?
+            io.puts ""
+          end
         end
-      
       end
       
     end
@@ -399,8 +418,8 @@ class LiterateRubySlideGenerator
     def capture_code_output!
       $stderr.puts "  Capturing code output at #{file_name}:#{file_line} for #{title_string.inspect}"
 
-      file = "capture.txt"
       rb = "capture.rb"
+      file = "#{rb}.out"
 
       prog = [ ]
       prog << <<"END"
@@ -440,8 +459,8 @@ END
     
       File.read(file) rescue ''
     ensure
-      File.unlink(file) rescue nil
-      File.unlink(rb) rescue nil
+      #File.unlink(file) rescue nil
+      #File.unlink(rb) rescue nil
     end
   end
 end
