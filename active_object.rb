@@ -1,19 +1,52 @@
 require 'thread' # Thread, Mutex, Queue
 
+# !SLIDE
+# Active Object pattern in Ruby
+#
+
+# !SLIDE
+# Objective
+#
+# * Simplify inter-thread communication and managment.
+# * Provide Facade for objects in a thread-safe manner.
+# * Allow objects to execute safely in their own thread.
+# * Simple API
+
+
+# !SLIDE
+# Design Pattern
+#
+# * http://en.wikipedia.org/wiki/Design_pattern_%28computer_science%29
+# * http://en.wikipedia.org/wiki/Active_object
+#
+
+# !SLIDE
+# Design
+#
+# * ActiveObject - module to mixin to existing classes.
+# * ActiveObject::Proxy - object to receive and enqueue messages.
+# * ActiveObject::Message - encapsulate message for proxy for later execution by thread. 
+
+# !SLIDE 
+# ActiveObject Mixin
+#
+# Adds methods to construct an active Proxy object for instances of the including Class.
 module ActiveObject
-  def self.included target
-    super target
-    target.extend ClassMethods
-  end
-
-  module ClassMethods
-  end
-
+  # !SLIDE
+  # Construct Proxy
+  #
+  # Return the ActiveObject::Proxy for this object.
   def _active_proxy
     @_active_proxy ||=
       Proxy.new(self)
   end
 
+  # !SLIDE
+  # Active Proxy
+  #
+  # Recieves messages on behalf of the target object.
+  # Places message in its queue.
+  # Manages a Thread to pull messages from its queue.
   class Proxy
     # Signal to tell thread to stop working on queue.
     class Stop < ::Exception; end
@@ -27,9 +60,42 @@ module ActiveObject
       @stopped = false
     end
 
+    # !SLIDE
+    # Enqueue Message
+    #
+    # Intercepts messages on behalf of @target.
+    # Construct Message and place it in its queue.
     def method_missing selector, *arguments, &block
       _active_enqueue(Message.new(self, selector, arguments, block))
     end
+
+    # !SLIDE
+    # Message
+    #
+    # Encapsulates message.
+    # If block is provided, call it with result after invocation completion.
+    class Message
+      attr_accessor :proxy, :selector, :arguments, :block, :thread
+      attr_accessor :result, :exception
+
+      def initialize proxy, selector, arguments, block
+        @proxy, @selector, @arguments, @block = proxy, selector, arguments, block
+        @thread = ::Thread.current
+      end
+
+      def invoke!
+        @result = @proxy._active_target.__send__(@selector, *@arguments)
+        if @block
+          @block.call(@result)
+        end
+      rescue Exception => exc
+        @thread.raise exc
+      end
+    end
+    # !SLIDE END
+
+    # !SLIDE
+    # Support
 
     def _active_target
       @target
@@ -50,6 +116,12 @@ module ActiveObject
       @queue.pop
     end
 
+    # !SLIDE END
+
+    # !SLIDE 
+    # Start Thread
+    #
+    # Start a thread that blocks waiting for message to pull from its queue.
     def _active_start!
       $stderr.puts "  #{Thread.current.object_id} _active_start! #{self.object_id}"
       @mutex.synchronize do
@@ -75,6 +147,10 @@ module ActiveObject
       self
     end
 
+    # !SLIDE
+    # Stop Thread
+    #
+    # Sends exception to thread to tell it to stop.
     def _active_stop!
       $stderr.puts "  #{Thread.current.object_id} _active_stop! #{self.object_id}"
       t = @mutex.synchronize do
@@ -92,33 +168,25 @@ module ActiveObject
       end
       self
     end
-
-    class Message
-      attr_accessor :proxy, :selector, :arguments, :block, :thread
-      attr_accessor :result, :exception
-
-      def initialize proxy, selector, arguments, block
-        @proxy, @selector, @arguments, @block = proxy, selector, arguments, block
-        @thread = ::Thread.current
-      end
-
-      def invoke!
-        @result = @proxy._active_target.__send__(@selector, *@arguments)
-        if @block
-          @block.call(@result)
-        end
-      rescue Exception => exc
-        @thread.raise exc
-      end
-    end
+    # !SLIDE END
   end
 end
+# !SLIDE END
 
+# !SLIDE 
+# Example
+
+# !SLIDE
+# Base class for example objects
 class Base
   include ActiveObject
+
+  # Prepare to do activity N times.
   def initialize
     @counter = 5
   end
+
+  # Stop it's Proxy when @counter is depleated.
   def decrement_counter_or_stop
     if @counter > 0
       @counter -= 1
@@ -130,8 +198,12 @@ class Base
   end
 end
 
+# !SLIDE
+# class A
+# Sends b.do_b
 class A < Base
   attr_accessor :b
+
   def do_a msg
     $stderr.puts "#{Thread.current.object_id} #{self.class} do_a #{msg.inspect} #{@counter}"
     if decrement_counter_or_stop
@@ -142,8 +214,12 @@ class A < Base
   end
 end
 
+# !SLIDE
+# class B
+# Sends a.do_a
 class B < Base
   attr_accessor :a
+
   def do_b msg
     $stderr.puts "#{Thread.current.object_id} #{self.class} do_b #{msg.inspect} #{@counter}"
     if decrement_counter_or_stop
@@ -153,6 +229,9 @@ class B < Base
     [ :b, @counter ]
   end
 end
+
+# !SLIDE
+# Running Example
 
 a = A.new
 b = B.new
@@ -174,4 +253,7 @@ b._active_thread.join rescue nil
 
 $stderr.puts "DONE!"
 exit 0
+
+# !SLIDE END
+
 
