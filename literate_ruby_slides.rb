@@ -1,21 +1,36 @@
 #!/usr/bin/env ruby
 
+require 'erb'
+
 class LiterateRubySlideGenerator
+  EMPTY_HASH = { }.freeze
+
   attr_reader :slides, :lines
 
-  def initialize
+  attr_accessor :slides_dir, :slides_basename
+
+  def initialize opts = nil
+    opts ||= EMPTY_HASH
     @slide_stack = [ ]
     @slide = nil
     @slides = [ ]
     @lines = [ ]
+    @slides_dir = '.'
+    @slides_basename = nil
+    opts.each do | k, v |
+      send(:"#{k}=", v)
+    end
   end
   
-  def process_file file_name
+  def process_file! file_name
     @file_name = file_name
-    process_file_contents File.read(file_name)
+    @slides_basename ||= File.basename(file_name, '.rb')
+    process_file_contents! File.read(file_name)
+    $stderr.puts "Processed #{file_name}"
+    self
   end
   
-  def process_file_contents file_contents
+  def process_file_contents! file_contents
     file_lines = file_contents.split("\n")
     @file_line = 0
     until file_lines.empty?
@@ -110,6 +125,68 @@ class LiterateRubySlideGenerator
     end
   end
   
+
+  def slides_basename
+    @slides_basename ||=
+      'slides'
+  end
+
+  def slides_dirname
+    @slides_dirname ||=
+      "#{slides_dir}/#{slides_basename}.slides"
+  end
+ 
+  def slides_textile
+    @slides_textile ||=
+      "#{slides_dirname}.textile"
+  end
+
+  def slides_textile_erb 
+    @slides_textile_erb ||=
+      "#{slides_textile}.erb"
+  end
+
+  def render_slides_textile!
+    File.open(slides_textile_erb, "w+") do | io |
+      render_slides io
+    end
+    $stderr.puts "Created #{slides_textile_erb}"
+    
+    erb = ERB.new(File.read(erb_file = slides_textile_erb))
+    erb.filename = erb_file
+    textile = erb.result(binding)
+
+    textile.gsub!(/"":relative:([^\s]+)/){|x| %Q{<a href="#{$1}">#{$1}</a>}}
+    textile.gsub!(/"":(https?:[^\s]+)/){|x| %Q{"#{$1}":#{$1}}}
+
+    File.open(slides_textile, "w+") { | out | out.puts textile }
+
+    $stderr.puts "Created #{slides_textile}"
+
+    self
+  end
+
+  def render_slides_html!
+    render_slides_textile!
+
+    slides = slides_dirname
+
+    scarlet = (ENV['SCARLET'] ||= File.expand_path("~/local/src/scarlet/bin/scarlet"))
+
+    dirs = %w(stylesheets javascripts image)
+    system "set -x; mkdir -p #{slides} #{dirs.map{|d| "#{slides}/#{d}"} * " "}"
+
+    system "set -x; #{scarlet} -f html #{slides_textile} > #{slides}/index.html"
+
+    dirs.each do | d |
+      system "set -x; cp -p #{d}/*.* #{slides}/#{d}/" if File.directory?(d)
+    end
+
+    $stderr.puts "Created #{slides}"
+
+    self
+  end
+
 
   class Slide
     attr_accessor :index, :name, :file_name, :file_line, :title
@@ -320,6 +397,8 @@ class LiterateRubySlideGenerator
 
 
     def capture_code_output!
+      $stderr.puts "  Capturing code output at #{file_name}:#{file_line} for #{title_string.inspect}"
+
       file = "capture.txt"
       rb = "capture.rb"
 
@@ -372,10 +451,10 @@ end
 
 obj = LiterateRubySlideGenerator.new
 ARGV.each do | file_name |
-  obj.process_file(file_name)
+  obj.process_file!(file_name)
 end
 
-obj.render_slides($stdout)
+obj.render_slides_html!
 
 exit 0
 

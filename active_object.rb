@@ -7,10 +7,10 @@ require 'thread' # Thread, Mutex, Queue
 # !SLIDE
 # Objective
 #
-# * Simplify inter-thread communication and managment.
+# * Simplify inter-thread communication and management.
 # * Provide Facade for objects in a thread-safe manner.
 # * Allow objects to execute safely in their own thread.
-# * Simple API
+# * Simple API.
 
 
 # !SLIDE
