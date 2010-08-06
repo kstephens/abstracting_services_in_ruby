@@ -359,7 +359,7 @@ END
       File.open(rb, "w+") { | fh | fh.puts prog }
       system("ruby #{rb.inspect} >/dev/null 2>&1")
     
-      File.read(file)
+      File.read(file) rescue ''
     ensure
       File.unlink(file) rescue nil
       File.unlink(rb) rescue nil

@@ -394,10 +394,10 @@ module SI
   # !SLIDE :index 9
   # Transport
   #
-  # Client: Deliver a Request to the Service.
+  # Client: Deliver the Request to the Service.
   # Service: Receive the Request from the Client.
   # Service: Invoke the Request.
-  # Service: Transport a Response to the Client.
+  # Service: Deliver the Response to the Client.
   # Client: Receive the Response from the Service.
   class Transport
     include Log
@@ -407,7 +407,10 @@ module SI
 
     # !SLIDE :index 10
     # Transport#deliver 
-    # Encode request, deliver, decode result.
+    # * Encode Request.
+    # * Deliver encoded Request.
+    # * Decode Response.
+    # * Extract result or exception.
     def deliver_request request
       request.create_identifier! if needs_request_identifier?
       _log_result [ :deliver_request, :request, request ] do
@@ -429,7 +432,7 @@ module SI
 
     # !SLIDE :index 10
     # Transport#receive
-    # Receive request payload from port.
+    # Receive Request payload from port.
     def receive_request port
       _log_result [ :receive_request, :port, port ] do
         payload = _receive_request(port)
@@ -465,9 +468,7 @@ module SI
 
     def invoke_request! request
       _log_result [ :invoke_request!, request ] do
-        response = request.invoke!
-        _log { [ :invoke_request!, :response, response ] }
-        response
+        request.invoke!
       end
     end
     # !SLIDE END
@@ -512,8 +513,6 @@ module SI
         end
         nil
       end
-
-      def needs_request_identifier?; true; end
     end
     # !SLIDE END
 
