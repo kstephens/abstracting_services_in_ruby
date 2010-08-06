@@ -134,14 +134,42 @@ module SI
     end
 
     def invoke!
-      @result = @receiver.__send__(@selector, *@arguments)
+      Response.new(self, @result = @receiver.__send__(@selector, *@arguments))
     rescue Exception => exc
-      EncapsulatedException.new(exc)
+      Response.new(self, nil, EncapsulatedException.new(exc))
     end
 
+    @@counter ||= 0
+    @@uuid ||= nil
     def create_identifier!
-      @identifier ||= File.read("/proc/sys/kernel/random/uuid").chomp!
+      @identifier ||= 
+        "#{@@counter += 1}-#{Thread.current.object_id}-#{$$}-#{@@uuid ||= File.read("/proc/sys/kernel/random/uuid").chomp!}"
     end
+
+    # !SLIDE :index 6
+    # Help encode/decode receiver
+
+    def dereference_receiver!
+      unless String === @receiver_class
+        case @receiver
+        when Module
+          obj = self.dup
+          obj.receiver = @receiver.name
+          obj.receiver_class = @receiver_class.name
+          return obj
+        end
+      end
+      self
+    end
+
+    def reference_receiver!
+      if String === @receiver_class
+        @receiver_class = eval("::#{obj.receiver_class}")
+        @receiver = eval("::#{obj.receiver}")
+      end
+      self
+    end
+    # !SLIDE END
   end
 
   # !SLIDE :index 7
@@ -149,18 +177,18 @@ module SI
   #
   # Encapsulate the response returned to the Client.
   class Response
-    attr_accessor :request, :result
+    attr_accessor :request, :result, :exception
     attr_accessor :identifier, :server, :timestamp # optional
 
-    def initialize req, res = nil
-      @request, @result = req, res
+    def initialize req, res = nil, exc = nil
+      @request, @result, @exception = req, res, exc
     end
   end
 
   # !SLIDE :index 6
   # Encapsulated Exception
   #
-  # Wrapper for exceptions raised in the Service.
+  # Encapsulates exceptions raised in the Service.
   class EncapsulatedException
     attr_accessor :exception_class, :exception_message, :exception_backtrace
 
@@ -256,12 +284,7 @@ module SI
       def _encode obj
         case obj
         when Request
-          case obj.receiver
-          when Module
-            obj = obj.dup
-            obj.receiver = obj.receiver.name
-            obj.receiver_class = obj.receiver_class.name
-          end
+          obj = obj.dereference_receiver!
         end
         ::YAML::dump(obj)
       end
@@ -271,11 +294,7 @@ module SI
         obj = ::YAML::load(obj)
         case obj
         when Request
-          case obj.receiver_class
-          when 'Module', 'Class'
-            obj.receiver = eval("::#{obj.receiver}")
-            obj.receiver_class = eval("::#{obj.receiver_class}")
-          end
+          obj = obj.reference_receiver!
         end
         obj
       end
@@ -396,9 +415,15 @@ module SI
         response = _deliver_request(request)
         response = decoder.decode(response)
         _log { [ :deliver_request, :response, response ] }
-        response = response.result if Response === response
-        response = response.invoke! if EncapsulatedException === response
-        response
+        if response
+          if exc = response.exception
+            exc.invoke!
+          else
+            response.result
+          end
+        else
+          response
+        end
       end
     end
 
@@ -440,8 +465,7 @@ module SI
 
     def invoke_request! request
       _log_result [ :invoke_request!, request ] do
-        result = request.invoke!
-        response = Response.new(request, result)
+        response = request.invoke!
         _log { [ :invoke_request!, :response, response ] }
         response
       end
@@ -471,7 +495,7 @@ module SI
     # Deliver to same process.
     class Local < self
       def _deliver_request request
-        request.invoke!
+        invoke_request!(request)
       end
     end
     # !SLIDE END
