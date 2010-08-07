@@ -8,6 +8,17 @@ class LiterateRubySlideGenerator
   EMPTY_ARRAY = [ ].freeze
   EMPTY_STRING = ''.freeze
 
+  module NamedList
+    def [] key
+      case key
+      when String
+        find { | e | e.name == key }
+      else
+        super
+      end
+    end
+  end
+
   attr_reader :slides, :lines
 
   attr_accessor :slides_dir, :slides_basename
@@ -17,6 +28,7 @@ class LiterateRubySlideGenerator
     @slide_stack = [ ]
     @slide = nil
     @slides = [ ]
+    @slides.extend NamedList
     @lines = [ ]
     @slides_dir = '.'
     @slides_basename = nil
@@ -51,8 +63,11 @@ class LiterateRubySlideGenerator
 
         args = { }
         command.gsub!(/:(\w+)\s+([^:]+)/) do | *x |
-          # $stderr.puts "  name = #{$1.to_sym.inspect} => #{$2.inspect}"
-          args[$1.to_sym] = $2
+          k, v = $1.to_sym, $2
+          v.sub!(/\A\s+/, '')
+          v.sub!(/\s+\Z/, '')
+          # $stderr.puts "  k = #{k.inspect} => #{v.inspect}"
+          args[k] = v
           ''
         end
         # $stderr.puts "#{@file_name}:#{"%5d" % @file_line}: args = #{args.inspect}" if ! args.empty?
@@ -155,6 +170,7 @@ class LiterateRubySlideGenerator
     end
     $stderr.puts "Created #{slides_textile_erb}"
     
+    riterate = self
     erb = ERB.new(File.read(erb_file = slides_textile_erb))
     erb.filename = erb_file
     textile = erb.result(binding)
@@ -195,7 +211,7 @@ class LiterateRubySlideGenerator
     attr_accessor :index, :name, :file_name, :file_line, :title
     attr_accessor :owner, :superslide, :subslides
     attr_accessor :lines, :indention
-    attr_accessor :capture_code_output
+    attr_accessor :capture_code_output, :code_output_lines_per_slide
 
     attr_accessor :paused
 
@@ -203,6 +219,7 @@ class LiterateRubySlideGenerator
       @superslide = nil
       @subslides = [ ]
       @lines = [ ]
+      @code_output_lines_per_slide = 15
       opts.each do | k, v |
         send(:"#{k}=", v)
       end
@@ -272,11 +289,10 @@ class LiterateRubySlideGenerator
         io.puts "@@@"
         io.puts ""
 
-        if capture_code_output
-          lines_per_slide = 15
+        if code_output
+          lines_per_slide = code_output_lines_per_slide
           $stderr.puts "  Code Output:"
-          @code_output = capture_code_output!
-          code_output_lines = @code_output.split("\n")
+          code_output_lines = code_output.split("\n")
           # $stderr.puts PP.pp(code_output_lines, '')
           $stderr.puts "    #{code_output_lines.size} lines (#{lines_per_slide} lines / page)"
           # Prevent empty pages
@@ -299,8 +315,7 @@ class LiterateRubySlideGenerator
             io.puts ""
           end
         end
-      end
-      
+      end      
     end
 
 
@@ -412,6 +427,13 @@ class LiterateRubySlideGenerator
 
     def ruby_block_end_line
       (@ruby_block_end_line ||= [ ruby_block_start_line ? "#{indention}end" : nil ]).first
+    end
+
+
+    def code_output
+      @code_output ||=
+        capture_code_output &&
+        capture_code_output!
     end
 
 

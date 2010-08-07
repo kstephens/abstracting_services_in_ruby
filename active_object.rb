@@ -262,7 +262,7 @@ class B < Base
   end
 end
 
-# !SLIDE :capture_code_output true
+# !SLIDE :name example :capture_code_output true
 # Running Example
 
 a = A.new
