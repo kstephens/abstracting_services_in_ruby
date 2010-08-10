@@ -253,7 +253,7 @@ module ActiveObject
     # Multiple workers
     #
     # Distributor distributes work to Threads via round-robin.
-    class Distributor < self
+    class Distributor < Identity
       def initialize target
         super
         @mutex = Mutex.new
@@ -263,13 +263,17 @@ module ActiveObject
 
       def method_missing selector, *arguments, &block
         _log { "#{selector} #{arguments.inspect}" }
-        target = nil
-        @mutex.synchronize do
-          target = @target_list[@target_index]
-          @target_index = (@target_index + 1) % @target_list.size
+        if @target_list.empty?
+          super
+        else
+          target = nil
+          @mutex.synchronize do
+            target = @target_list[@target_index]
+            @target_index = (@target_index + 1) % @target_list.size
+          end
+          raise Error, "No target" unless target
+          target.method_missing(selector, *arguments, &block)
         end
-        raise Error, "No target" unless target
-        target.method_missing(selector, *arguments, &block)
       end
 
       def _active_add_distributee! cls, new_target = nil
@@ -286,6 +290,9 @@ module ActiveObject
   module Mixin
     def self.included target
       super
+      target.instance_eval do 
+        alias :_new_without_active_facade :new
+      end
       target.extend(ClassMethods)
     end
     
@@ -387,6 +394,7 @@ end
 # !SLIDE :name example_1 :capture_code_output true
 # Example with Identity Facade
 
+puts "Example with Identity Facade" # !SLIDE IGNORE
 A.active_facade = B.active_facade = nil # ActiveObject::Facade::Identity
 a = A.new
 b = B.new
@@ -406,6 +414,7 @@ $stderr.puts "DONE!"
 # !SLIDE :name example_2 :capture_code_output true
 # Example with Active Facade
 
+puts "Example with Active Facade" # !SLIDE IGNORE
 A.active_facade = B.active_facade = ActiveObject::Facade::Active
 a = A.new
 b = B.new
@@ -425,17 +434,18 @@ $stderr.puts "DONE!"
 # !SLIDE :name example_3 :capture_code_output true
 # Example with Active Distributor
 
+puts "Example with Active Distributor" # !SLIDE IGNORE
 A.active_facade = B.active_facade = ActiveObject::Facade::Distributor
 a = A.new
 b = B.new
 
-a._active_add_distributee! ActiveObject::Facade::Active
-a._active_add_distributee! ActiveObject::Facade::Active
-b._active_add_distributee! ActiveObject::Facade::Active
-b._active_add_distributee! ActiveObject::Facade::Active
-
 a.b = b
 b.a = a
+
+a._active_add_distributee! ActiveObject::Facade::Active
+a._active_add_distributee! ActiveObject::Facade::Active
+b._active_add_distributee! ActiveObject::Facade::Active
+b._active_add_distributee! ActiveObject::Facade::Active
 
 a.do_a("Foo") 
 b.do_b("Bar") 

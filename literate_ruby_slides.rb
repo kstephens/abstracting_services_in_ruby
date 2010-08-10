@@ -331,6 +331,8 @@ class LiterateRubySlideGenerator
         case line
         when Slide
           line.render_subslide io
+        when /#\s*!SLIDE\s+IGNORE/i
+          # NOTHING
         else
           io.puts line
         end
