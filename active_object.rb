@@ -11,8 +11,9 @@ require 'thread' # Thread, Mutex, Queue
 # Objective
 #
 # * Simplify inter-thread communication and management.
-# * Provide Facade for objects in a thread-safe manner.
-# * Allow objects to execute safely in their own thread.
+# * Provide a thread-safe Facade to object methods.
+# * Select ActiveObject Facade at run-time.
+# * Allow objects to execute work safely in their own thread.
 # * Simple API.
 
 
@@ -25,26 +26,17 @@ require 'thread' # Thread, Mutex, Queue
 # !SLIDE
 # Design
 #
-# * ActiveObject - module to mixin to existing classes.
-# * ActiveObject::Proxy - object to receive and enqueue messages, owns thread to process queued messages.
+# * ActiveObject::Mixin - module to mixin to existing classes.
+# * ActiveObject::Facade - object to receive and enqueue messages, owns thread to process queued messages.
 # * ActiveObject::Message - encapsulate message for proxy for later execution by thread. 
 
 # !SLIDE 
 # ActiveObject Mixin
 #
-# Adds methods to construct an active Proxy object for instances of the including Class.
+# Adds methods to construct an active Facade object for instances of the including Class.
 module ActiveObject
   # Generic API error.
   class Error < ::Exception; end
-
-  # !SLIDE
-  # Construct Proxy
-  #
-  # Return the ActiveObject::Proxy for this object.
-  def _active_proxy
-    @_active_proxy ||=
-      Proxy.new(self)
-  end
 
   # !SLIDE
   # Logging
@@ -55,66 +47,182 @@ module ActiveObject
       c = caller
       c = c[0]
       c = c =~ /`(.*)?'/ ? $1 : '<<unknown>>'
-      $stderr.puts "#{_log_prefix}T@#{Thread.current.object_id} @#{object_id} #{self.class}##{c} #{msg}"
+      namespace = Module === self ? "#{self.name}." : "#{self.class.name}#"
+      $stderr.puts "#{_log_prefix}T@#{Thread.current.object_id} @#{object_id} #{namespace}#{c} #{msg}"
     end
   end
 
   # !SLIDE
-  # Message
+  # Facade
   #
-  # Encapsulates message.
-  # If block is provided, call it with result after invocation completion.
-  class Message
+  # Intercepts messages on behalf of the target object.
+  # Subclasses of Facade handle delivery of message to the target object.
+  class Facade
     include Logging
-    attr_accessor :proxy, :selector, :arguments, :block, :thread
-    attr_accessor :result, :exception
-    
-    def initialize proxy, selector, arguments, block
-      @proxy, @selector, @arguments, @block = proxy, selector, arguments, block
-      @thread = ::Thread.current
-    end
-    
-    def invoke!
-      _log { "" }
-      @result = @proxy._active_target.__send__(@selector, *@arguments)
-      if @block
-        @block.call(@result)
-      end
-    rescue Exception => exc
-      @thread.raise exc
-    end
-  end
-
-  # !SLIDE
-  # Active Proxy
-  #
-  # Recieves messages on behalf of the target object.
-  # Places message in its queue.
-  # Manages a Thread to pull messages from its queue.
-  class Proxy
-    include Logging
-    # Signal to tell thread to stop working on queue.
-    class Stop < ::Exception; end
 
     def initialize target
       _log { "target=@#{target.object_id}" }
       @target = target
-      @thread = nil
-      @mutex = Mutex.new
-      @queue = Queue.new
-      @running = false
-      @stopped = false
+      target._active_facade = self
     end
 
     # !SLIDE
-    # Enqueue Message
+    # Identity Facade
     #
-    # Intercepts messages on behalf of @target.
-    # Construct Message and place it in its queue.
-    def method_missing selector, *arguments, &block
-      _log { "#{selector} #{arguments.inspect}" }
-      _active_enqueue(Message.new(self, selector, arguments, block))
+    # Immediately delegate to the target.
+    class Identity < self
+      # !SLIDE
+      # Delegate message directly
+      #
+      # Delegate messages immediately to @target.
+      # Does not bother to construct a Message.
+      def method_missing selector, *arguments, &block
+        _log { "#{selector} #{arguments.inspect}" }
+        result = @target.__send__(selector, *arguments)
+        if block
+          block.call(result)
+        else
+          nil
+        end
+      end
+
+      # Nothing to start; this Facade is not active.
+      def _active_start!
+        self
+      end
+
+      # Nothing to stop; this Facade is not active.
+      def _active_stop!
+        # NOTHING.
+        self
+      end
     end
+
+    # !SLIDE
+    # Active Facade
+    #
+    # Recieves message on behalf of the target object.
+    # Places Message in its Queue.
+    # Manages a Thread to pull Messages from its Queue for invocation.
+    class Active < self
+      # Signal Thread to stop working on queue.
+      class Stop < ::Exception; end
+
+      def initialize target
+        super
+        @thread = nil
+        @mutex = Mutex.new
+        @queue = Queue.new
+        @running = false
+        @stopped = false
+        @@active_facades << self
+      end
+
+      # !SLIDE
+      # Enqueue Message
+      #
+      # Intercept message on behalf of @target.
+      # Construct Message and place it in its Queue.
+      def method_missing selector, *arguments, &block
+        _log { "#{selector} #{arguments.inspect}" }
+        _active_start! unless @running
+        _active_enqueue(Message.new(self, selector, arguments, block))
+      end
+
+      # !SLIDE
+      # Message
+      #
+      # Encapsulates Ruby message.
+      # If block is provided, call it with result after Message invocation.
+      class Message
+        include Logging
+        attr_accessor :facade, :selector, :arguments, :block, :thread
+        attr_accessor :result, :exception
+        
+        def initialize facade, selector, arguments, block
+          _log { "facade=@#{facade.object_id} selector=#{selector.inspect} arguments=#{arguments.inspect}" }
+          @facade, @selector, @arguments, @block = facade, selector, arguments, block
+          @thread = ::Thread.current
+        end
+        
+        def invoke!
+          _log { "@facade=@#{@facade.object_id}" }
+          @result = @facade._active_target.__send__(@selector, *@arguments)
+          if @block
+            @block.call(@result)
+          end
+        rescue Exception => exc
+          @thread.raise exc
+        end
+      end
+      
+      # !SLIDE
+      # Queuing
+      def _active_enqueue message
+        return if @stopped
+        _log { "message=@#{message.object_id} @queue.size=#{@queue.size}" }
+        @queue.push message
+      end
+      
+      def _active_dequeue
+        message = @queue.pop
+        _log { "message=@#{message.object_id} @queue.size=#{@queue.size}" }
+        message
+      end
+      
+      # !SLIDE 
+      # Start worker Thread
+      #
+      # Start a Thread that blocks waiting for Message in its Queue.
+      def _active_start!
+        _log { "" }
+        @mutex.synchronize do
+          return self if @running || @thread || @stopped
+          @stopped = false
+          @thread = Thread.new do 
+            _log { "Thread.new" }
+            @running = true
+            Active.active_facades << self
+            while @running
+              begin
+                _active_dequeue.invoke! if @running && ! @stopped
+              rescue Stop => exc
+                _log { "stopping via #{exc.class}" }
+              end
+            end
+            _log { "stopped" }
+            self
+          end
+          _log { "@thread=@T#{@thread.object_id}" }
+          @thread
+        end
+        self
+      end
+      
+      # !SLIDE
+      # Stop worker Thread
+      #
+      # Sends exception to Thread to tell it to stop.
+      def _active_stop!
+        _log { "" }
+        t = @mutex.synchronize do
+          return self if @stopped || ! @thread || ! @running
+          @stopped = true
+          @running = false
+          t = @thread
+          @thread = nil
+          t
+        end
+        if t.alive?
+          t.raise(Stop.new) rescue nil
+        end
+        self
+      rescue Stop => exc
+        # Handle Stop thrown to main thread after last Thread#join.
+        self
+      end
+    end
+
 
     # !SLIDE
     # Support
@@ -127,97 +235,111 @@ module ActiveObject
       @thread
     end
 
-    def _active_enqueue message
-      return if @stopped
-      _log { "message=@#{message.object_id} @queue.size=#{@queue.size}" }
-      @queue.push message
+    def self.active_facades
+      @@active_facades ||= [ ]
     end
 
-    def _active_dequeue
-      message = @queue.pop
-      _log { "message=@#{message.object_id} @queue.size=#{@queue.size}" }
-      message
-    end
-
-    # !SLIDE 
-    # Start Thread
-    #
-    # Start a thread that blocks waiting for message to pull from its queue.
-    def _active_start!
-      _log { "" }
-      @mutex.synchronize do
-        raise Error, "Thread already exists" if @thread
-        raise Error, "Proxy already running" if @running
-        raise Error, "Thread is stopping"    if @stopped
-        @stopped = false
-        @thread = Thread.new do 
-          _log { "Thread.new" }
-          @running = true
-          while @running
-            begin
-              _active_dequeue.invoke! if @running && ! @stopped
-            rescue Stop => exc
-              _log { "stopping via #{exc.class}" }
-            end
-          end
-          _log { "stopped" }
-          self
+    def self.join
+      active_facades.each do | f |
+        if thr = f._active_thread
+          f._log { "join thr=T@#{thr.object_id}" }
+          thr.join rescue nil
         end
-        _log { "@thread=@T#{@thread.object_id}" }
-        @thread
       end
-      self
-    end
-
-    # !SLIDE
-    # Stop Thread
-    #
-    # Sends exception to thread to tell it to stop.
-    def _active_stop!
-      _log { "" }
-      t = @mutex.synchronize do
-        return self if @stopped
-        raise Error, "No Thread"          unless @thread
-        raise Error, "Thread not running" unless @running
-        @stopped = true
-        @running = false
-        t = @thread
-        @thread = nil
-        t
-      end
-      if t.alive?
-        t.raise(Stop.new) rescue nil
-      end
-      self
     end
     # !SLIDE END
+
+    # !Slide
+    # Multiple workers
+    #
+    # Distributor distributes work to Threads via round-robin.
+    class Distributor < self
+      def initialize target
+        super
+        @mutex = Mutex.new
+        @target_list = [ ]
+        @target_index = 0
+      end
+
+      def method_missing selector, *arguments, &block
+        _log { "#{selector} #{arguments.inspect}" }
+        target = nil
+        @mutex.synchronize do
+          target = @target_list[@target_index]
+          @target_index = (@target_index + 1) % @target_list.size
+        end
+        raise Error, "No target" unless target
+        target.method_missing(selector, *arguments, &block)
+      end
+
+      def _active_add_distributee! cls, new_target = nil
+        @mutex.synchronize do
+          @target_list << cls.new(new_target || @target.clone)
+        end
+      end
+    end
   end
+
+
+  # !SLIDE
+  # Glue Facade to including Class.
+  module Mixin
+    def self.included target
+      super
+      target.extend(ClassMethods)
+    end
+    
+    attr_accessor :_active_facade
+
+    # !SLIDE
+    # Facade interface.
+    module ClassMethods
+      include Logging
+
+      # The Facade subclass to use for instances of the including Class.
+      attr_accessor :active_facade
+      
+      # Override including class' .new method
+      # to wrap actual object with a 
+      # Facade instance.
+      def new *arguments, &block
+        _log { "arguments=#{arguments.inspect}" }
+        obj = super(*arguments, &block)
+        facade = (active_facade || Facade::Identity).new(obj)
+        _log { "facade=@#{facade.object_id}" }
+        facade
+      end
+    end
+  end
+  # !SLIDE END
+
 end
 # !SLIDE END
 
 # !SLIDE 
 # Example
 #
-# * Two objects send messages back to each other N times
+# * Two objects send messages back and forth to each other N times.
 # * Mixin ActiveObject to each class.
 
 # !SLIDE
 # Base class for example objects
 class Base
-  include ActiveObject
+  include ActiveObject::Mixin
 
   # Prepare to do activity N times.
   def initialize
+    _log { "" }
     @counter = 1
   end
 
-  # Stop its ActiveObject::Proxy when @counter is depleated.
+  # Stop its ActiveObject::Facade when @counter is depleated.
   def decrement_counter_or_stop
     if @counter > 0
       @counter -= 1
       true
     else
-      _active_proxy._active_stop!
+      _active_facade._active_stop!
       false
     end
   end
@@ -262,29 +384,65 @@ class B < Base
   end
 end
 
-# !SLIDE :name example :capture_code_output true
-# Running Example
+# !SLIDE :name example_1 :capture_code_output true
+# Example with Identity Facade
 
+A.active_facade = B.active_facade = nil # ActiveObject::Facade::Identity
 a = A.new
 b = B.new
 
-a.b = b._active_proxy
-b.a = a._active_proxy
-
-a = a._active_proxy
-b = b._active_proxy
-
-a._active_start!
-b._active_start!
+a.b = b
+b.a = a
 
 a.do_a("Foo") 
 b.do_b("Bar") 
 
-a._active_thread.join rescue nil
-b._active_thread.join rescue nil
+ActiveObject::Facade::Active.join
 
 $stderr.puts "DONE!"
-exit 0
+
+# !SLIDE END
+
+# !SLIDE :name example_2 :capture_code_output true
+# Example with Active Facade
+
+A.active_facade = B.active_facade = ActiveObject::Facade::Active
+a = A.new
+b = B.new
+
+a.b = b
+b.a = a
+
+a.do_a("Foo") 
+b.do_b("Bar") 
+
+ActiveObject::Facade::Active.join
+
+$stderr.puts "DONE!"
+
+# !SLIDE END
+
+# !SLIDE :name example_3 :capture_code_output true
+# Example with Active Distributor
+
+A.active_facade = B.active_facade = ActiveObject::Facade::Distributor
+a = A.new
+b = B.new
+
+a._active_add_distributee! ActiveObject::Facade::Active
+a._active_add_distributee! ActiveObject::Facade::Active
+b._active_add_distributee! ActiveObject::Facade::Active
+b._active_add_distributee! ActiveObject::Facade::Active
+
+a.b = b
+b.a = a
+
+a.do_a("Foo") 
+b.do_b("Bar") 
+
+ActiveObject::Facade::Active.join
+
+$stderr.puts "DONE!"
 
 # !SLIDE END
 
@@ -296,4 +454,5 @@ exit 0
 # * Supports asynchronous results.
 #
 
+exit 0
 
