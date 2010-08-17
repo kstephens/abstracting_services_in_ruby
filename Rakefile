@@ -1,6 +1,3 @@
-SCARLET = File.expand_path("~/local/src/scarlet/bin/scarlet")
-ENV['SCARLET'] ||= SCARLET
-
 
 task :default => 
   [ 
@@ -14,12 +11,13 @@ end
 
 task :slides => [ 'asir.slides', 'active_object.slides' ]
 
-ENV['SCARLET'] ||= File.expand_path("../scarlet/bin/scarlet")
+ENV['SCARLET'] ||= File.expand_path("../../scarlet/bin/scarlet", __FILE__)
+ENV['RITERATE'] ||= File.expand_path("../../riterate/bin/riterate", __FILE__)
 
 file 'asir.slides' => [ 'asir.rb' ] do
-  sh "ruby ./literate_ruby_slides.rb asir.rb"
+  sh "$RITERATE asir.rb"
 end
 
 file 'active_object.slides' => [ 'active_object.rb' ] do
-  sh "ruby ./literate_ruby_slides.rb active_object.rb"
+  sh "$RITERATE active_object.rb"
 end

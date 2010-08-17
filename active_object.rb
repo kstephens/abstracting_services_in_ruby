@@ -278,7 +278,8 @@ module ActiveObject
 
       def _active_add_distributee! cls, new_target = nil
         @mutex.synchronize do
-          @target_list << cls.new(new_target || @target.clone)
+          target = new_target || (Proc === @target ? @target.call : @target.clone)
+          @target_list << cls.new(target)
         end
       end
     end
