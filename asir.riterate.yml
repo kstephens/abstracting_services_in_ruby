@@ -1,57 +1,61 @@
 --- 
 riterate: 
+  do_not_update: true
   ordered_slides: 
   - Abstracting Services in Ruby
+  - Sample Service
   - Objectives
   - Design
   - Modules and Classes
   - Request
+  - Example Request	
   - Help encode/decode receiver
   - Response
+  - Example Exception
   - Encapsulated Exception
-  - "Coder "
-  - Identity Coder
-  - Marshal Coder
-  - YAML Coder
-  - Multi Coder
-  - Security Coder
-  - Sign Coder Support
+  - Coder
+  - Null Coder
   - Transport
-  - "Transport#deliver "
+  - Transport#deliver
   - Transport#receive
+  - Null Transport
   - Transport Support
+  - Call service directly
+  - Sample Service with Client Support
+  - Mixin Client support to any Module
+  - In-core, in-process service
+  - Client Proxy
+  - Identity Coder
   - Local Transport
+  - One-way, asynchronous subprocess service
   - Subprocess Transport
-  - Payload IO for Transport
+  - One-way, file log service
+  - YAML Coder
   - File Transport
   - File Transport Support
-  - Process (recieve) requests from a file.
-  - Named Pipe Server
-  - TCP Socket Transport
-  - TCP Socket Server
-  - Mixin Client support to any Module
-  - Client Proxy
-  - Sample Service
-  - Sample Service
-  - Call service directly
-  - In-core, in-process service
-  - One-way, asynchronous subprocess service
-  - One-way, file log service
+  - Payload IO for Transport
   - Replay file log
+  - Process (receive) requests from a file.
   - One-way, named pipe service
+  - Named Pipe Server
   - One-way, named pipe service with signature
+  - Multi Coder
+  - Marshal Coder
+  - Sign Coder
+  - Sign Coder Support
   - One-way, named pipe service with invalid signature
   - Socket service
+  - TCP Socket Transport
+  - TCP Socket Server
   - Socket service with forwarded exception.
+  - Synopsis
   - Object Initialization
   - Diagnostic Logging
-  - Null Coder
   - Other Coders
-  - Null Transport
   - HTTP Transport
   - Multi Transport
   unknown_slides: []
 
-  unordered_slides: [] 
-  version: "1.0"
+  unordered_slides: []
 
+  version: "1.0"

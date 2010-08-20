@@ -3,7 +3,7 @@ require 'digest/sha1'
 require 'gserver'
 require 'socket'
 
-# !SLIDE :index 1
+# !SLIDE
 # Abstracting Services in Ruby
 #
 # * Kurt Stephens
@@ -17,7 +17,7 @@ require 'socket'
 #
 # !SLIDE END
 
-# !SLIDE :index 2
+# !SLIDE
 # Objectives
 #
 # * Simplify service/client definitions.
@@ -29,7 +29,7 @@ require 'socket'
 #
 # !SLIDE END
 
-# !SLIDE :index 3
+# !SLIDE
 # Design
 #
 # * Nouns:
@@ -52,7 +52,7 @@ require 'socket'
 #
 # !SLIDE END
 
-# !SLIDE :index 4
+# !SLIDE
 # Modules and Classes
 module SI
   # Reusable constants to avoid unncessary garbage.
@@ -94,7 +94,7 @@ module SI
     def _log msg = nil
       msg ||= yield
       msg = String === msg ? msg : _log_format(msg)
-      msg = "  *** #{$$} #{Module === self ? self : self.class} #{msg}"
+      msg = "  #{$$} #{Module === self ? self : self.class} #{msg}"
       case @logger
       when Proc
         @logger.call msg
@@ -126,7 +126,7 @@ module SI
   end
 
 
-  # !SLIDE :index 5
+  # !SLIDE
   # Request
   #
   # Encapsulate the request message from the Client to be handled by the Service.
@@ -152,7 +152,7 @@ module SI
         "#{@@counter += 1}-#{Thread.current.object_id}-#{$$}-#{@@uuid ||= File.read("/proc/sys/kernel/random/uuid").chomp!}"
     end
 
-    # !SLIDE :index 6
+    # !SLIDE
     # Help encode/decode receiver
 
     def dereference_receiver!
@@ -170,15 +170,15 @@ module SI
 
     def reference_receiver!
       if String === @receiver_class
-        @receiver_class = eval("::#{obj.receiver_class}")
-        @receiver = eval("::#{obj.receiver}")
+        @receiver_class = eval("::#{@receiver_class}")
+        @receiver = eval("::#{@receiver}")
       end
       self
     end
     # !SLIDE END
   end
 
-  # !SLIDE :index 7
+  # !SLIDE
   # Response
   #
   # Encapsulate the response returned to the Client.
@@ -191,7 +191,7 @@ module SI
     end
   end
 
-  # !SLIDE :index 6
+  # !SLIDE
   # Encapsulated Exception
   #
   # Encapsulates exceptions raised in the Service.
@@ -209,7 +209,7 @@ module SI
     end
   end
 
-  # !SLIDE :index 8
+  # !SLIDE
   # Coder 
   #
   # Define encoding and decoding for Requests and Responses along a Transport.
@@ -254,7 +254,7 @@ module SI
     end
 
 
-    # !SLIDE :index 310
+    # !SLIDE
     # Identity Coder
     # Perform no encode/decode.
     class Identity < self
@@ -268,7 +268,7 @@ module SI
     end
 
 
-    # !SLIDE :index 730
+    # !SLIDE
     # Marshal Coder
     # Use Ruby Marshal for encode/decode.
     class Marshal < self
@@ -283,7 +283,7 @@ module SI
     end
 
 
-    # !SLIDE :index 520
+    # !SLIDE
     # YAML Coder
     # Use YAML for encode/decode.
     class Yaml < self
@@ -322,7 +322,7 @@ module SI
     end
 
 
-    # !SLIDE :index 710
+    # !SLIDE
     # Multi Coder
     # Chain multiple Coders as one.
     #
@@ -349,8 +349,8 @@ module SI
     end
     # !SLIDE END
 
-    # !SLIDE :index 730
-    # Security Coder
+    # !SLIDE
+    # Sign Coder
     #
     # Sign payload during encode, check signature during decode.
     #
@@ -380,7 +380,7 @@ module SI
         payload
       end
 
-      # !SLIDE :index 731
+      # !SLIDE
       # Sign Coder Support
 
       # Signature Error.
@@ -397,7 +397,7 @@ module SI
   # !SLIDE END
 
 
-  # !SLIDE :index 9
+  # !SLIDE
   # Transport
   #
   # Client: Deliver the Request to the Service.
@@ -411,7 +411,7 @@ module SI
 
     attr_accessor :encoder, :decoder
 
-    # !SLIDE :index 10
+    # !SLIDE
     # Transport#deliver 
     # * Encode Request.
     # * Deliver encoded Request.
@@ -436,7 +436,7 @@ module SI
       end
     end
 
-    # !SLIDE :index 10
+    # !SLIDE
     # Transport#receive
     # Receive Request payload from port.
     def receive_request port
@@ -454,7 +454,7 @@ module SI
     alias :_receive_request :_subclass_responsibility
 
     # !SLIDE pause
-    # !SLIDE :index 11
+    # !SLIDE
     # Transport Support
     # ...
 
@@ -496,7 +496,7 @@ module SI
     # !SLIDE END
 
 
-    # !SLIDE :index 320
+    # !SLIDE
     # Local Transport
     #
     # Deliver to same process.
@@ -508,7 +508,7 @@ module SI
     # !SLIDE END
 
 
-    # !SLIDE :index 410
+    # !SLIDE
     # Subprocess Transport
     #
     # Deliver to a forked subprocess.
@@ -523,7 +523,7 @@ module SI
     # !SLIDE END
 
 
-    # !SLIDE :index 520
+    # !SLIDE
     # Payload IO for Transport
     #
     # * Line containing the number of bytes in the payload
@@ -555,7 +555,7 @@ module SI
       end
     end
 
-    # !SLIDE :index 510
+    # !SLIDE
     # File Transport
     #
     # Deliver to a file.
@@ -575,7 +575,7 @@ module SI
         _read port
       end
 
-      # !SLIDE :index 513
+      # !SLIDE
       # File Transport Support
     
       def io
@@ -583,8 +583,8 @@ module SI
           ::File.open(file, "w+")
       end
 
-      # !SLIDE :index 560
-      # Process (recieve) requests from a file.
+      # !SLIDE
+      # Process (receive) requests from a file.
 
       def service_file!
         ::File.open(file, "r") do | port |
@@ -604,7 +604,7 @@ module SI
         end
       end
 
-      # !SLIDE :index 611
+      # !SLIDE
       # Named Pipe Server
 
       def prepare_fifo_server!
@@ -627,7 +627,7 @@ module SI
     end
 
 
-    # !SLIDE :index 910
+    # !SLIDE
     # TCP Socket Transport
     class TcpSocket < self
       include PayloadIO
@@ -656,7 +656,7 @@ module SI
         _read port
       end
 
-      # !SLIDE :index 920
+      # !SLIDE
       # TCP Socket Server
 
       def prepare_socket_server!
@@ -764,7 +764,7 @@ module SI
   # !SLIDE END
 
 
-  # !SLIDE :index 302
+  # !SLIDE
   # Mixin Client support to any Module
   #
   # Extend Module with #client proxy support.
@@ -781,7 +781,7 @@ module SI
       end
     end
 
-    # !SLIDE :index 303
+    # !SLIDE
     # Client Proxy
     #
     # Provide client interface proxy to a service.
@@ -807,6 +807,16 @@ module SI
     end
     # !SLIDE END
   end
+  # !SLIDE END
+
+  # !SLIDE
+  # Synopsis
+  #
+  # * Services are easy to abstract away.
+  # * Separation of transport, encoding.
+  # * One-way .vs. Two-way.
+  # * Asynchronous .vs. syncronous.
+  #
   # !SLIDE END
 end
 # !SLIDE END
