@@ -1,0 +1,57 @@
+--- 
+riterate: 
+  ordered_slides: 
+  - Abstracting Services in Ruby
+  - Objectives
+  - Design
+  - Modules and Classes
+  - Request
+  - Help encode/decode receiver
+  - Response
+  - Encapsulated Exception
+  - "Coder "
+  - Identity Coder
+  - Marshal Coder
+  - YAML Coder
+  - Multi Coder
+  - Security Coder
+  - Sign Coder Support
+  - Transport
+  - "Transport#deliver "
+  - Transport#receive
+  - Transport Support
+  - Local Transport
+  - Subprocess Transport
+  - Payload IO for Transport
+  - File Transport
+  - File Transport Support
+  - Process (recieve) requests from a file.
+  - Named Pipe Server
+  - TCP Socket Transport
+  - TCP Socket Server
+  - Mixin Client support to any Module
+  - Client Proxy
+  - Sample Service
+  - Sample Service
+  - Call service directly
+  - In-core, in-process service
+  - One-way, asynchronous subprocess service
+  - One-way, file log service
+  - Replay file log
+  - One-way, named pipe service
+  - One-way, named pipe service with signature
+  - One-way, named pipe service with invalid signature
+  - Socket service
+  - Socket service with forwarded exception.
+  - Object Initialization
+  - Diagnostic Logging
+  - Null Coder
+  - Other Coders
+  - Null Transport
+  - HTTP Transport
+  - Multi Transport
+  unknown_slides: []
+
+  unordered_slides: [] 
+  version: "1.0"
+
