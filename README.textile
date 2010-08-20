@@ -1,0 +1,18 @@
+h1. Abstracting Services in Ruby
+
+* Kurt Stephens
+* 2010/08/19
+* Slides -- "http://kurtstephens.com/pub/abstracting_services_in_ruby/asir.slides/":http://kurtstephens.com/pub/abstracting_services_in_ruby/asir.slides/
+* Code -- "http://kurtstephens.com/pub/abstracting_services_in_ruby/":http://kurtstephens.com/pub/abstracting_services_in_ruby/
+* Git -- "http://github.com/kstephens/abstractiing_services_in_ruby":http://github.com/kstephens/abstractiing_services_in_ruby
+
+h2. Objectives
+
+
+* Simplify service/client definitions.
+* Anticipate new encoding, delivery and security requirements.
+* Separate request/response encoding and delivery for composition.
+* Elide deployment decisions.
+* Integrate diagnostics and logging.
+* Simplify integration testing.
+
