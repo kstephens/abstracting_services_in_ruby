@@ -6,8 +6,8 @@ require 'asir'
 
 # Added logging and #client support.
 module SomeService
-  include SI::Client
-  include SI::Log
+  include SI::Client # SomeService.client
+  include SI::Log    # SomeService#_log_result
 
   def do_it x, y
     _log_result [ :do_it, x, y ] do 
