@@ -10,7 +10,10 @@ require 'socket'
 # * 2010/08/19
 # * Slides -- "":http://kurtstephens.com/pub/abstracting_services_in_ruby/asir.slides/
 # * Code -- "":http://kurtstephens.com/pub/abstracting_services_in_ruby/
-# * Git -- "":http://github.com/kstephens/abstractiing_services_in_ruby
+# * Git -- "":http://github.com/kstephens/abstracting_services_in_ruby
+# * Tools 
+# ** Riterate -- "":http://github.com/kstephens/riterate
+# ** Scarlet -- "":http://github.com/kstephens/scarlet
 #
 # !SLIDE END
 
