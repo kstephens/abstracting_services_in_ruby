@@ -7,13 +7,24 @@ require 'socket'
 # Abstracting Services in Ruby
 #
 # * Kurt Stephens
-# * 2010/08/19
+# * 2010/09/03 DRAFT
 # * Slides -- "":http://kurtstephens.com/pub/abstracting_services_in_ruby/asir.slides/
 # * Code -- "":http://kurtstephens.com/pub/abstracting_services_in_ruby/
 # * Git -- "":http://github.com/kstephens/abstracting_services_in_ruby
 # * Tools 
 # ** Riterate -- "":http://github.com/kstephens/riterate
 # ** Scarlet -- "":http://github.com/kstephens/scarlet
+#
+# !SLIDE END
+
+# !SLIDE
+# Issues
+#
+# * Client knows too much about infrastructure.
+# * Setup for testing and QA is more complex.
+# * Measuring test coverage of a remote services.
+# * Debugging the root cause of a remote service error.
+# * Evaluating and switching infrastructures.
 #
 # !SLIDE END
 
@@ -55,7 +66,7 @@ require 'socket'
 # !SLIDE
 # Modules and Classes
 module SI
-  # Reusable constants to avoid unncessary garbage.
+  # Reusable constants to avoid unnecessary garbage.
   EMPTY_ARRAY = [ ].freeze; EMPTY_HASH =  { }.freeze; EMPTY_STRING = ''.freeze
 
   # Generic API error.
@@ -145,12 +156,19 @@ module SI
       Response.new(self, nil, EncapsulatedException.new(exc))
     end
 
-    @@counter ||= 0
-    @@uuid ||= nil
+    # !SLIDE
+    # Request Identifier
+
     def create_identifier!
       @identifier ||= 
-        "#{@@counter += 1}-#{Thread.current.object_id}-#{$$}-#{@@uuid ||= File.read("/proc/sys/kernel/random/uuid").chomp!}"
+        [
+          @@counter += 1,
+          $$,
+          Thread.current.object_id,
+          @@uuid ||= File.read("/proc/sys/kernel/random/uuid").chomp!
+        ] * '-'
     end
+    @@counter ||= 0; @@uuid ||= nil
 
     # !SLIDE
     # Help encode/decode receiver
@@ -214,8 +232,7 @@ module SI
   #
   # Define encoding and decoding for Requests and Responses along a Transport.
   class Coder
-    include Log
-    include Initialization
+    include Log, Initialization
 
     def encode obj
       _log_result [ :encode, obj ] do
@@ -225,7 +242,7 @@ module SI
 
     def decode obj
       _log_result [ :decode, obj ] do
-        _decode obj
+        obj and _decode obj
       end
     end
 
@@ -277,7 +294,6 @@ module SI
       end
 
       def _decode obj
-        return obj unless obj
         ::Marshal.load(obj)
       end
     end
@@ -296,13 +312,12 @@ module SI
       end
 
       def _decode obj
-        return obj unless obj
-        obj = ::YAML::load(obj)
-        case obj
+        case obj = ::YAML::load(obj)
         when Request
-          obj = obj.reference_receiver!
+          obj.reference_receiver!
+        else
+          obj
         end
-        obj
       end
     end
 
@@ -373,7 +388,6 @@ module SI
       end
 
       def _decode obj
-        return obj unless obj
         raise SignatureError, "expected Hash, given #{obj.class}" unless Hash === obj
         payload = obj[:payload]
         raise SignatureError, "signature invalid" unless obj == _encode(payload)
@@ -406,13 +420,12 @@ module SI
   # Service: Deliver the Response to the Client.
   # Client: Receive the Response from the Service.
   class Transport
-    include Log
-    include Initialization
+    include Log, Initialization
 
     attr_accessor :encoder, :decoder
 
     # !SLIDE
-    # Transport#deliver 
+    # Transport#deliver_request 
     # * Encode Request.
     # * Deliver encoded Request.
     # * Decode Response.
@@ -437,11 +450,11 @@ module SI
     end
 
     # !SLIDE
-    # Transport#receive
-    # Receive Request payload from port.
-    def receive_request port
-      _log_result [ :receive_request, :port, port ] do
-        payload = _receive_request(port)
+    # Transport#receive_request
+    # Receive Request payload from stream.
+    def receive_request stream
+      _log_result [ :receive_request, :stream, stream ] do
+        payload = _receive_request(stream)
         encoder.decode(payload)
       end
     end
@@ -526,33 +539,36 @@ module SI
     # !SLIDE
     # Payload IO for Transport
     #
-    # * Line containing the number of bytes in the payload
-    # * The payload
-    # * Blank line
+    # Framing
+    # * Line containing the number of bytes in the payload.
+    # * The payload bytes.
+    # * Blank line.
     module PayloadIO
-      def _write payload, port
-        port.puts payload.size
-        port.write payload
-        port.puts EMPTY_STRING
+      def _write payload, stream
+        stream.puts payload.size
+        stream.write payload
+        stream.puts EMPTY_STRING
         _log { "  _write #{payload.inspect}" }
-        port.flush
+        stream.flush
       end
 
-      def _read port
-        size = port.readline.chomp.to_i
+      def _read stream
+        size = stream.readline.chomp.to_i
         _log { "  _read size    = #{size.inspect}" }
-        payload = port.read(size)
+        payload = stream.read(size)
         _log { "  _read payload = #{payload.inspect}" }
-        port.readline
+        stream.readline
         payload
       end
 
+      # !SLIDE pause
       def close
         if @io
           @io.close 
           @io = nil
         end
       end
+      # !SLIDE resume
     end
 
     # !SLIDE
@@ -571,8 +587,8 @@ module SI
         nil
       end
 
-      def _receive_request port
-        _read port
+      def _receive_request stream
+        _read stream
       end
 
       # !SLIDE
@@ -587,15 +603,15 @@ module SI
       # Process (receive) requests from a file.
 
       def service_file!
-        ::File.open(file, "r") do | port |
-          service_port! port
+        ::File.open(file, "r") do | stream |
+          service_stream! stream
         end
       end
 
-      def service_port! port
-        until port.eof?
+      def service_stream! stream
+        until stream.eof?
           begin
-            request = receive_request(port)
+            request = receive_request(stream)
             result = invoke_request!(request)
             # Nowhere to send the result!
           rescue Exception => err
@@ -633,6 +649,8 @@ module SI
       include PayloadIO
       attr_accessor :port, :address
       
+      # !SLIDE
+      # Returns a connected TCP socket.
       def io 
         @io ||=
           begin
@@ -647,13 +665,17 @@ module SI
           end
       end
 
+      # !SLIDE
+      # Sends the encoded request and returns the encoded response.
       def _deliver_request request
         _write request, io
         _read io
       end
 
-      def _receive_request port
-        _read port
+      # !SLIDE
+      # Receives the encoded request.
+      def _receive_request stream
+        _read stream
       end
 
       # !SLIDE
@@ -675,12 +697,11 @@ module SI
         end
       end
 
-      class ::GServer
-        attr_reader :tcpServerThread
-      end
-
+      # !SLIDE
+      # Reuse GServer.
       class Server < GServer
         include PayloadIO
+        attr_reader :tcpServerThread
 
         def initialize transport, *args
           @transport = transport
@@ -688,13 +709,15 @@ module SI
           super *args
         end
 
-        def serve port 
+        # !SLIDE
+        # Serve each TCP connection request.
+        def serve stream 
           @transport._log {" serve: connected" }
           
           @mutex.synchronize do
             begin
               request = request_ok = result = result_ok = exception = nil
-              request = @transport.receive_request(port)
+              request = @transport.receive_request(stream)
               request_ok = true
               result = @transport.invoke_request!(request)
               result_ok = true
@@ -707,7 +730,7 @@ module SI
                   unless result_ok
                     result = EncapsulatedException.new(exception)
                   end
-                  @transport._write(@transport.encoder.encode(result), port)
+                  @transport._write(@transport.encoder.encode(result), stream)
                 end
               rescue Exception => exc
                 @transport._log [ :response_error, exc ]
@@ -722,6 +745,7 @@ module SI
 
       # !SLIDE END
     end
+    # !SLIDE END
 
 
     # !SLIDE
@@ -786,8 +810,7 @@ module SI
     #
     # Provide client interface proxy to a service.
     class Proxy
-      include Log
-      include Initialization
+      include Log, Initialization
       
       attr_accessor :receiver, :transport
       
@@ -808,17 +831,17 @@ module SI
     # !SLIDE END
   end
   # !SLIDE END
-
-  # !SLIDE
-  # Synopsis
-  #
-  # * Services are easy to abstract away.
-  # * Separation of transport, encoding.
-  # * One-way .vs. Two-way.
-  # * Asynchronous .vs. syncronous.
-  #
-  # !SLIDE END
 end
+# !SLIDE END
+
+# !SLIDE
+# Synopsis
+#
+# * Services are easy to abstract away.
+# * Separation of transport, encoding.
+# * One-way .vs. Two-way.
+# * Asynchronous .vs. synchronous.
+#
 # !SLIDE END
 
 

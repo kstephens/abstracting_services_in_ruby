@@ -1,10 +1,22 @@
 =begin
 # !SLIDE
+# Stuff Gets Complicated
+#
+# Systems become:
+# * bigger
+# * more complex
+# * slower
+# * distributed 
+# * harder to test
+#
+# !SLIDE END
+
+# !SLIDE
 # Sample Service
 #
-module SomeService
-  def do_it x, y
-    x * y + 42
+module Email
+  def send_email template_name, options
+    $stderr.puts "*** Email.send_mail #{template_name.inspect} #{options.inspect}"
   end
 
   def do_raise msg
@@ -14,7 +26,67 @@ module SomeService
   extend self
 end
 
-SomeService.do_it(1, 2)
+Email.send_email(:giant_pdf_invoice, :to => "user@email.com", :customer => @customer)
+# !SLIDE END
+
+# !SLIDE
+# Back when things were simple...
+#
+class CustomersController < ApplicationController
+  def send_invoice
+    @customer = Customer.find(params[:id])
+    Email.send_email(:giant_pdf_invoice,
+                     :to => @customer.email,
+                     :customer => @customer)
+  end
+end
+# !SLIDE END
+
+# !SLIDE
+# Trying to improve user's experience...
+#
+class CustomersController < ApplicationController
+  def send_invoice
+    @customer = Customer.find(params[:id])
+    Process.fork do 
+      Email.send_email(:giant_pdf_invoice,
+                       :to = @customer.email,
+                       :customer => @customer)
+    end
+  end
+end
+# !SLIDE END
+
+# !SLIDE
+# Use other machines to poll a work table...
+#
+class CustomersController < ApplicationController
+  def send_invoice
+    @customer = Customer.find(params[:id])
+    Email.create(:template_name => :giant_pdf_invoice, 
+                 :options => { 
+                   :to => @customer.email,
+                   :customer => @customer,
+                 })
+  end
+end
+# !SLIDE END
+
+# !SLIDE
+# Use queue infrastructure
+#
+class CustomersController < ApplicationController
+  def send_invoice
+    @customer = Customer.find(params[:id])
+    queue_service.put(:queue => :Email, 
+                      :action => :send_email,
+                      :template_name => :giant_pdf_invoice, 
+                      :options => { 
+                        :to => @customer.email,
+                        :customer => @customer,
+                      })
+  end
+end
 # !SLIDE END
 =end
 
@@ -22,16 +94,19 @@ SomeService.do_it(1, 2)
 # Example Request
 #
 # @@@ ruby
-#   SomeService.do_it(1, 2)
+#   Email.send_email(:giant_pdf_invoice, 
+#                    :to => "user@email.com",
+#                    :customer => @customer)
 # @@@
 #
 #   =>
 # @@@ ruby  
 #   request = Request.new(...)
 #   request.reciever_class = Module
-#   request.reciever = "SomeService"
-#   request.selector = :do_it
-#   request.arguments = [ 1, 2 ]
+#   request.reciever = "Email"
+#   request.selector = :send_email
+#   request.arguments = [ :giant_pdf_invoice,
+#                         { :to => "user@email.com", :customer => ... } ]
 # @@@
 #
 # !SLIDE END
@@ -40,16 +115,16 @@ SomeService.do_it(1, 2)
 # Example Exception
 #
 # @@@ ruby
-#   SomeService.do_raise("DOH!")
+#   Email.do_raise("DOH!")
 # @@@
 #
 #   =>
 #
 # @@@ ruby  
 #   response.exception = ee = EncapsulatedException.new(...)
-#   ee.exception_class = '::RuntimeError"
-#   ee.exception_message = 'DOH!"
-#   ee.execption_backtrace = [ ... ]
+#   ee.exception_class = "::RuntimeError"
+#   ee.exception_message = "DOH!"
+#   ee.exception_backtrace = [ ... ]
 # @@@
 #
 # !SLIDE END
@@ -60,15 +135,12 @@ SomeService.do_it(1, 2)
 
 require 'asir'
 
-# Added logging and #client support.
-module SomeService
-  include SI::Client # SomeService.client
-  include SI::Log    # SomeService#_log_result
+# Added .client support.
+module Email
+  include SI::Client # Email.client
 
-  def do_it x, y
-    _log_result [ :do_it, x, y ] do 
-      x * y + 42
-    end
+  def send_email template_name, options
+    $stderr.puts "*** Email.send_mail #{template_name.inspect} to #{options.inspect}"
   end
 
   def do_raise msg

@@ -3,57 +3,80 @@ riterate:
   do_not_update: true
   ordered_slides: 
   - Abstracting Services in Ruby
+  - Stuff Gets Complicated
   - Sample Service
+  - "Back when things were simple..."
+  - "Trying to improve user's experience..."
+  - "Use other machines to poll a work table..."
+  - "Use queue infrastructure"
+  - "Issues"
   - Objectives
   - Design
   - Modules and Classes
   - Request
-  - Example Request	
+  - Example Request
+  - Request Identifier
   - Help encode/decode receiver
   - Response
   - Example Exception
   - Encapsulated Exception
   - Coder
-  - Null Coder
+  - Identity Coder
   - Transport
   - Transport#deliver
-  - Transport#receive
   - Null Transport
   - Transport Support
   - Call service directly
+  - "Call service directly - Output"
+  - In-core, in-process service
   - Sample Service with Client Support
   - Mixin Client support to any Module
-  - In-core, in-process service
   - Client Proxy
-  - Identity Coder
   - Local Transport
+  - "In-core, in-process service - Output"
   - One-way, asynchronous subprocess service
   - Subprocess Transport
+  - "One-way, asynchronous subprocess service - Output"
   - One-way, file log service
   - YAML Coder
   - File Transport
   - File Transport Support
   - Payload IO for Transport
+  - "One-way, file log service - Output"
   - Replay file log
+  - Transport#receive
   - Process (receive) requests from a file.
+  - "Replay file log - Output"
   - One-way, named pipe service
   - Named Pipe Server
+  - "One-way, named pipe service - Output"
   - One-way, named pipe service with signature
   - Multi Coder
   - Marshal Coder
   - Sign Coder
   - Sign Coder Support
+  - "One-way, named pipe service with signature - Output"
   - One-way, named pipe service with invalid signature
+  - "One-way, named pipe service with invalid signature - Output"
   - Socket service
   - TCP Socket Transport
   - TCP Socket Server
+  - "Returns a connected TCP socket."
+  - "Sends the encoded request and returns the encoded response."
+  - "Receives the encoded request."
+  - "Reuse GServer."
+  - "Serve each TCP connection request."
+  - "Socket service - Output"
   - Socket service with forwarded exception.
+  - "Socket service with forwarded exception. - Output"
   - Synopsis
   - Object Initialization
   - Diagnostic Logging
+  - Null Coder
   - Other Coders
   - HTTP Transport
   - Multi Transport
+
   unknown_slides: []
 
   unordered_slides: []

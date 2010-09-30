@@ -5,7 +5,7 @@ task :default =>
   ]
 
 task :test do
-  sh "ruby asir.rb"
+  sh "ruby examples.rb"
 end
 
 
@@ -17,7 +17,7 @@ task :slides =>
 ENV['SCARLET'] ||= File.expand_path("../../scarlet/bin/scarlet", __FILE__)
 ENV['RITERATE'] ||= File.expand_path("../../riterate/bin/riterate", __FILE__)
 
-file 'asir.slides/index.html' => [ 'asir.rb', 'sample_service.rb', 'examples.rb' ] do
+file 'asir.slides/index.html' => Dir['*.rb'] + [ 'Rakefile' ] + Dir["stylesheets/*.*"] do
   sh "$RITERATE asir.rb sample_service.rb examples.rb"
 end
 

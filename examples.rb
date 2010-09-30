@@ -2,23 +2,24 @@
 # Call service directly
 
 require 'demo_helper'
-pr SomeService.do_it(1, 2)
+pr Email.send_email(:giant_pdf_invoice, :to => "user@email.com", :customer => @customer)
 
 # !SLIDE :capture_code_output true
 # In-core, in-process service
 
 require 'demo_helper'
-pr SomeService.client.do_it(1, 2)
+pr Email.client.send_email(:giant_pdf_invoice, :to => "user@email.com", :customer => @customer)
 
+#
 # !SLIDE :capture_code_output true
 # One-way, asynchronous subprocess service
 
 require 'demo_helper'
 begin
-  SomeService.client.transport = 
+  Email.client.transport = 
     SI::Transport::Subprocess.new
 
-  pr SomeService.client.do_it(1, 2)
+  pr Email.client.send_email(:giant_pdf_invoice, :to => "user@email.com", :customer => @customer)
 end
 
 # !SLIDE :capture_code_output true
@@ -28,14 +29,14 @@ require 'demo_helper'
 begin
   File.unlink(service_log = "service.log") rescue nil
 
-  SomeService.client.transport = 
+  Email.client.transport = 
     SI::Transport::File.new(:file => service_log)
-  SomeService.client.transport.encoder = 
+  Email.client.transport.encoder = 
     SI::Coder::Yaml.new
 
-  pr SomeService.client.do_it(1, 2)
+  pr Email.client.send_email(:giant_pdf_invoice, :to => "user@email.com", :customer => @customer)
 ensure
-  SomeService.client.transport.close
+  Email.client.transport.close
   puts "#{service_log.inspect} contents:"
   puts File.read(service_log)
 end
@@ -46,12 +47,12 @@ end
 require 'demo_helper'
 begin
   service_log = "service.log"
-  SomeService.client.transport = 
+  Email.client.transport = 
     SI::Transport::File.new(:file => service_log)
-  SomeService.client.transport.encoder = 
+  Email.client.transport.encoder = 
     SI::Coder::Yaml.new
 
-  SomeService.client.transport.service_file!
+  Email.client.transport.service_file!
 
 ensure
   File.unlink(service_log) rescue nil
@@ -64,19 +65,19 @@ require 'demo_helper'
 begin
   File.unlink(service_fifo = "service.fifo") rescue nil
 
-  SomeService.client.transport = 
+  Email.client.transport = 
     SI::Transport::File.new(:file => service_fifo)
-  SomeService.client.transport.encoder = 
+  Email.client.transport.encoder = 
     SI::Coder::Yaml.new
 
-  SomeService.client.transport.prepare_fifo_server!
+  Email.client.transport.prepare_fifo_server!
   child_pid = Process.fork do 
-    SomeService.client.transport.run_fifo_server!
+    Email.client.transport.run_fifo_server!
   end
 
-  pr SomeService.client.do_it(1, 2)
+  pr Email.client.send_email(:giant_pdf_invoice, :to => "user@email.com", :customer => @customer)
 ensure
-  SomeService.client.transport.close
+  Email.client.transport.close
   sleep 2
   Process.kill 9, child_pid
   File.unlink(service_fifo) rescue nil
@@ -88,23 +89,23 @@ end
 require 'demo_helper'
 begin
   File.unlink(service_fifo = "service.fifo") rescue nil
-  SomeService.client.transport =
+  Email.client.transport =
     SI::Transport::File.new(:file => service_fifo)
-  SomeService.client.transport.encoder = 
+  Email.client.transport.encoder = 
     SI::Coder::Multi.new(:encoders =>
                          [ SI::Coder::Marshal.new,
                            SI::Coder::Sign.new(:secret => 'abc123'),
                            SI::Coder::Yaml.new,
                          ])
 
-  SomeService.client.transport.prepare_fifo_server!
+  Email.client.transport.prepare_fifo_server!
   child_pid = Process.fork do 
-    SomeService.client.transport.run_fifo_server!
+    Email.client.transport.run_fifo_server!
   end
 
-  pr SomeService.client.do_it(1, 2)
+  pr Email.client.send_email(:giant_pdf_invoice, :to => "user@email.com", :customer => @customer)
 ensure
-  SomeService.client.transport.close
+  Email.client.transport.close
   sleep 2
   Process.kill 9, child_pid
   File.unlink(service_fifo) rescue nil
@@ -117,24 +118,24 @@ end
 require 'demo_helper'
 begin
   File.unlink(service_fifo = "service.fifo") rescue nil
-  SomeService.client.transport = SI::Transport::File.new(:file => service_fifo)
-  SomeService.client.transport.encoder = 
+  Email.client.transport = SI::Transport::File.new(:file => service_fifo)
+  Email.client.transport.encoder = 
     SI::Coder::Multi.new(:encoders =>
                          [ SI::Coder::Marshal.new,
                            SI::Coder::Sign.new(:secret => 'abc123'),
                            SI::Coder::Yaml.new,
                          ])
   
-  SomeService.client.transport.prepare_fifo_server!
+  Email.client.transport.prepare_fifo_server!
   child_pid = Process.fork do 
-    SomeService.client.transport.run_fifo_server!
+    Email.client.transport.run_fifo_server!
   end
   
-  SomeService.client.transport.encoder.encoders[1].secret = 'I do not know the secret! :('
+  Email.client.transport.encoder.encoders[1].secret = 'I do not know the secret! :('
   
-  pr SomeService.client.do_it(1, 2)
+  pr Email.client.send_email(:giant_pdf_invoice, :to => "user@email.com", :customer => @customer)
 ensure
-  SomeService.client.transport.close
+  Email.client.transport.close
   sleep 2
   Process.kill 9, child_pid
   File.unlink(service_fifo) rescue nil
@@ -146,19 +147,19 @@ end
 
 require 'demo_helper'
 begin
-  SomeService.client.transport =
+  Email.client.transport =
     SI::Transport::TcpSocket.new(:port => 50901)
-  SomeService.client.transport.encoder = 
+  Email.client.transport.encoder = 
     SI::Coder::Marshal.new
   
-  SomeService.client.transport.prepare_socket_server!
+  Email.client.transport.prepare_socket_server!
   child_pid = Process.fork do 
-    SomeService.client.transport.run_socket_server!
+    Email.client.transport.run_socket_server!
   end
   
-  pr SomeService.client.do_it(1, 2)
+  pr Email.client.send_email(:giant_pdf_invoice, :to => "user@email.com", :customer => @customer)
 ensure
-  SomeService.client.transport.close
+  Email.client.transport.close
   sleep 2
   Process.kill 9, child_pid
 end
@@ -168,21 +169,21 @@ end
 
 require 'demo_helper'
 begin
-  SomeService.client.transport =
+  Email.client.transport =
     SI::Transport::TcpSocket.new(:port => 51001)
-  SomeService.client.transport.encoder = 
+  Email.client.transport.encoder = 
     SI::Coder::Marshal.new
 
-  SomeService.client.transport.prepare_socket_server!
+  Email.client.transport.prepare_socket_server!
   child_pid = Process.fork do 
-    SomeService.client.transport.run_socket_server!
+    Email.client.transport.run_socket_server!
   end
   
-  pr SomeService.client.do_raise("Raise Me!")
+  pr Email.client.do_raise("Raise Me!")
 rescue Exception => err
   pr [ :exception, err ]
 ensure
-  SomeService.client.transport.close
+  Email.client.transport.close
   sleep 2
   Process.kill 9, child_pid
 end
