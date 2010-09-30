@@ -148,7 +148,7 @@ end
 require 'demo_helper'
 begin
   Email.client.transport =
-    SI::Transport::TcpSocket.new(:port => 50901)
+    SI::Transport::TcpSocket.new(:port => 30901)
   Email.client.transport.encoder = 
     SI::Coder::Marshal.new
   
@@ -170,7 +170,7 @@ end
 require 'demo_helper'
 begin
   Email.client.transport =
-    SI::Transport::TcpSocket.new(:port => 51001)
+    SI::Transport::TcpSocket.new(:port => 30902)
   Email.client.transport.encoder = 
     SI::Coder::Marshal.new
 

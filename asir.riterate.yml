@@ -23,7 +23,7 @@ riterate:
   - Coder
   - Identity Coder
   - Transport
-  - Transport#deliver
+  - Transport#deliver_request
   - Null Transport
   - Transport Support
   - Call service directly
@@ -44,7 +44,7 @@ riterate:
   - Payload IO for Transport
   - "One-way, file log service - Output"
   - Replay file log
-  - Transport#receive
+  - Transport#receive_request
   - Process (receive) requests from a file.
   - "Replay file log - Output"
   - One-way, named pipe service
