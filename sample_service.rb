@@ -3,11 +3,11 @@
 # Stuff Gets Complicated
 #
 # Systems become:
-# * bigger
-# * more complex
-# * slower
-# * distributed 
-# * harder to test
+# * bigger ->
+# * complex ->
+# * slower ->
+# * distributed ->
+# * hard to test
 #
 # !SLIDE END
 

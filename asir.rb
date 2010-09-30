@@ -1,6 +1,5 @@
 require 'yaml'
 require 'digest/sha1'
-require 'gserver'
 require 'socket'
 
 # !SLIDE
@@ -656,9 +655,7 @@ module SI
           begin
             addr = address || '127.0.0.1'
             _log { "connect #{addr}:#{port}" }
-            sock = Socket.new(Socket::AF_INET, Socket::SOCK_STREAM, 0)
-            sockaddr = Socket.pack_sockaddr_in(port, addr)
-            sock.connect(sockaddr)
+            sock = TCPSocket.open(addr, port)
             sock
           rescue Exception => err
             raise Error, "Cannot connect to #{addr}:#{port}: #{err.inspect}", err.backtrace
@@ -682,68 +679,47 @@ module SI
       # TCP Socket Server
 
       def prepare_socket_server!
-        addr = address || '0.0.0.0'
-        _log { "prepare_socket_server! #{addr}:#{port}" }
-        @server = Server.new(self, port, addr)
+        _log { "prepare_socket_server! #{port}" }
+        @server = TCPServer.open(port)
       end
 
       def run_socket_server!
         _log :run_socket_server!
         @running = true
         while @running
-          _log { "run_socket_server! running" }
-          @server.start
-          @server.tcpServerThread.join
+          stream = @server.accept
+          _log { "run_socket_server!: connected" }
+          until stream.eof?
+            serve! stream
+          end
+          stream.close
+          _log { "run_socket_server!: disconnected" }
         end
       end
 
       # !SLIDE
-      # Reuse GServer.
-      class Server < GServer
-        include PayloadIO
-        attr_reader :tcpServerThread
-
-        def initialize transport, *args
-          @transport = transport
-          @mutex = Mutex.new
-          super *args
-        end
-
-        # !SLIDE
-        # Serve each TCP connection request.
-        def serve stream 
-          @transport._log {" serve: connected" }
-          
-          @mutex.synchronize do
-            begin
-              request = request_ok = result = result_ok = exception = nil
-              request = @transport.receive_request(stream)
-              request_ok = true
-              result = @transport.invoke_request!(request)
-              result_ok = true
-            rescue Exception => exc
-              exception = exc
-              @transport._log [ :request_error, exc ]
-            ensure
-              begin
-                if request_ok 
-                  unless result_ok
-                    result = EncapsulatedException.new(exception)
-                  end
-                  @transport._write(@transport.encoder.encode(result), stream)
-                end
-              rescue Exception => exc
-                @transport._log [ :response_error, exc ]
-              end
+      # Serve each TCP connection request.
+      def serve! stream
+        request = request_ok = result = result_ok = exception = nil
+        request = receive_request(stream)
+        request_ok = true
+        result = invoke_request!(request)
+        result_ok = true
+      rescue Exception => exc
+        exception = exc
+        _log [ :request_error, exc ]
+      ensure
+        begin
+          if request_ok 
+            if exception && ! result_ok
+              result = EncapsulatedException.new(exception)
             end
+            _write(encoder.encode(result), stream)
           end
-
-          @transport._log { "serve: disconnected" }
+        rescue Exception => exc
+          _log [ :response_error, exc ]
         end
- 
       end
-
-      # !SLIDE END
     end
     # !SLIDE END
 
