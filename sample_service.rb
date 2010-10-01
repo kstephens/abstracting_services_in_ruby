@@ -16,7 +16,8 @@
 #
 module Email
   def send_email template_name, options
-    $stderr.puts "*** Email.send_mail #{template_name.inspect} #{options.inspect}"
+    $stderr.puts "*** Email.send_mail #{template_name.inspect} #{options.inspect}"]
+    :ok
   end
 
   def do_raise msg
@@ -63,11 +64,11 @@ end
 class CustomersController < ApplicationController
   def send_invoice
     @customer = Customer.find(params[:id])
-    Email.create(:template_name => :giant_pdf_invoice, 
-                 :options => { 
-                   :to => @customer.email,
-                   :customer => @customer,
-                 })
+    EmailWork.create(:template_name => :giant_pdf_invoice, 
+                     :options => { 
+                       :to => @customer.email,
+                       :customer => @customer,
+                     })
   end
 end
 # !SLIDE END
@@ -102,8 +103,8 @@ end
 #   =>
 # @@@ ruby  
 #   request = Request.new(...)
-#   request.reciever_class = Module
-#   request.reciever = "Email"
+#   request.receiver_class = Module
+#   request.receiver = "Email"
 #   request.selector = :send_email
 #   request.arguments = [ :giant_pdf_invoice,
 #                         { :to => "user@email.com", :customer => ... } ]
@@ -137,10 +138,11 @@ require 'asir'
 
 # Added .client support.
 module Email
-  include SI::Client # Email.client
+  include ASIR::Client # Email.client
 
   def send_email template_name, options
     $stderr.puts "*** Email.send_mail #{template_name.inspect} to #{options.inspect}"
+    :ok
   end
 
   def do_raise msg

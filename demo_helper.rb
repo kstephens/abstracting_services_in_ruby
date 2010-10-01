@@ -5,7 +5,7 @@ require 'pp'
 
 $_log_verbose = true
 def pr result
-  puts PP.pp([ :result, result ], '')
+  puts "pr: #{PP.pp(result, '')}"
 end
 
 require 'asir'

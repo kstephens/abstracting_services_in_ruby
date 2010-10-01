@@ -19,18 +19,21 @@ require 'socket'
 # !SLIDE
 # Issues
 #
-# * Client knows too much about infrastructure.
-# * Setup for testing and QA is more complex.
-# * Measuring test coverage of a remote services.
-# * Debugging the root cause of a remote service error.
-# * Evaluating and switching infrastructures.
+# * Problem Domain .vs. Solution Domain
+# ** Client knows too much about infrastructure.
+# ** Evaluating and switching infrastructures.
+# * Testing, Debugging, Diagnostics
+# ** Setup for testing and QA is more complex.
+# ** Measuring test coverage of remote services.
+# ** Debugging the root cause of remote service errors.
+# ** Diagnostic hooks.
 #
 # !SLIDE END
 
 # !SLIDE
 # Objectives
 #
-# * Simplify service/client definitions.
+# * Simplify service/client definitions and interfaces.
 # * Anticipate new encoding, delivery and security requirements.
 # * Separate request/response encoding and delivery for composition.
 # * Elide deployment decisions.
@@ -43,28 +46,25 @@ require 'socket'
 # Design
 #
 # * Nouns:
-# ** Service
-# ** Client
+# ** Service -> is a Module
+# ** Client -> caller
 # ** Proxy
-# ** Request
-# ** Response
+# ** Request, Response, Exception
 # ** Transport
-# ** Encoder \__ Coder
-# ** Decoder /
+# ** Encoder, Decoder -> Coder
 # ** Logging
 # * Verbs:
-# ** Intercept Request
-# ** Initiate Transport
-# ** Deliver Request  \__ Transport
-# ** Receive Request  /
-# ** Encode Object    \__ Coder
-# ** Decode Object    /
+# ** Intercept Request -> Proxy
+# ** Invoke Request    -> Request
+# ** Invoke Exception
+# ** Send Request, Recieve Request -> Transport
+# ** Encode Object, Decode Object -> Coder
 #
 # !SLIDE END
 
 # !SLIDE
 # Modules and Classes
-module SI
+module ASIR
   # Reusable constants to avoid unnecessary garbage.
   EMPTY_ARRAY = [ ].freeze; EMPTY_HASH =  { }.freeze; EMPTY_STRING = ''.freeze
 
@@ -413,10 +413,10 @@ module SI
   # !SLIDE
   # Transport
   #
-  # Client: Deliver the Request to the Service.
+  # Client: Send the Request to the Service.
   # Service: Receive the Request from the Client.
   # Service: Invoke the Request.
-  # Service: Deliver the Response to the Client.
+  # Service: Send the Response to the Client.
   # Client: Receive the Response from the Service.
   class Transport
     include Log, Initialization
@@ -424,18 +424,18 @@ module SI
     attr_accessor :encoder, :decoder
 
     # !SLIDE
-    # Transport#deliver_request 
+    # Transport#send_request 
     # * Encode Request.
-    # * Deliver encoded Request.
+    # * Send encoded Request.
     # * Decode Response.
     # * Extract result or exception.
-    def deliver_request request
+    def send_request request
       request.create_identifier! if needs_request_identifier?
-      _log_result [ :deliver_request, :request, request ] do
+      _log_result [ :send_request, :request, request ] do
         request = encoder.encode(request)
-        response = _deliver_request(request)
+        response = _send_request(request)
         response = decoder.decode(response)
-        _log { [ :deliver_request, :response, response ] }
+        _log { [ :send_request, :response, response ] }
         if response
           if exc = response.exception
             exc.invoke!
@@ -462,7 +462,7 @@ module SI
     def _subclass_responsibility *args
       raise "subclass responsibility"
     end
-    alias :_deliver_request :_subclass_responsibility
+    alias :_send_request :_subclass_responsibility
     alias :_receive_request :_subclass_responsibility
 
     # !SLIDE pause
@@ -499,9 +499,9 @@ module SI
     # !SLIDE 
     # Null Transport
     #
-    # Never deliver.
+    # Never send Request.
     class Null < self
-      def _deliver_request request
+      def _send_request request
         nil
       end
     end
@@ -511,9 +511,9 @@ module SI
     # !SLIDE
     # Local Transport
     #
-    # Deliver to same process.
+    # Send Request to same process.
     class Local < self
-      def _deliver_request request
+      def _send_request request
         invoke_request!(request)
       end
     end
@@ -523,9 +523,9 @@ module SI
     # !SLIDE
     # Subprocess Transport
     #
-    # Deliver to a forked subprocess.
+    # Send Request to a forked subprocess.
     class Subprocess < Local
-      def _deliver_request request
+      def _send_request request
         Process.fork do 
           super
         end
@@ -562,28 +562,76 @@ module SI
 
       # !SLIDE pause
       def close
-        if @io
-          @io.close 
-          @io = nil
-        end
+        @stream.close if @stream
+      ensure
+        @stream = nil
       end
       # !SLIDE resume
     end
 
     # !SLIDE
+    # Stream Transport
+    #
+    # Base class handles Requests on stream.
+    class Stream < self
+
+      # !SLIDE
+      # Serve all Requests from a stream.
+      def serve_stream! in_stream, out_stream
+        until in_stream.eof?
+          begin
+            serve_stream_request! in_stream, out_stream
+          rescue Exception => err
+            _log [ :serve_stream_error, err ]
+          end
+        end
+      end
+
+      # !SLIDE
+      # Serve a Request from a stream.
+      def serve_stream_request! in_stream, out_stream
+        request = request_ok = result = result_ok = exception = nil
+        request = receive_request(in_stream)
+        request_ok = true
+        result = invoke_request!(request)
+        result_ok = true
+      rescue Exception => exc
+        exception = exc
+        _log [ :request_error, exc ]
+      ensure
+        if out_stream
+          begin
+            if request_ok 
+              if exception && ! result_ok
+                result = EncapsulatedException.new(exception)
+              end
+              _write(encoder.encode(result), out_stream)
+            end
+          rescue Exception => exc
+            _log [ :response_error, exc ]
+          end
+        else
+          raise exception if exception
+        end
+      end
+    end
+
+
+    # !SLIDE
     # File Transport
     #
-    # Deliver to a file.
+    # Send Request one-way to a file.
     # Can be used as a log or named pipe service.
-    class File < self
+    class File < Stream
       include PayloadIO # send, recv
 
-      attr_accessor :file, :io
+      attr_accessor :file, :stream
 
-      def _deliver_request request
-        _write request, io
+      def _send_request request
+        _write request, stream
+        nil # one-way; no Response
+      ensure
         close if ::File.pipe?(file)
-        nil
       end
 
       def _receive_request stream
@@ -593,8 +641,8 @@ module SI
       # !SLIDE
       # File Transport Support
     
-      def io
-        @io ||=
+      def stream
+        @stream ||=
           ::File.open(file, "w+")
       end
 
@@ -603,19 +651,7 @@ module SI
 
       def service_file!
         ::File.open(file, "r") do | stream |
-          service_stream! stream
-        end
-      end
-
-      def service_stream! stream
-        until stream.eof?
-          begin
-            request = receive_request(stream)
-            result = invoke_request!(request)
-            # Nowhere to send the result!
-          rescue Exception => err
-            _log [ :server_error, err ]
-          end
+          serve_stream! stream, nil
         end
       end
 
@@ -644,14 +680,14 @@ module SI
 
     # !SLIDE
     # TCP Socket Transport
-    class TcpSocket < self
+    class TcpSocket < Stream
       include PayloadIO
       attr_accessor :port, :address
       
       # !SLIDE
       # Returns a connected TCP socket.
-      def io 
-        @io ||=
+      def stream 
+        @stream ||=
           begin
             addr = address || '127.0.0.1'
             _log { "connect #{addr}:#{port}" }
@@ -664,9 +700,9 @@ module SI
 
       # !SLIDE
       # Sends the encoded request and returns the encoded response.
-      def _deliver_request request
-        _write request, io
-        _read io
+      def _send_request request
+        _write request, stream
+        _read stream
       end
 
       # !SLIDE
@@ -689,37 +725,16 @@ module SI
         while @running
           stream = @server.accept
           _log { "run_socket_server!: connected" }
-          until stream.eof?
-            serve! stream
+          begin
+            # Same socket for both in and out stream.
+            serve_stream! stream, stream
+          ensure
+            stream.close
           end
-          stream.close
           _log { "run_socket_server!: disconnected" }
         end
       end
 
-      # !SLIDE
-      # Serve each TCP connection request.
-      def serve! stream
-        request = request_ok = result = result_ok = exception = nil
-        request = receive_request(stream)
-        request_ok = true
-        result = invoke_request!(request)
-        result_ok = true
-      rescue Exception => exc
-        exception = exc
-        _log [ :request_error, exc ]
-      ensure
-        begin
-          if request_ok 
-            if exception && ! result_ok
-              result = EncapsulatedException.new(exception)
-            end
-            _write(encoder.encode(result), stream)
-          end
-        rescue Exception => exc
-          _log [ :response_error, exc ]
-        end
-      end
     end
     # !SLIDE END
 
@@ -727,11 +742,11 @@ module SI
     # !SLIDE
     # HTTP Transport
     #
-    # Deliver to an HTTP server.
+    # Send to an HTTP server.
     class HTTP < self
       attr_accessor :uri
 
-      def _deliver_request request
+      def _send_request request
         # ...
       end
     end
@@ -741,14 +756,14 @@ module SI
     # !SLIDE
     # Multi Transport
     #
-    # Deliver via multiple Transports.
+    # Send to multiple Transports.
     class Multi < self
       attr_accessor :transports
 
-      def _deliver_request request
+      def _send_request request
         result = nil
         transports.each do | transport |
-          result = transport.deliver_request(request)
+          result = transport.send_request(request)
         end
         result
       end
@@ -770,14 +785,14 @@ module SI
   # Extend Module with #client proxy support.
   module Client
     def self.included target
-      super target
-      target.extend ClassMethods
+      super
+      target.extend ModuleMethods if Module === target
     end
     
-    module ClassMethods
+    module ModuleMethods
       def client
         @client ||=
-          SI::Client::Proxy.new(:receiver => self)
+          ASIR::Client::Proxy.new(:receiver => self)
       end
     end
 
@@ -800,7 +815,7 @@ module SI
         raise ArgumentError, "block given" if block_given?
         _log { "method_missing #{selector.inspect} #{arguments.inspect}" }
         request = Request.new(receiver, selector, arguments)
-        result = transport.deliver_request(request)
+        result = transport.send_request(request)
         result
       end
     end
@@ -819,5 +834,4 @@ end
 # * Asynchronous .vs. synchronous.
 #
 # !SLIDE END
-
 

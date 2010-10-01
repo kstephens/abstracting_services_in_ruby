@@ -17,7 +17,7 @@ pr Email.client.send_email(:giant_pdf_invoice, :to => "user@email.com", :custome
 require 'demo_helper'
 begin
   Email.client.transport = 
-    SI::Transport::Subprocess.new
+    ASIR::Transport::Subprocess.new
 
   pr Email.client.send_email(:giant_pdf_invoice, :to => "user@email.com", :customer => @customer)
 end
@@ -30,14 +30,14 @@ begin
   File.unlink(service_log = "service.log") rescue nil
 
   Email.client.transport = 
-    SI::Transport::File.new(:file => service_log)
+    ASIR::Transport::File.new(:file => service_log)
   Email.client.transport.encoder = 
-    SI::Coder::Yaml.new
+    ASIR::Coder::Yaml.new
 
   pr Email.client.send_email(:giant_pdf_invoice, :to => "user@email.com", :customer => @customer)
 ensure
   Email.client.transport.close
-  puts "#{service_log.inspect} contents:"
+  puts "\x1a\n#{service_log.inspect} contents:"
   puts File.read(service_log)
 end
 
@@ -48,9 +48,9 @@ require 'demo_helper'
 begin
   service_log = "service.log"
   Email.client.transport = 
-    SI::Transport::File.new(:file => service_log)
+    ASIR::Transport::File.new(:file => service_log)
   Email.client.transport.encoder = 
-    SI::Coder::Yaml.new
+    ASIR::Coder::Yaml.new
 
   Email.client.transport.service_file!
 
@@ -66,9 +66,9 @@ begin
   File.unlink(service_fifo = "service.fifo") rescue nil
 
   Email.client.transport = 
-    SI::Transport::File.new(:file => service_fifo)
+    ASIR::Transport::File.new(:file => service_fifo)
   Email.client.transport.encoder = 
-    SI::Coder::Yaml.new
+    ASIR::Coder::Yaml.new
 
   Email.client.transport.prepare_fifo_server!
   child_pid = Process.fork do 
@@ -78,7 +78,7 @@ begin
   pr Email.client.send_email(:giant_pdf_invoice, :to => "user@email.com", :customer => @customer)
 ensure
   Email.client.transport.close
-  sleep 2
+  sleep 1
   Process.kill 9, child_pid
   File.unlink(service_fifo) rescue nil
 end
@@ -90,12 +90,12 @@ require 'demo_helper'
 begin
   File.unlink(service_fifo = "service.fifo") rescue nil
   Email.client.transport =
-    SI::Transport::File.new(:file => service_fifo)
+    ASIR::Transport::File.new(:file => service_fifo)
   Email.client.transport.encoder = 
-    SI::Coder::Multi.new(:encoders =>
-                         [ SI::Coder::Marshal.new,
-                           SI::Coder::Sign.new(:secret => 'abc123'),
-                           SI::Coder::Yaml.new,
+    ASIR::Coder::Multi.new(:encoders =>
+                         [ ASIR::Coder::Marshal.new,
+                           ASIR::Coder::Sign.new(:secret => 'abc123'),
+                           ASIR::Coder::Yaml.new,
                          ])
 
   Email.client.transport.prepare_fifo_server!
@@ -106,7 +106,7 @@ begin
   pr Email.client.send_email(:giant_pdf_invoice, :to => "user@email.com", :customer => @customer)
 ensure
   Email.client.transport.close
-  sleep 2
+  sleep 1
   Process.kill 9, child_pid
   File.unlink(service_fifo) rescue nil
 end
@@ -118,12 +118,12 @@ end
 require 'demo_helper'
 begin
   File.unlink(service_fifo = "service.fifo") rescue nil
-  Email.client.transport = SI::Transport::File.new(:file => service_fifo)
+  Email.client.transport = ASIR::Transport::File.new(:file => service_fifo)
   Email.client.transport.encoder = 
-    SI::Coder::Multi.new(:encoders =>
-                         [ SI::Coder::Marshal.new,
-                           SI::Coder::Sign.new(:secret => 'abc123'),
-                           SI::Coder::Yaml.new,
+    ASIR::Coder::Multi.new(:encoders =>
+                         [ ASIR::Coder::Marshal.new,
+                           ASIR::Coder::Sign.new(:secret => 'abc123'),
+                           ASIR::Coder::Yaml.new,
                          ])
   
   Email.client.transport.prepare_fifo_server!
@@ -136,7 +136,7 @@ begin
   pr Email.client.send_email(:giant_pdf_invoice, :to => "user@email.com", :customer => @customer)
 ensure
   Email.client.transport.close
-  sleep 2
+  sleep 1
   Process.kill 9, child_pid
   File.unlink(service_fifo) rescue nil
 end
@@ -148,9 +148,9 @@ end
 require 'demo_helper'
 begin
   Email.client.transport =
-    SI::Transport::TcpSocket.new(:port => 30901)
+    ASIR::Transport::TcpSocket.new(:port => 30901)
   Email.client.transport.encoder = 
-    SI::Coder::Marshal.new
+    ASIR::Coder::Marshal.new
   
   Email.client.transport.prepare_socket_server!
   child_pid = Process.fork do 
@@ -160,7 +160,7 @@ begin
   pr Email.client.send_email(:giant_pdf_invoice, :to => "user@email.com", :customer => @customer)
 ensure
   Email.client.transport.close
-  sleep 2
+  sleep 1
   Process.kill 9, child_pid
 end
 
@@ -170,9 +170,9 @@ end
 require 'demo_helper'
 begin
   Email.client.transport =
-    SI::Transport::TcpSocket.new(:port => 30902)
+    ASIR::Transport::TcpSocket.new(:port => 30902)
   Email.client.transport.encoder = 
-    SI::Coder::Marshal.new
+    ASIR::Coder::Marshal.new
 
   Email.client.transport.prepare_socket_server!
   child_pid = Process.fork do 
@@ -184,7 +184,7 @@ rescue Exception => err
   pr [ :exception, err ]
 ensure
   Email.client.transport.close
-  sleep 2
+  sleep 1
   Process.kill 9, child_pid
 end
 

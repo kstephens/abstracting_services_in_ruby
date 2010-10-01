@@ -4,8 +4,8 @@ riterate:
   ordered_slides: 
   - Abstracting Services in Ruby
   - Stuff Gets Complicated
-  - Sample Service
   - "Back when things were simple..."
+  - Sample Service
   - "Trying to improve user's experience..."
   - "Use other machines to poll a work table..."
   - "Use queue infrastructure"
@@ -23,7 +23,7 @@ riterate:
   - Coder
   - Identity Coder
   - Transport
-  - Transport#deliver_request
+  - Transport#send_request
   - Null Transport
   - Transport Support
   - Call service directly
@@ -46,6 +46,9 @@ riterate:
   - Replay file log
   - Transport#receive_request
   - Process (receive) requests from a file.
+  - Stream Transport
+  - Serve all Requests from a stream.
+  - Serve a Request from a stream.
   - "Replay file log - Output"
   - One-way, named pipe service
   - Named Pipe Server
@@ -64,8 +67,6 @@ riterate:
   - "Returns a connected TCP socket."
   - "Sends the encoded request and returns the encoded response."
   - "Receives the encoded request."
-  - "Reuse GServer."
-  - "Serve each TCP connection request."
   - "Socket service - Output"
   - Socket service with forwarded exception.
   - "Socket service with forwarded exception. - Output"
