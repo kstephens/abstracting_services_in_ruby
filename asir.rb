@@ -35,10 +35,10 @@ require 'socket'
 #
 # * Simplify service/client definitions and interfaces.
 # * Anticipate new encoding, delivery and security requirements.
-# * Separate request/response encoding and delivery for composition.
+# * Compose encoding and transport concerns.
 # * Elide deployment decisions.
 # * Integrate diagnostics and logging.
-# * Simplify integration testing.
+# * Simplify testing.
 #
 # !SLIDE END
 
@@ -46,8 +46,8 @@ require 'socket'
 # Design
 #
 # * Nouns:
-# ** Service -> is a Module
-# ** Client -> caller
+# ** Service -> Module
+# ** Client -> Just a Ruby caller
 # ** Proxy
 # ** Request, Response, Exception
 # ** Transport
