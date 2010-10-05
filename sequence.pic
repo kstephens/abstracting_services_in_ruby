@@ -23,7 +23,7 @@
 # Spacing between messages
 spacing = 0.25;
 # Active box width
-awid = .1;
+awid = .10;
 # Box height
 boxht = 0.3;
 # Commend folding
@@ -36,13 +36,19 @@ comment_default_ht=0.5;
 comment_default_wid=1;
 # Underline object name
 underline=1;
+# Invisbox
+object_box=0;
 
 # Create a new object(name,label)
 define object {
+        if (object_box) then {
 	$1: box $2; move;
+        } else {
+        $1: box invis $2; move;
+        }
 	# Could also underline text with \mk\ul\ul\ul...\rt
 	if (underline) then {
-		line from $1.w + (.1, -.07) to $1.e + (-.1, -.07);
+		line from $1.w + (boxht * -.3, boxht * -.5) to $1.e + (boxht * .3, boxht * -.5);
 	}
 	move to $1.e;
 	move right;
@@ -187,14 +193,14 @@ define create_message {
         }
 
 	# See comment in destroy_message
-	XSEQA: arrow from ($1.x + off_from, Here.y) to ($2.x + off_to, Here.y) "«create»" " ";
+	XSEQA: arrow from ($1.x + off_from, Here.y) to ($2.x + off_to, Here.y) "<<create>>" " ";
 	if ($1.x <= $2.x) then {
-		{ XSEQB: box $3 with .w at XSEQA.end; }
+		{ XSEQB: box invis $3 with .w at XSEQA.end; }
 	} else {
-		{ XSEQB: box $3 with .e at XSEQA.end; }
+		{ XSEQB: box invis $3 with .e at XSEQA.end; }
 	}
 	{
-		line from XSEQB.w + (.1, -.07) to XSEQB.e + (-.1, -.07);
+		line from XSEQB.w + (.1, boxht * -.3) to XSEQB.e + (-.1, boxht * -.3);
 	}
 	lifestart_$2 = XSEQB.s.y;
 	move (spacing + boxht) / 2;
@@ -221,7 +227,7 @@ define destroy_message {
 	# The pic2plot code is \Fo \Fc
 	# See http://www.delorie.com/gnu/docs/plotutils/plotutils_71.html
 	# To stay compatible with all we have to hardcode the characters
-	message($1,$2,"«destroy»");
+	message($1,$2,"<<destroy>>");
 	complete($2);
 	drawx($2);
 }
@@ -265,6 +271,9 @@ define return_message {
 
 define rmessage {
 	return_message($1,$2,$3);
+}
+define r_message {
+	return_message($2,$1,$3);
 }
 
 # Object becomes active
