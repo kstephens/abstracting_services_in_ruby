@@ -22,6 +22,9 @@ require 'socket'
 # * Problem Domain .vs. Solution Domain
 # ** Client knows too much about infrastructure.
 # ** Evaluating and switching infrastructures.
+# * Service Semantics
+# ** One-way (no response after request) .vs. Two-way
+# ** Synchronous .vs. Asynchronous
 # * Testing, Debugging, Diagnostics
 # ** Setup for testing and QA is more complex.
 # ** Measuring test coverage of remote services.
@@ -432,9 +435,9 @@ module ASIR
     def send_request request
       request.create_identifier! if needs_request_identifier?
       _log_result [ :send_request, :request, request ] do
-        request = encoder.encode(request)
-        response = _send_request(request)
-        response = decoder.decode(response)
+        request_payload = encoder.encode(request)
+        opaque = _send_request(request_payload)
+        response = receive_response opaque
         _log { [ :send_request, :response, response ] }
         if response
           if exc = response.exception
@@ -453,17 +456,42 @@ module ASIR
     # Receive Request payload from stream.
     def receive_request stream
       _log_result [ :receive_request, :stream, stream ] do
-        payload = _receive_request(stream)
-        encoder.decode(payload)
+        request_payload = _receive_request(stream)
+        encoder.decode(request_payload)
       end
     end
     # !SLIDE END
+
+    # !SLIDE
+    # Transport#send_response
+    # Send Response to stream.
+    def send_response response, stream
+      _log_result [ :receive_request, :response, response, :stream, stream ] do
+        response_payload = decoder.encode(response)
+        _send_response(response_payload, stream)
+      end
+    end
+    # !SLIDE END
+
+    # !SLIDE
+    # Transport#receive_response
+    # Receieve Response from stream.
+    def receive_response opaque
+      _log_result [ :receive_response ] do
+        response_payload = _receive_response opaque
+        decoder.decode(response_payload)
+      end
+    end
+    # !SLIDE END
+
 
     def _subclass_responsibility *args
       raise "subclass responsibility"
     end
     alias :_send_request :_subclass_responsibility
     alias :_receive_request :_subclass_responsibility
+    alias :_send_response :_subclass_responsibility
+    alias :_receive_response :_subclass_responsibility
 
     # !SLIDE pause
     # !SLIDE
@@ -486,7 +514,7 @@ module ASIR
 
     def invoke_request! request
       _log_result [ :invoke_request!, request ] do
-        request.invoke!
+        @response = request.invoke!
       end
     end
     # !SLIDE END
@@ -513,8 +541,14 @@ module ASIR
     #
     # Send Request to same process.
     class Local < self
+      # Returns Response object.
       def _send_request request
         invoke_request!(request)
+      end
+
+      # Returns Response object from #_send_request.
+      def _receive_response opaque
+        opaque
       end
     end
     # !SLIDE END
@@ -523,12 +557,17 @@ module ASIR
     # !SLIDE
     # Subprocess Transport
     #
-    # Send Request to a forked subprocess.
+    # Send one-way Request to a forked subprocess.
     class Subprocess < Local
       def _send_request request
         Process.fork do 
           super
         end
+        nil # opaque
+      end
+
+      # one-way; no Response
+      def _receive_response opaque
         nil
       end
     end
@@ -605,7 +644,7 @@ module ASIR
               if exception && ! result_ok
                 result = EncapsulatedException.new(exception)
               end
-              _write(encoder.encode(result), out_stream)
+              send_response(result, out_stream)
             end
           rescue Exception => exc
             _log [ :response_error, exc ]
@@ -629,13 +668,22 @@ module ASIR
 
       def _send_request request
         _write request, stream
-        nil # one-way; no Response
       ensure
         close if ::File.pipe?(file)
       end
 
       def _receive_request stream
         _read stream
+      end
+
+      # one-way; no Response
+      def _send_response stream
+        nil
+      end
+
+      # one-way; no Response
+      def _receive_response opaque
+        nil
       end
 
       # !SLIDE
@@ -699,15 +747,26 @@ module ASIR
       end
 
       # !SLIDE
-      # Sends the encoded request and returns the encoded response.
-      def _send_request request
-        _write request, stream
+      # Sends the encoded Request payload.
+      def _send_request request_payload
+        _write request_payload, stream
+      end
+
+      # !SLIDE
+      # Receives the encoded Request payload.
+      def _receive_request stream
         _read stream
       end
 
       # !SLIDE
-      # Receives the encoded request.
-      def _receive_request stream
+      # Sends the encoded Response payload.
+      def _send_response response_payload, stream
+        _write response_payload, stream
+      end
+
+      # !SLIDE
+      # Receives the encoded Response payload.
+      def _receive_response opaque
         _read stream
       end
 
