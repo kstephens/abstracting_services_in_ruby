@@ -1,0 +1,78 @@
+.PS 8.0 6.0
+copy "sequence.pic";
+
+#scale = 2.0
+# boxwid = 2.5;
+movewid = boxwid * 1.5;
+boxht = boxwid / 0.75 * 0.3;
+moveht = boxht * 1.5;
+spacing = boxwid / 0.75 * 0.33;
+awid = boxwid / 0.75 * .10;
+
+# Object definition
+object(X, "x:Client");
+object(P, "p:Proxy");
+object(CRQ, "crq:Request")
+object(CRS, "crs:Response")
+object(CT, "ct:Transport");
+object(CC, "cc:Coder");
+object(S, "s:Stream");
+object(ST, "st:Transport");
+object(SC, "sc:Coder");
+object(SRQ, "srq:Request");
+object(SRS, "srs:Response")
+object(Y, "y:Service");
+
+# Message exchange
+message(X,P,"send_email(...)");
+  message(P,P,"method_missing(:send_email, [...])");
+    create_message(P,CRQ,"");
+    r_message(P,CRQ,"rq =");
+    message(P,CT,"send_request(rq)");
+      message(CT,CC,"encode(rq)");
+      r_message(CT,CC,"p =");
+      message(CT,S,"_write(p)");
+        message(ST,S,"_read()");
+        r_message(ST,S,"p = ");
+	message(ST,SC,"decode(p)");
+	  create_message(SC,SRQ,"new(...)");
+	  r_message(SC,SRQ,"");
+        r_message(ST,SC,"rq = ");
+        message(ST,SRQ, "rq.invoke!");
+	  message(SRQ,Y, "send_email(...)");
+	  r_message(SRQ,Y, "result = :ok");
+	  create_message(SRQ,SRS,"");
+	  r_message(SRQ,SRS,"");
+        r_message(ST,SRQ, "rs =");
+delete(SRQ);
+	message(ST,SC,"encode(rs)");
+	r_message(ST,SC,"p =");
+delete(SRS);
+	message(ST,S,"_write(p)");
+	r_message(ST,S,"");
+      r_message(CT,S,"");
+      message(CT,S,"_read()");
+      r_message(CT,S,"p = ");
+      message(CT,CC,"decode(p)");
+	create_message(CC,CRS,"new(...)");
+	r_message(CC,CRS,"");
+      r_message(CT,CC,"rs = ");
+      message(CT,CRS,"result");
+      r_message(CT,CRS,":ok");
+delete(CRS);
+    r_message(P,CT,":ok");
+delete(CRQ);
+  r_message(P,P,":ok");
+r_message(X,P,":ok");
+
+# Object lifeline completion
+complete(X);
+complete(P);
+complete(CT);
+complete(CC);
+complete(S);
+complete(ST);
+complete(SC);
+complete(Y);
+
+.PE
