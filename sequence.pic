@@ -266,7 +266,11 @@ define return_message {
                 off_to = off_to + (active_$2 - 1) * awid/2;
         }
 
-	arrow from  ($1.x + off_from, Here.y) to ($2.x + off_to, Here.y) dashed $3 " ";
+	if ($1.x == $2.x) then {
+		arrow from ($1.x + off_from, Here.y) dashed right then down .25 then left $3 ljust " " " " " " ;
+        } else {
+	   arrow from  ($1.x + off_from, Here.y) to ($2.x + off_to, Here.y) dashed $3 " ";
+        }
 }
 
 define rmessage {
@@ -274,7 +278,17 @@ define rmessage {
 }
 define r_message {
 	return_message($2,$1,$3);
+        inactive($2);
 }
+define s_message {
+  message($1,$2,$3);
+  active($2);
+}
+define c_message {
+  create_message($1,$2,$3)
+  active($2);
+}
+
 
 # Object becomes active
 # Can be nested to show recursion
