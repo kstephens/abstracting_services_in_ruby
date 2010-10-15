@@ -6,9 +6,9 @@ require 'socket'
 # Abstracting Services in Ruby
 #
 # * Kurt Stephens
-# * 2010/09/30 DRAFT
-# * Slides -- "":http://kurtstephens.com/pub/abstracting_services_in_ruby/asir.slides/
-# * Code -- "":http://kurtstephens.com/pub/abstracting_services_in_ruby/
+# * 2010/10/15 DRAFT
+# * Slides -- "":http://kurtstephens.com/pub/ruby/abstracting_services_in_ruby/asir.slides/
+# * Code -- "":http://kurtstephens.com/pub/ruby/abstracting_services_in_ruby/
 # * Git -- "":http://github.com/kstephens/abstracting_services_in_ruby
 # * Tools 
 # ** Riterate -- "":http://github.com/kstephens/riterate

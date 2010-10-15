@@ -65,8 +65,12 @@ riterate:
   - TCP Socket Transport
   - TCP Socket Server
   - "Returns a connected TCP socket."
-  - "Sends the encoded request and returns the encoded response."
-  - "Receives the encoded request."
+  - "Transport#send_response"
+  - "Transport#receive_response"
+  - "Sends the encoded Request payload."
+  - "Receives the encoded Request payload."
+  - "Sends the encoded Response payload."
+  - "Receives the encoded Response payload."
   - "Socket service - Output"
   - Socket service with forwarded exception.
   - "Socket service with forwarded exception. - Output"
