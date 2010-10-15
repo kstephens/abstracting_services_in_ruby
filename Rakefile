@@ -20,7 +20,7 @@ ENV['SCARLET'] ||= File.expand_path("../../scarlet/bin/scarlet", __FILE__)
 ENV['RITERATE'] ||= File.expand_path("../../riterate/bin/riterate", __FILE__)
 
 file 'asir.slides/index.html' => Dir['lib/*.rb'] + Dir['example/*.rb'] + [ 'Rakefile' ] + Dir["stylesheets/*.*"] do
-  sh "$RITERATE lib/*.rb example/sample_service.rb example/ex*.rb"
+  sh "$RITERATE --slides_basename=asir --ruby_opts='-I lib -I example' lib/*.rb example/sample_service.rb example/ex*.rb"
 end
 
 task :publish => [ :slides ] do
