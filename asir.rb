@@ -889,8 +889,7 @@ end
 #
 # * Services are easy to abstract away.
 # * Separation of transport, encoding.
-# * One-way .vs. Two-way.
-# * Asynchronous .vs. synchronous.
+# * 
 #
 # !SLIDE END
 
