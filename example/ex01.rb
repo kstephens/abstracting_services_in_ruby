@@ -1,20 +1,20 @@
 # !SLIDE :capture_code_output true
 # Call service directly
 
-require 'demo_helper'
+require 'example_helper'
 pr Email.send_email(:giant_pdf_invoice, :to => "user@email.com", :customer => @customer)
 
 # !SLIDE :capture_code_output true
 # In-core, in-process service
 
-require 'demo_helper'
+require 'example_helper'
 pr Email.client.send_email(:giant_pdf_invoice, :to => "user@email.com", :customer => @customer)
 
 #
 # !SLIDE :capture_code_output true
 # One-way, asynchronous subprocess service
 
-require 'demo_helper'
+require 'example_helper'
 begin
   Email.client.transport = 
     ASIR::Transport::Subprocess.new
@@ -25,7 +25,7 @@ end
 # !SLIDE :capture_code_output true
 # One-way, file log service
 
-require 'demo_helper'
+require 'example_helper'
 begin
   File.unlink(service_log = "service.log") rescue nil
 
@@ -44,7 +44,7 @@ end
 # !SLIDE :capture_code_output true
 # Replay file log
 
-require 'demo_helper'
+require 'example_helper'
 begin
   service_log = "service.log"
   Email.client.transport = 
@@ -60,7 +60,7 @@ end
 # !SLIDE :capture_code_output true
 # One-way, named pipe service
 
-require 'demo_helper'
+require 'example_helper'
 begin
   File.unlink(service_fifo = "service.fifo") rescue nil
 
@@ -85,7 +85,7 @@ end
 # !SLIDE :capture_code_output true
 # One-way, named pipe service with signature
 
-require 'demo_helper'
+require 'example_helper'
 begin
   File.unlink(service_fifo = "service.fifo") rescue nil
   Email.client.transport =
@@ -114,7 +114,7 @@ end
 # !SLIDE :capture_code_output true
 # One-way, named pipe service with invalid signature
 
-require 'demo_helper'
+require 'example_helper'
 begin
   File.unlink(service_fifo = "service.fifo") rescue nil
   Email.client.transport = ASIR::Transport::File.new(:file => service_fifo)
@@ -144,7 +144,7 @@ end
 # !SLIDE :capture_code_output true
 # Socket service
 
-require 'demo_helper'
+require 'example_helper'
 begin
   Email.client.transport =
     ASIR::Transport::TcpSocket.new(:port => 30901)
@@ -166,7 +166,7 @@ end
 # !SLIDE :capture_code_output true
 # Socket service with forwarded exception.
 
-require 'demo_helper'
+require 'example_helper'
 begin
   Email.client.transport =
     ASIR::Transport::TcpSocket.new(:port => 30902)
