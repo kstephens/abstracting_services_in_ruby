@@ -53,7 +53,6 @@ begin
     ASIR::Coder::Yaml.new
 
   Email.client.transport.service_file!
-
 ensure
   File.unlink(service_log) rescue nil
 end
