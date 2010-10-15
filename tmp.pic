@@ -10,24 +10,24 @@ spacing = boxwid / 0.75 * 0.33;
 awid = boxwid / 0.75 * .10;
 
 # Object definition
-object(X, "x:Client");
-object(P, "p:Proxy");
+object(X,   "x:Client");
+object(P,   "p:Proxy");
 object(CRQ, "crq:Request")
-object(CT, "ct:Transport");
-object(CC, "cc:Coder");
-object(CRS, "crs:Response")
-object(S, "s:Stream");
-object(ST, "st:Transport");
-object(SC, "sc:Coder");
+object(CT,  "ct:Transport");
+object(CC,  "cc:Coder");
+object(CRS, "crs:Response");
+object(S,   "s:Stream");
+object(ST,  "st:Transport");
+object(SC,  "sc:Coder");
 object(SRQ, "srq:Request");
 object(SRS, "srs:Response")
-object(Y, "y:Service");
+object(Y,   "y:Service");
 
 # Message exchange
 s_message(X,Y,"client()");
 r_message(X,Y,"p = ");
-s_message(X,P,"send_email(...)");
-  s_message(P,P,"method_missing(:send_email, [...])");
+s_message(X,P,"method(...)");
+  s_message(P,P,"method_missing(:method, [...])");
     c_message(P,CRQ,"");
     r_message(P,CRQ,"crq =");
     s_message(P,CT,"send_request(crq)");
@@ -44,7 +44,7 @@ s_message(X,P,"send_email(...)");
 	  r_message(SC,SRQ,"");
         r_message(ST,SC,"srq = ");
         s_message(ST,SRQ, "srq.invoke!");
-	  s_message(SRQ,Y, "send_email(...)");
+	  s_message(SRQ,Y, "message(...)");
 	  r_message(SRQ,Y, "result = :ok");
 	  c_message(SRQ,SRS,"");
 	  r_message(SRQ,SRS,"");
