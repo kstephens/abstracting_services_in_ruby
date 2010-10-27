@@ -69,6 +69,11 @@ ul {
   text-decoration: underline;
 }
 
+.svg {
+       width: 90%;
+       height: auto;
+}
+
 .code {
 	border: 3px solid #555753;
 	background: #eeeeec;

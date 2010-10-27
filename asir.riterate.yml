@@ -10,8 +10,17 @@ riterate:
   - "Use other machines to poll a work table..."
   - "Use queue infrastructure"
   - "Issues"
+  - "Problem Domain .vs. Solution Domain"
+  - "Service Middleware Semantics"
+  - "Testing, Debugging, Diagnostics"
   - Objectives
-  - Design
+  - "Design"
+  - "Design: Nouns"
+  - "Design: Verbs"
+  - "Simple"
+  - "Client-Side Request"
+  - "Server-Side"
+  - "Client-Side Response"
   - Modules and Classes
   - Request
   - Example Request

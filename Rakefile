@@ -20,6 +20,7 @@ ENV['SCARLET'] ||= File.expand_path("../../scarlet/bin/scarlet", __FILE__)
 ENV['RITERATE'] ||= File.expand_path("../../riterate/bin/riterate", __FILE__)
 
 file 'asir.slides/index.html' => 
+  Dir['../riterate/bin/riterate'] +
   Dir['lib/*.rb'] + 
   Dir['example/*.rb'] + 
   [ 'Rakefile' ] + 

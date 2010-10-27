@@ -6,7 +6,7 @@ require 'socket'
 # Abstracting Services in Ruby
 #
 # * Kurt Stephens
-# * 2010/10/15 DRAFT
+# * 2010/10/23 DRAFT
 # * Slides -- "":http://kurtstephens.com/pub/ruby/abstracting_services_in_ruby/asir.slides/
 # * Code -- "":http://kurtstephens.com/pub/ruby/abstracting_services_in_ruby/
 # * Git -- "":http://github.com/kstephens/abstracting_services_in_ruby
@@ -20,16 +20,34 @@ require 'socket'
 # Issues
 #
 # * Problem Domain .vs. Solution Domain
-# ** Client knows too much about infrastructure.
-# ** Evaluating and switching infrastructures.
-# * Service Semantics
-# ** One-way (no response after request) .vs. Two-way
-# ** Synchronous .vs. Asynchronous
+# * Service Middleware Semantics
 # * Testing, Debugging, Diagnostics
-# ** Setup for testing and QA is more complex.
-# ** Measuring test coverage of remote services.
-# ** Debugging the root cause of remote service errors.
-# ** Diagnostic hooks.
+#
+# !SLIDE END
+
+# !SLIDE
+# Problem Domain .vs. Solution Domain
+#
+# * Client knows too much about infrastructure.
+# * Evaluating and switching infrastructures.
+#
+# !SLIDE END
+
+# !SLIDE
+# Service Middleware Semantics
+#
+# * One-way (no response after request) .vs. Two-way
+# * Synchronous .vs. Asynchronous
+#
+# !SLIDE END
+
+# !SLIDE
+# Testing, Debugging, Diagnostics
+#
+# * Configuration for testing and QA is more complex.
+# * Measuring test coverage of remote services.
+# * Debugging the root cause of remote service errors.
+# * Diagnostic hooks.
 #
 # !SLIDE END
 
@@ -48,20 +66,80 @@ require 'socket'
 # !SLIDE
 # Design
 #
-# * Nouns:
-# ** Service -> Module
-# ** Client -> Just a Ruby caller
-# ** Proxy
-# ** Request, Response, Exception
-# ** Transport
-# ** Encoder, Decoder -> Coder
-# ** Logging
-# * Verbs:
-# ** Intercept Request -> Proxy
-# ** Invoke Request    -> Request
-# ** Invoke Exception
-# ** Send Request, Recieve Request -> Transport
-# ** Encode Object, Decode Object -> Coder
+# * Nouns -> Objects -> Classes
+# * Verbs -> Responsibilities - Methods
+#
+# h3. Book: "Designing Object-Oriented Software"
+#  * Wirfs-Brock, Wilkerson, Wiener
+#
+# !SLIDE END
+
+# !SLIDE
+# Design: Nouns
+#
+# * Service -> Module
+# * Client -> Just a Ruby caller
+# * Proxy
+# * Request
+# * Response, Exception (two-way)
+# * Transport
+# * Encoder, Decoder -> Coder
+# * Logging
+#
+# !SLIDE END
+
+# !SLIDE
+# Design: Verbs
+#
+# * Intercept Request -> Proxy
+# * Invoke Request    -> Request
+# * Invoke Exception
+# * Send Request, Recieve Request -> Transport
+# * Encode Object, Decode Object -> Coder
+#
+# !SLIDE END
+
+# !SLIDE
+# Simple
+#
+# !PIC BEGIN
+# 
+# box "Client" "(CustomersController" "#send_invoice)"; arrow; box "Request" "(Ruby message)"; arrow; box "Service" "(Email.send_email)";
+#
+# !PIC END
+#
+# !SLIDE END
+
+# !SLIDE
+# Client-Side Request
+#
+# !PIC BEGIN
+# box "Client"; arrow; box "Proxy"; arrow; box "Create" "Request"; arrow; box "Encode" "Request"; arrow; box "Transport";
+# line; down; arrow;
+# !PIC END
+#
+# !SLIDE END
+
+# !SLIDE
+# Server-Side
+#
+# !PIC BEGIN
+# down; line; right; arrow; 
+# box "Transport"; arrow; box "Decode" "Request"; arrow; box "Request"; 
+# line; down; arrow; box "Invoke Request"; line; 
+# left; arrow; box "Create" "Response";  arrow; box "Encode" "Response"; arrow; box "Transport"; 
+# line; down; arrow
+# !PIC END
+#
+# !SLIDE END
+
+# !SLIDE
+# Client-Side Response
+#
+# !PIC BEGIN
+# down; line; right; arrow;
+# box "Transport"; arrow; box "Decode" "Response"; arrow; box "Response"; arrow; box "Proxy"; arrow; box "Client";
+# !PIC END
 #
 # !SLIDE END
 
