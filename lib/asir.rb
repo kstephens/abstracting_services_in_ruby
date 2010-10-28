@@ -6,7 +6,7 @@ require 'socket'
 # Abstracting Services in Ruby
 #
 # * Kurt Stephens
-# * 2010/10/23 DRAFT
+# * 2010/10/27 DRAFT
 # * Slides -- "":http://kurtstephens.com/pub/ruby/abstracting_services_in_ruby/asir.slides/
 # * Code -- "":http://kurtstephens.com/pub/ruby/abstracting_services_in_ruby/
 # * Git -- "":http://github.com/kstephens/abstracting_services_in_ruby
@@ -19,14 +19,14 @@ require 'socket'
 # !SLIDE
 # Issues
 #
-# * Problem Domain .vs. Solution Domain
+# * Problem Domain, Solution Domain
 # * Service Middleware Semantics
 # * Testing, Debugging, Diagnostics
 #
 # !SLIDE END
 
 # !SLIDE
-# Problem Domain .vs. Solution Domain
+# Problem Domain, Solution Domain
 #
 # * Client knows too much about infrastructure.
 # * Evaluating and switching infrastructures.
@@ -36,8 +36,10 @@ require 'socket'
 # !SLIDE
 # Service Middleware Semantics
 #
-# * One-way (no response after request) .vs. Two-way
-# * Synchronous .vs. Asynchronous
+# * Directionality: One-way, Two-way
+# * Synchronicity: Synchronous, Asynchronous
+# * Distribution: Local, Distributed
+# * Robustness: Retry, Replay, Fallback
 #
 # !SLIDE END
 
@@ -67,7 +69,7 @@ require 'socket'
 # Design
 #
 # * Nouns -> Objects -> Classes
-# * Verbs -> Responsibilities - Methods
+# * Verbs -> Responsibilities -> Methods
 #
 # h3. Book: "Designing Object-Oriented Software"
 #  * Wirfs-Brock, Wilkerson, Wiener
@@ -82,8 +84,8 @@ require 'socket'
 # * Proxy
 # * Request
 # * Response, Exception (two-way)
-# * Transport
-# * Encoder, Decoder -> Coder
+# * Transport -> (file, pipe, http, queue)
+# * Encoder, Decoder -> Coder (Marshal, XML, JSON)
 # * Logging
 #
 # !SLIDE END
@@ -104,7 +106,9 @@ require 'socket'
 #
 # !PIC BEGIN
 # 
-# box "Client" "(CustomersController" "#send_invoice)"; arrow; box "Request" "(Ruby message)"; arrow; box "Service" "(Email.send_email)";
+# box "Client" "(CustomersController" "#send_invoice)"; arrow; 
+# ellipse "Send" "Request" "(Ruby message)"; arrow; 
+# box "Service" "(Email.send_email)";
 #
 # !PIC END
 #
@@ -114,7 +118,11 @@ require 'socket'
 # Client-Side Request
 #
 # !PIC BEGIN
-# box "Client"; arrow; box "Proxy"; arrow; box "Create" "Request"; arrow; box "Encode" "Request"; arrow; box "Transport";
+# box "Client"; arrow; 
+# ellipse "Proxy"; arrow; 
+# ellipse "Create" "Request"; arrow; 
+# ellipse "Encode" "Request"; arrow; 
+# ellipse "Transport" "Request";
 # line; down; arrow;
 # !PIC END
 #
@@ -125,9 +133,19 @@ require 'socket'
 #
 # !PIC BEGIN
 # down; line; right; arrow; 
-# box "Transport"; arrow; box "Decode" "Request"; arrow; box "Request"; 
-# line; down; arrow; box "Invoke Request"; line; 
-# left; arrow; box "Create" "Response";  arrow; box "Encode" "Response"; arrow; box "Transport"; 
+# ellipse "Transport" "Request"; arrow; 
+# ellipse "Decode" "Request"; arrow; 
+# ellipse "Request"; 
+# line; down; arrow; 
+# IR: ellipse "Invoke" "Request";
+# right; move; move;
+# Service: box "Service" with .w at IR.e + (movewid, 0); 
+# arrow <-> from IR.e to Service.w;
+# move to IR.s; down; line;
+# left; arrow; 
+# ellipse "Create" "Response"; arrow; 
+# ellipse "Encode" "Response"; arrow;
+# ellipse "Transport" "Response"; 
 # line; down; arrow
 # !PIC END
 #
@@ -137,8 +155,12 @@ require 'socket'
 # Client-Side Response
 #
 # !PIC BEGIN
-# down; line; right; arrow;
-# box "Transport"; arrow; box "Decode" "Response"; arrow; box "Response"; arrow; box "Proxy"; arrow; box "Client";
+# down; line; left; arrow;
+# ellipse "Transport" "Response"; arrow; 
+# ellipse "Decode" "Response"; arrow; 
+# ellipse "Response"; arrow; 
+# ellipse "Proxy"; arrow; 
+# box "Client";
 # !PIC END
 #
 # !SLIDE END
@@ -580,11 +602,15 @@ module ASIR
       false
     end
 
+    alias :encoder_ :encoder
+    alias :encoder_= :encoder=
     def encoder
       @encoder ||=
         Coder::Identity.new
     end
 
+    alias :decoder_ :decoder
+    alias :decoder_= :decoder=
     def decoder
       @decoder ||= 
         encoder
@@ -661,18 +687,19 @@ module ASIR
     # * Blank line.
     module PayloadIO
       def _write payload, stream
+        _log { "  _write size = #{payload.size}" }
         stream.puts payload.size
+        _log { "  _write #{payload.inspect}" }
         stream.write payload
         stream.puts EMPTY_STRING
-        _log { "  _write #{payload.inspect}" }
         stream.flush
       end
 
       def _read stream
         size = stream.readline.chomp.to_i
-        _log { "  _read size    = #{size.inspect}" }
+        _log { "  _read  size = #{size.inspect}" }
         payload = stream.read(size)
-        _log { "  _read payload = #{payload.inspect}" }
+        _log { "  _read  #{payload.inspect}" }
         stream.readline
         payload
       end
@@ -740,7 +767,7 @@ module ASIR
     # Send Request one-way to a file.
     # Can be used as a log or named pipe service.
     class File < Stream
-      include PayloadIO # send, recv
+      include PayloadIO # _write, _read
 
       attr_accessor :file, :stream
 
@@ -787,8 +814,8 @@ module ASIR
       def prepare_fifo_server!
         _log :prepare_fifo_server!
         unless ::File.exist? file
-          system(cmd = "mkfifo #{file.inspect}") || (raise "cannot run #{cmd.inspect}")
-          system(cmd = "chmod 666 #{file.inspect}") || (raise "cannot run #{cmd.inspect}")
+          system(cmd = "mkfifo #{file.inspect}") or raise "cannot run #{cmd.inspect}"
+          system(cmd = "chmod 666 #{file.inspect}") or raise "cannot run #{cmd.inspect}"
         end
       end
 
@@ -854,6 +881,7 @@ module ASIR
       def prepare_socket_server!
         _log { "prepare_socket_server! #{port}" }
         @server = TCPServer.open(port)
+        @server.setsockopt(Socket::SOL_SOCKET, Socket::SO_KEEPALIVE, false)
       end
 
       def run_socket_server!
@@ -889,6 +917,33 @@ module ASIR
     end
     # !SLIDE END
 
+
+    # !SLIDE
+    # Recovery Transport
+    #
+    class Recovery < self
+      attr_accessor :transports
+
+      def send_request request
+        result = sent = exceptions = nil
+        transports.each do | transport |
+          begin
+            result = transport.send_request request
+            sent = true
+            break
+          rescue ::Exception => exc
+            (exceptions ||= [ ]) << [ transport, exc ]
+            _log { [ :send_request, :transport_failed, transport, exc ] }
+          end
+        end
+        unless sent
+          _log { [ :send_request, :recovery_failed, exceptions ] }
+          raise Error, "could not recover"
+        end
+        result
+      end
+    end
+    # !SLIDE END
 
     # !SLIDE
     # Multi Transport

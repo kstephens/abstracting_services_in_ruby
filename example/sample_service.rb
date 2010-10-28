@@ -26,8 +26,6 @@ module Email
 
   extend self
 end
-
-Email.send_email(:giant_pdf_invoice, :to => "user@email.com", :customer => @customer)
 # !SLIDE END
 
 # !SLIDE
@@ -91,42 +89,59 @@ end
 # !SLIDE END
 =end
 
+
 # !SLIDE
 # Example Request
 #
 # @@@ ruby
-#   Email.send_email(:giant_pdf_invoice, 
-#                    :to => "user@email.com",
-#                    :customer => @customer)
+# Email.client.send_email(:giant_pdf_invoice, 
+#                         :to => "user@email.com",
+#                         :customer => @customer)
 # @@@
 #
-#   =>
+# =>
+#
 # @@@ ruby  
-#   request = Request.new(...)
-#   request.receiver_class = Module
-#   request.receiver = "Email"
-#   request.selector = :send_email
-#   request.arguments = [ :giant_pdf_invoice,
-#                         { :to => "user@email.com", :customer => ... } ]
+# request = Request.new(...)
+# request.receiver_class == Module
+# request.receiver == "Email"
+# request.selector == :send_email
+# request.arguments == [ :giant_pdf_invoice,
+#                        { :to => "user@email.com", :customer => ... } ]
 # @@@
 #
+# !SLIDE END
+
+# !SLIDE
+# Using a Client Proxy
+#
+# @@@ ruby
+# Email.send_email(:giant_pdf_invoice, 
+#                  :to => "user@email.com",
+#                  :customer => @customer)
+# @@@
+# =>
+# @@@ ruby   
+# Email.client.send_email(:giant_pdf_invoice, 
+#                         :to => "user@email.com",
+#                         :customer => @customer)
+#
+# @@@
 # !SLIDE END
 
 # !SLIDE
 # Example Exception
 #
 # @@@ ruby
-#   Email.do_raise("DOH!")
+# Email.do_raise("DOH!")
 # @@@
-#
-#   =>
-#
-# @@@ ruby  
-#   response.exception = ee = EncapsulatedException.new(...)
-#   ee.exception_class = "::RuntimeError"
-#   ee.exception_message = "DOH!"
-#   ee.exception_backtrace = [ ... ]
-# @@@
+# =>
+# @@@ ruby
+# response.exception = ee = EncapsulatedException.new(...)
+# ee.exception_class = "::RuntimeError"
+# ee.exception_message = "DOH!"
+# ee.exception_backtrace = [ ... ]
+# @@@ ruby
 #
 # !SLIDE END
 

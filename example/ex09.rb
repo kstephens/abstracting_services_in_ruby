@@ -13,7 +13,8 @@ begin
     Email.client.transport.run_socket_server!
   end
   
-  pr Email.client.send_email(:giant_pdf_invoice, :to => "user@email.com", :customer => @customer)
+  pr Email.client.send_email(:giant_pdf_invoice, 
+                             :to => "user@email.com", :customer => @customer)
 ensure
   Email.client.transport.close
   sleep 1

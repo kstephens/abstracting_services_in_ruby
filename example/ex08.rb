@@ -21,8 +21,7 @@ begin
   
   pr Email.client.send_email(:giant_pdf_invoice, :to => "user@email.com", :customer => @customer)
 ensure
-  Email.client.transport.close
-  sleep 1
+  Email.client.transport.close; sleep 1
   Process.kill 9, child_pid
   File.unlink(service_fifo) rescue nil
 end

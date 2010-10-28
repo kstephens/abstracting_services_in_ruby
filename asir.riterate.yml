@@ -1,5 +1,6 @@
 --- 
 riterate: 
+  version: "1.0"
   do_not_update: true
   ordered_slides: 
   - Abstracting Services in Ruby
@@ -10,7 +11,7 @@ riterate:
   - "Use other machines to poll a work table..."
   - "Use queue infrastructure"
   - "Issues"
-  - "Problem Domain .vs. Solution Domain"
+  - "Problem Domain, Solution Domain"
   - "Service Middleware Semantics"
   - "Testing, Debugging, Diagnostics"
   - Objectives
@@ -22,25 +23,24 @@ riterate:
   - "Server-Side"
   - "Client-Side Response"
   - Modules and Classes
+  - Using a Client Proxy
+  - Mixin Client support to any Module
+  - Client Proxy
   - Request
   - Example Request
-  - Request Identifier
   - Help encode/decode receiver
   - Response
-  - Example Exception
-  - Encapsulated Exception
   - Coder
   - Identity Coder
   - Transport
   - Transport#send_request
   - Null Transport
   - Transport Support
+  - Request Identifier
   - Call service directly
   - "Call service directly - Output"
   - In-core, in-process service
   - Sample Service with Client Support
-  - Mixin Client support to any Module
-  - Client Proxy
   - Local Transport
   - "In-core, in-process service - Output"
   - One-way, asynchronous subprocess service
@@ -82,17 +82,19 @@ riterate:
   - "Receives the encoded Response payload."
   - "Socket service - Output"
   - Socket service with forwarded exception.
+  - Example Exception
+  - Encapsulated Exception
   - "Socket service with forwarded exception. - Output"
   - Synopsis
   - Object Initialization
   - Diagnostic Logging
   - Null Coder
   - Other Coders
-  - HTTP Transport
   - Multi Transport
+  - Recovery Transport
+  - HTTP Transport
 
   unknown_slides: []
 
   unordered_slides: []
 
-  version: "1.0"
