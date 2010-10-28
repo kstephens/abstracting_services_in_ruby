@@ -925,6 +925,7 @@ module ASIR
         result = sent = exceptions = nil
         transports.each do | transport |
           begin
+            _log { [ :send_request, :transport, transport ] }
             result = transport.send_request request
             sent = true
             break
@@ -953,13 +954,18 @@ module ASIR
       def _send_request request
         result = nil
         transports.each do | transport |
+          _log { [ :send_request, :transport, transport ] }
           result = transport.send_request(request)
         end
         result
       end
 
+      def _receive_response opaque
+        opaque
+      end
+
       def needs_request_identifier?
-        transports.any? { | t | needs_request_identifier? }
+        transports.any? { | t | t.needs_request_identifier? }
       end
     end
     # !SLIDE END
