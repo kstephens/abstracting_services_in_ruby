@@ -103,8 +103,8 @@ end
 #
 # @@@ ruby  
 # request = Request.new(...)
-# request.receiver_class == Module
-# request.receiver == "Email"
+# request.receiver_class == ::Module
+# request.receiver == ::Email
 # request.selector == :send_email
 # request.arguments == [ :giant_pdf_invoice,
 #                        { :to => "user@email.com", :customer => ... } ]
