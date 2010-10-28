@@ -275,7 +275,7 @@ module ASIR
     # !SLIDE
     # Help encode/decode receiver
 
-    def dereference_receiver!
+    def encode_receiver!
       unless String === @receiver_class
         case @receiver
         when Module
@@ -288,7 +288,7 @@ module ASIR
       self
     end
 
-    def reference_receiver!
+    def decode_receiver!
       if String === @receiver_class
         @receiver_class = eval("::#{@receiver_class}")
         @receiver = eval("::#{@receiver}")
@@ -408,7 +408,7 @@ module ASIR
       def _encode obj
         case obj
         when Request
-          obj = obj.dereference_receiver!
+          obj = obj.encode_receiver!
         end
         ::YAML::dump(obj)
       end
@@ -416,7 +416,7 @@ module ASIR
       def _decode obj
         case obj = ::YAML::load(obj)
         when Request
-          obj.reference_receiver!
+          obj.decode_receiver!
         else
           obj
         end
