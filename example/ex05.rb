@@ -4,12 +4,12 @@
 require 'example_helper'
 begin
   service_log = "service.log"
-  Email.client.transport = 
+  Email.client.transport = t =
     ASIR::Transport::File.new(:file => service_log)
-  Email.client.transport.encoder = 
+  t.encoder = 
     ASIR::Coder::Yaml.new
 
-  Email.client.transport.service_file!
+  t.serve_file!
 ensure
   File.unlink(service_log) rescue nil
 end

@@ -16,7 +16,7 @@
 #
 module Email
   def send_email template_name, options
-    $stderr.puts "*** Email.send_mail #{template_name.inspect} #{options.inspect}"]
+    $stderr.puts "*** #{$$}: Email.send_mail #{template_name.inspect} #{options.inspect}"
     :ok
   end
 
@@ -34,7 +34,7 @@ end
 class CustomersController < ApplicationController
   def send_invoice
     @customer = Customer.find(params[:id])
-    Email.send_email(:giant_pdf_invoice,
+    Email.send_email(:pdf_invoice,
                      :to => @customer.email,
                      :customer => @customer)
   end
@@ -48,7 +48,7 @@ class CustomersController < ApplicationController
   def send_invoice
     @customer = Customer.find(params[:id])
     Process.fork do 
-      Email.send_email(:giant_pdf_invoice,
+      Email.send_email(:pdf_invoice,
                        :to = @customer.email,
                        :customer => @customer)
     end
@@ -62,7 +62,7 @@ end
 class CustomersController < ApplicationController
   def send_invoice
     @customer = Customer.find(params[:id])
-    EmailWork.create(:template_name => :giant_pdf_invoice, 
+    EmailWork.create(:template_name => :pdf_invoice, 
                      :options => { 
                        :to => @customer.email,
                        :customer => @customer,
@@ -79,7 +79,7 @@ class CustomersController < ApplicationController
     @customer = Customer.find(params[:id])
     queue_service.put(:queue => :Email, 
                       :action => :send_email,
-                      :template_name => :giant_pdf_invoice, 
+                      :template_name => :pdf_invoice, 
                       :options => { 
                         :to => @customer.email,
                         :customer => @customer,
@@ -94,19 +94,17 @@ end
 # Example Request
 #
 # @@@ ruby
-# Email.client.send_email(:giant_pdf_invoice, 
+# Email.client.send_email(:pdf_invoice, 
 #                         :to => "user@email.com",
 #                         :customer => @customer)
 # @@@
-#
-# =>
-#
+# ->
 # @@@ ruby  
 # request = Request.new(...)
 # request.receiver_class == ::Module
 # request.receiver == ::Email
 # request.selector == :send_email
-# request.arguments == [ :giant_pdf_invoice,
+# request.arguments == [ :pdf_invoice,
 #                        { :to => "user@email.com", :customer => ... } ]
 # @@@
 #
@@ -116,13 +114,13 @@ end
 # Using a Client Proxy
 #
 # @@@ ruby
-# Email.send_email(:giant_pdf_invoice, 
+# Email.send_email(:pdf_invoice, 
 #                  :to => "user@email.com",
 #                  :customer => @customer)
 # @@@
-# =>
+# ->
 # @@@ ruby   
-# Email.client.send_email(:giant_pdf_invoice, 
+# Email.client.send_email(:pdf_invoice, 
 #                         :to => "user@email.com",
 #                         :customer => @customer)
 #
@@ -135,7 +133,7 @@ end
 # @@@ ruby
 # Email.do_raise("DOH!")
 # @@@
-# =>
+# ->
 # @@@ ruby
 # response.exception = ee = EncapsulatedException.new(...)
 # ee.exception_class = "::RuntimeError"
@@ -156,7 +154,7 @@ module Email
   include ASIR::Client # Email.client
 
   def send_email template_name, options
-    $stderr.puts "*** Email.send_mail #{template_name.inspect} to #{options.inspect}"
+    $stderr.puts "*** #{$$}: Email.send_mail #{template_name.inspect} #{options.inspect}"
     :ok
   end
 

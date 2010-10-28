@@ -3,7 +3,7 @@
 
 require 'example_helper'
 begin
-  Email.client.transport =
+  Email.client.transport = t =
     ASIR::Transport::Recovery.new(:transports => 
                                   [
                                    tcp = ASIR::Transport::TcpSocket.new(:port => 30903),
@@ -12,7 +12,7 @@ begin
   tcp.encoder = 
     ASIR::Coder::Marshal.new
 
-  pr Email.client.send_email(:giant_pdf_invoice, 
+  pr Email.client.send_email(:pdf_invoice, 
                              :to => "user@email.com", :customer => @customer)
 
   tcp.prepare_socket_server!
@@ -20,12 +20,11 @@ begin
     tcp.run_socket_server!
   end
 
-  pr Email.client.send_email(:giant_pdf_invoice, 
+  pr Email.client.send_email(:pdf_invoice, 
                              :to => "user2@email.com", :customer => @customer)
   
 ensure
   tcp.close; sleep 1
   Process.kill 9, child_pid
-
 end
 

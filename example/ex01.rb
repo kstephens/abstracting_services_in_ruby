@@ -2,7 +2,7 @@
 # Call service directly
 
 require 'example_helper'
-pr Email.send_email(:giant_pdf_invoice, 
+pr Email.send_email(:pdf_invoice, 
                     :to => "user@email.com",
                     :customer => @customer)
 

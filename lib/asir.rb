@@ -122,7 +122,7 @@ require 'socket'
 # ellipse "Proxy"; arrow; 
 # ellipse "Create" "Request"; arrow; 
 # ellipse "Encode" "Request"; arrow; 
-# ellipse "Transport" "Request";
+# ellipse "Send" "Request";
 # line; down; arrow;
 # !PIC END
 #
@@ -133,7 +133,7 @@ require 'socket'
 #
 # !PIC BEGIN
 # down; line; right; arrow; 
-# ellipse "Transport" "Request"; arrow; 
+# ellipse "Receive" "Request"; arrow; 
 # ellipse "Decode" "Request"; arrow; 
 # ellipse "Request"; 
 # line; down; arrow; 
@@ -145,7 +145,7 @@ require 'socket'
 # left; arrow; 
 # ellipse "Create" "Response"; arrow; 
 # ellipse "Encode" "Response"; arrow;
-# ellipse "Transport" "Response"; 
+# ellipse "Send" "Response"; 
 # line; down; arrow
 # !PIC END
 #
@@ -156,7 +156,7 @@ require 'socket'
 #
 # !PIC BEGIN
 # down; line; left; arrow;
-# ellipse "Transport" "Response"; arrow; 
+# ellipse "Receive" "Response"; arrow; 
 # ellipse "Decode" "Response"; arrow; 
 # ellipse "Response"; arrow; 
 # ellipse "Proxy"; arrow; 
@@ -183,7 +183,7 @@ module ASIR
   # @@@
   #   Foo.new(:bar => 1, :baz => 2)
   # @@@
-  # =>
+  # ->
   # @@@
   #   obj = Foo.new; obj.bar = 1; obj.baz = 2; obj
   # @@@
@@ -292,6 +292,9 @@ module ASIR
       if String === @receiver_class
         @receiver_class = eval("::#{@receiver_class}")
         @receiver = eval("::#{@receiver}")
+        unless @receiver_class === @receiver
+          raise Error, "receiver #{@receiver.class.name} is not a #{@receiver_class}" 
+        end
       end
       self
     end
@@ -458,7 +461,7 @@ module ASIR
       end
 
       def _decode obj
-        encoders.reverse.each do | e |
+        encoders.reverse_each do | e |
           obj = e.decode(obj)
         end
         obj
@@ -602,15 +605,11 @@ module ASIR
       false
     end
 
-    alias :encoder_ :encoder
-    alias :encoder_= :encoder=
     def encoder
       @encoder ||=
         Coder::Identity.new
     end
 
-    alias :decoder_ :decoder
-    alias :decoder_= :decoder=
     def decoder
       @decoder ||= 
         encoder
@@ -802,7 +801,7 @@ module ASIR
       # !SLIDE
       # Process (receive) requests from a file.
 
-      def service_file!
+      def serve_file!
         ::File.open(file, "r") do | stream |
           serve_stream! stream, nil
         end
@@ -811,19 +810,18 @@ module ASIR
       # !SLIDE
       # Named Pipe Server
 
-      def prepare_fifo_server!
-        _log :prepare_fifo_server!
+      def prepare_pipe_server!
+        _log :prepare_pipe_server!
         unless ::File.exist? file
           system(cmd = "mkfifo #{file.inspect}") or raise "cannot run #{cmd.inspect}"
-          system(cmd = "chmod 666 #{file.inspect}") or raise "cannot run #{cmd.inspect}"
         end
       end
 
-      def run_fifo_server!
-        _log :run_fifo_server!
+      def run_pipe_server!
+        _log :run_pipe_server!
         @running = true
         while @running
-          service_file!
+          serve_file!
         end
       end
 

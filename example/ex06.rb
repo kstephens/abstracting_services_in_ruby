@@ -3,23 +3,23 @@
 
 require 'example_helper'
 begin
-  File.unlink(service_fifo = "service.fifo") rescue nil
+  File.unlink(service_pipe = "service.pipe") rescue nil
 
-  Email.client.transport = 
-    ASIR::Transport::File.new(:file => service_fifo)
-  Email.client.transport.encoder = 
+  Email.client.transport = t =
+    ASIR::Transport::File.new(:file => service_pipe)
+  t.encoder = 
     ASIR::Coder::Yaml.new
 
-  Email.client.transport.prepare_fifo_server!
+  t.prepare_pipe_server!
   child_pid = Process.fork do 
-    Email.client.transport.run_fifo_server!
+    t.run_pipe_server!
   end
 
-  pr Email.client.send_email(:giant_pdf_invoice, :to => "user@email.com", :customer => @customer)
+  pr Email.client.send_email(:pdf_invoice, :to => "user@email.com", :customer => @customer)
 ensure
-  Email.client.transport.close
+  t.close
   sleep 1
   Process.kill 9, child_pid
-  File.unlink(service_fifo) rescue nil
+  File.unlink(service_pipe) rescue nil
 end
 

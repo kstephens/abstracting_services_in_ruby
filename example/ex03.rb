@@ -4,10 +4,10 @@
 
 require 'example_helper'
 begin
-  Email.client.transport = 
+  Email.client.transport = t =
     ASIR::Transport::Subprocess.new
 
-  pr Email.client.send_email(:giant_pdf_invoice,
+  pr Email.client.send_email(:pdf_invoice,
                              :to => "user@email.com",
                              :customer => @customer)
 end

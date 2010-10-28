@@ -6,7 +6,6 @@ riterate:
   - Abstracting Services in Ruby
   - Stuff Gets Complicated
   - "Back when things were simple..."
-  - Sample Service
   - "Trying to improve user's experience..."
   - "Use other machines to poll a work table..."
   - "Use queue infrastructure"
@@ -23,6 +22,7 @@ riterate:
   - "Server-Side"
   - "Client-Side Response"
   - Modules and Classes
+  - Sample Service
   - Using a Client Proxy
   - Mixin Client support to any Module
   - Client Proxy

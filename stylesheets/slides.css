@@ -75,18 +75,26 @@ ul {
 }
 
 .code {
-	border: 3px solid #555753;
+	border: .2em solid #555753;
 	background: #eeeeec;
         color: #111;
-	padding: 20px;
-	margin: 10px 0 20px 0;
+	padding: .2em;
+	margin: .5em 0 .5em 0;
 }
 
 .code_output {
-	border: 3px solid #555753;
+	border: .2em solid #555753;
 	background: #eeeeec;
         color: #111;
-	padding: 20px;
-	margin: 10px 0 20px 0;
+	padding: .2em;
+	margin: .5em 0 .5em 0;
+}
+
+.code_output_highlight {
+	border: .2em solid @555753;
+        background: #202040;
+	color: #f0f020;
+	padding: .2em;
+	margin: .1em 0 .1em 0;
 }
 
