@@ -917,9 +917,8 @@ module ASIR
 
 
     # !SLIDE
-    # Recovery Transport
-    #
-    class Recovery < self
+    # Fallback Transport
+    class Fallback < self
       attr_accessor :transports
 
       def send_request request
@@ -935,11 +934,12 @@ module ASIR
           end
         end
         unless sent
-          _log { [ :send_request, :recovery_failed, exceptions ] }
-          raise Error, "could not recover"
+          _log { [ :send_request, :fallback_failed, exceptions ] }
+          raise FallbackError, "fallback failed"
         end
         result
       end
+      class FallbackError < Error; end
     end
     # !SLIDE END
 

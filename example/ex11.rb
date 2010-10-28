@@ -1,10 +1,10 @@
 # !SLIDE :capture_code_output true
-# Socket service with local recovery.
+# Socket service with local fallback.
 
 require 'example_helper'
 begin
   Email.client.transport = t =
-    ASIR::Transport::Recovery.new(:transports => 
+    ASIR::Transport::Fallback.new(:transports => 
                                   [
                                    tcp = ASIR::Transport::TcpSocket.new(:port => 30903),
                                    ASIR::Transport::Local.new,
@@ -27,4 +27,3 @@ ensure
   tcp.close; sleep 1
   Process.kill 9, child_pid
 end
-

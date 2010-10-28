@@ -85,13 +85,15 @@ riterate:
   - Example Exception
   - Encapsulated Exception
   - "Socket service with forwarded exception. - Output"
+  - "Socket service with local fallback."
+  - Fallback Transport
+  - "Socket service with local fallback. - Output"
   - Synopsis
   - Object Initialization
   - Diagnostic Logging
   - Null Coder
   - Other Coders
   - Multi Transport
-  - Recovery Transport
   - HTTP Transport
 
   unknown_slides: []
