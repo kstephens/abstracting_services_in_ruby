@@ -71,7 +71,12 @@ ul {
 
 .svg {
        width: 90%;
-       height: auto;
+//       doesn't appear to work for <object> in Safari -- kurt 2010/12/03
+//       height: auto;
+//       doesn't matter since CSS does appear to work on <object> height at all -- kurt 2010/12/03
+//       See hardcoded <object ... width="90%" height="67%" in riterate/bin/riterate
+       // 4/3 aspect?
+       height: 67%;
 }
 
 .code {
