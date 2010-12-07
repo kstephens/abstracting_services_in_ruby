@@ -8,11 +8,11 @@ begin
   Email.client.transport = t = 
     ASIR::Transport::File.new(:file => service_pipe)
   t.encoder = 
-    ASIR::Coder::Multi.new(:encoders =>
-                         [ ASIR::Coder::Marshal.new,
-                           s = ASIR::Coder::Sign.new(:secret => 'abc123'),
-                           ASIR::Coder::Yaml.new,
-                         ])
+    ASIR::Coder::Chain.new(:encoders =>
+      [ ASIR::Coder::Marshal.new,
+        s = ASIR::Coder::Sign.new(:secret => 'abc123'),
+        ASIR::Coder::Yaml.new,
+      ])
   
   t.prepare_pipe_server!
   child_pid = Process.fork do 

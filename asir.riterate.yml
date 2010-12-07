@@ -63,7 +63,7 @@ riterate:
   - Named Pipe Server
   - "One-way, named pipe service - Output"
   - One-way, named pipe service with signature
-  - Multi Coder
+  - Chain Coder
   - Marshal Coder
   - Sign Coder
   - Sign Coder Support
@@ -93,7 +93,7 @@ riterate:
   - Diagnostic Logging
   - Null Coder
   - Other Coders
-  - Multi Transport
+  - Broadcast Transport
   - HTTP Transport
 
   unknown_slides: []

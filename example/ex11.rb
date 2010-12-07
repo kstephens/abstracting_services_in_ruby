@@ -7,15 +7,14 @@ begin
 
   Email.client.transport = t =
     ASIR::Transport::Fallback.new(:transports => [
-      tcp = ASIR::Transport::TcpSocket.new(:port => 30903),
-      ASIR::Transport::Multi.new(:transports => [ 
+      tcp = ASIR::Transport::TcpSocket.new(:port => 30903,
+                                           :encoder => ASIR::Coder::Marshal.new),
+      ASIR::Transport::Broadcast.new(:transports => [ 
         file = ASIR::Transport::File.new(:file => service_log,
                                          :encoder => ASIR::Coder::Yaml.new),
         ASIR::Transport::Subprocess.new,
       ]),
     ])
-  tcp.encoder = 
-    ASIR::Coder::Marshal.new
 
   pr Email.client.send_email(:pdf_invoice, 
                              :to => "user@email.com", :customer => @customer)

@@ -6,7 +6,8 @@ require 'socket'
 # Abstracting Services in Ruby
 #
 # * Kurt Stephens
-# * 2010/10/27 DRAFT
+# * Enova Financial
+# * 2010/12/03
 # * Slides -- "":http://kurtstephens.com/pub/ruby/abstracting_services_in_ruby/asir.slides/
 # * Code -- "":http://kurtstephens.com/pub/ruby/abstracting_services_in_ruby/
 # * Git -- "":http://github.com/kstephens/abstracting_services_in_ruby
@@ -22,6 +23,7 @@ require 'socket'
 # * Problem Domain, Solution Domain
 # * Service Middleware Semantics
 # * Testing, Debugging, Diagnostics
+# * Productivity
 #
 # !SLIDE END
 
@@ -38,7 +40,7 @@ require 'socket'
 #
 # * Directionality: One-way, Two-way
 # * Synchronicity: Synchronous, Asynchronous
-# * Distribution: Local, Distributed
+# * Distribution: Local Process, Local Thread, Distributed
 # * Robustness: Retry, Replay, Fallback
 #
 # !SLIDE END
@@ -84,8 +86,8 @@ require 'socket'
 # * Proxy
 # * Request
 # * Response, Exception (two-way)
-# * Transport -> (file, pipe, http, queue)
-# * Encoder, Decoder -> Coder (Marshal, XML, JSON)
+# * Transport -> (file, pipe, http, queue, ActiveResource)
+# * Encoder, Decoder -> Coder (Marshal, XML, JSON, ActiveResource)
 # * Logging
 #
 # !SLIDE END
@@ -443,14 +445,14 @@ module ASIR
 
 
     # !SLIDE
-    # Multi Coder
+    # Chain Coder
     # Chain multiple Coders as one.
     #
     # @@@
     #   request  --> | e1 | --> | e2 | --> | eN | --> 
     #   response <-- | d1 | <-- | d2 | <-- | dN | <--
     # @@@
-    class Multi < self
+    class Chain < self
       attr_accessor :encoders
 
       def _encode obj
@@ -945,10 +947,10 @@ module ASIR
     # !SLIDE END
 
     # !SLIDE
-    # Multi Transport
+    # Broadcast Transport
     #
-    # Send to multiple Transports.
-    class Multi < self
+    # Broadcast to multiple Transports.
+    class Broadcast < self
       attr_accessor :transports
 
       def _send_request request
