@@ -1,4 +1,39 @@
 
+begin
+  require 'rubygems'
+  gem 'jeweler'
+  require 'jeweler'
+  Jeweler::Tasks.new do |s|
+    s.name = "asir"
+    #s.executables = ""
+    s.summary = "Abstracting Services in Ruby"
+    s.email = "ks.ruby@kurtstephens.com"
+    s.homepage = "http://github.com/kstephens/abstracting_services_in_ruby"
+    s.description = s.summary
+    s.authors = ["Kurt Stephens"]
+    s.files = FileList["[A-Z]*", "{bin,example,lib,test,spec}/**/*" ]
+    #s.add_dependency 'schacon-git'
+  end
+rescue LoadError
+  puts "Jeweler, or one of its dependencies, is not available. Install it with: sudo gem install jeweler -s http://gems.github.com"
+end
+
+require 'rake'
+require 'spec/rake/spectask'
+
+desc "Run all tests with RCov"
+Spec::Rake::SpecTask.new('spec') do |t|
+  t.spec_opts = [ '-b' ]
+  t.spec_files = FileList['spec/**/*_spec.rb']
+  t.rcov = true
+  t.rcov_opts = [
+                 # '--exclude', 'test', 
+                 '--exclude', '/var/lib',
+                ]
+end
+
+######################################################################
+
 task :default => 
   [ 
    :slides,
@@ -37,8 +72,10 @@ task :clean do
   sh "rm -rf *.slides* .riterate"
 end
 
+=begin
 file 'tmp.svg' => [ 'tmp.pic', 'sequence.pic' ] do
   sh "pic2plot -Tsvg --font-name HersheySans-Bold --font-size 0.01 tmp.pic > tmp.svg"
   sh "open tmp.svg"
 end
+=end
 
