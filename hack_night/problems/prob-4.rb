@@ -1,4 +1,5 @@
 # Write a ASIR::Transport::HTTP class that uses HTTP::Client for transport send_response and receive_response.
+# Use the Marshal Coder for the Transport.
 
 require 'rubygems'
 require 'webrick'
@@ -26,37 +27,38 @@ module ASIR
 
       def _send_request request
         client = ::HTTPClient.new
-        result = client.post(uri, request)
-        opaque = result # ???
+        # ???
+        result # ???
       end
 
+      # Should extract the content from the HTTPClient::Message
       def _receive_response opaque
-        # $stderr.puts "_receive_response opaque.content = #{opaque.content.inspect}"
-        opaque.content.to_s
+        # ??? 
       end
 
-      # Server-side: WEBrick 
+      # Server-side: WEBrick
+      
+      # Extract the body from the request.
       def _receive_request rq
-        rq.body
+        # ???
       end
 
+      # Set the Content-Type and body of the response.
       def _send_response result, rs
-        rs['Content-Type'] = 'application/binary'
-        rs.body = result
+        # ??? 
       end
 
+      # Parse the port and path of the #uri
+      # Create a @server = WEBrick::HTTPServer on the port
+      # Mount the path with a proc that calls server_request!
       def setup_server!
-        port = URI.parse(uri).port
-        @server = WEBrick::HTTPServer.new(:Port => port)
-        @server.mount_proc '/', lambda { | rq, rs |      
-          $stderr.puts "body = #{rq.body.inspect}"
-          serve_request! rq, rs
-        }
+        # ???
         self
       end
 
+      # Start the WEBbrick @server
       def start_server!
-        @server.start
+        # ??? 
         self
       end
     end
@@ -66,16 +68,17 @@ end
 
 port = 3001
 begin
-  t = ASIR::Transport::HTTP.new(:uri => "http://localhost:#{port}")
+  t = # ??? 
   t._log_enabled = true
   t.logger = $stderr
   c = t.encoder = ASIR::Coder::Marshal.new
   c._log_enabled = true
   c.logger = $stderr
 
+  # Setup and run the server in a child process.
   server_pid = Process.fork do
-    t.setup_server!
-    t.start_server!
+    # ??? 
+    # ??? 
   end
 
   # system("curl http://localhost:#{port}/")
@@ -84,6 +87,7 @@ begin
 
   MathService.client.sum([1, 2, 3])
 ensure
+  # Kill the server.
   Process.kill(9, server_pid)
 end
 
