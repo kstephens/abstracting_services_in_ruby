@@ -11,12 +11,11 @@ module ASIR
       def _encode obj
         raise TypeError unless String === obj
         # ???
-        obj
       end
+
       def _decode obj
         raise TypeError unless String === obj
         # ???
-        obj
       end
     end
   end
@@ -35,4 +34,3 @@ begin
   result = coder.decode(output)
   puts "result = #{result.inspect}"
 end
-

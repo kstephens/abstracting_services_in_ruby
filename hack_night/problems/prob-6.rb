@@ -1,4 +1,4 @@
-# Use the Marshal and Base64 coders in prob-4.rb
+# Use the Marshal and Base64 coders with the HTTP transport.
 
 $: << File.expand_path("../../../lib", __FILE__)
 require 'asir_transport_http'
@@ -13,7 +13,7 @@ begin
   t.debug = true
   t._log_enabled = true
   t.logger = $stderr
-  c = t.encoder = ASIR::Coder::???.new
+  c = t.encoder = ASIR::Coder::# ???.new
   c._log_enabled = true
   c.logger = $stderr
 

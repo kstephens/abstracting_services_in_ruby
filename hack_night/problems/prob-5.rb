@@ -15,7 +15,7 @@ require 'asir'
 module MathService
   include ASIR::Client
   def sum array
-    -123
+    # ???
   end
   extend self
 end
@@ -30,7 +30,6 @@ module ASIR
       def _send_request request
         client = ::HTTPClient.new
         # ???
-        result # ???
       end
 
       # Should extract the content from the HTTPClient::Message
