@@ -1,22 +1,17 @@
-# Call the MathService using the ASIR::Client mixin.
-# Assume the default Transport and Coder.
+# Call the MathService using the ASIR::Transport::Subprocess mixin.
 
 $: << File.expand_path("../../../lib", __FILE__)
 require 'asir'
 
-module MathService
-  # ???
-  def sum array_of_numbers
-    # ???
-    return -123
-  end
-  extend self
-end
+require 'math_service'
+MathService.send(:include, ASIR::Client)
 
 ######################################################################
 # Driver:
 
 begin
-  puts MathService # ???  # => 6
+  # MathService.client.transport = ??? 
+  MathService.client.transport._log_enabled = true
+  MathService.client.transport.logger = $stderr
+  puts MathService.client.sum([1, 2, 3])
 end
-

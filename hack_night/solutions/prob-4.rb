@@ -1,14 +1,30 @@
-# Write a Base64 Coder
+# Write a Coder that can encode an Array of Numbers as a String and decode a String into a Number.
+# Hint: inspect .vs. eval
 
 $: << File.expand_path("../../../lib", __FILE__)
-require 'asir_coder_base64'
+require 'asir'
+
+module ASIR
+  class Coder
+    class Simple < self
+      def _encode obj
+        obj.inspect
+      end
+
+      def _decode obj
+        raise TypeError unless String === obj
+        Object.send(:eval, obj)
+      end
+    end
+  end
+end
 
 ######################################################################
 
 begin
-  input = "abc123"
+  input = [ 1, 2, 3 ]
   puts "input  = #{input.inspect}"
-  coder = ASIR::Coder::Base64.new
+  coder = ASIR::Coder::Simple.new
   coder._log_enabled = true
   coder.logger = $stderr
   output = coder.encode(input)
