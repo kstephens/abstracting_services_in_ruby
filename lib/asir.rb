@@ -624,6 +624,34 @@ module ASIR
     alias :_send_response :_subclass_responsibility
     alias :_receive_response :_subclass_responsibility
 
+    # !SLIDE
+    # Serve a Request.
+    def serve_request! in_stream, out_stream
+      request = request_ok = result = result_ok = exception = nil
+      request = receive_request(in_stream)
+      request_ok = true
+      result = invoke_request!(request)
+      result_ok = true
+    rescue Exception => exc
+      exception = exc
+      _log [ :request_error, exc ]
+    ensure
+      if out_stream
+        begin
+          if request_ok 
+            if exception && ! result_ok
+              result = EncapsulatedException.new(exception)
+            end
+            send_response(result, out_stream)
+          end
+        rescue Exception => exc
+          _log [ :response_error, exc ]
+        end
+      else
+        raise exception if exception
+      end
+    end
+
     # !SLIDE pause
     # !SLIDE
     # Transport Support
@@ -761,32 +789,9 @@ module ASIR
       # !SLIDE
       # Serve a Request from a stream.
       def serve_stream_request! in_stream, out_stream
-        request = request_ok = result = result_ok = exception = nil
-        request = receive_request(in_stream)
-        request_ok = true
-        result = invoke_request!(request)
-        result_ok = true
-      rescue Exception => exc
-        exception = exc
-        _log [ :request_error, exc ]
-      ensure
-        if out_stream
-          begin
-            if request_ok 
-              if exception && ! result_ok
-                result = EncapsulatedException.new(exception)
-              end
-              send_response(result, out_stream)
-            end
-          rescue Exception => exc
-            _log [ :response_error, exc ]
-          end
-        else
-          raise exception if exception
-        end
+        serve_request! in_stream, out_stream
       end
     end
-
 
     # !SLIDE
     # File Transport
