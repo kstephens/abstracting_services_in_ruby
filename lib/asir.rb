@@ -206,7 +206,32 @@ module ASIR
   #
   # Logging mixin.
   module Log
+    attr_accessor :logger
+
+    def self.included target
+      super
+      target.send(:include, ClassMethods)
+    end
+
+    module ClassMethods
+      def _log_enabled= x
+        (Thread.current[:'ASIR::Log.enabled'] ||= { })[self] = x
+      end
+      def _log_enabled?
+        (Thread.current[:'ASIR::Log.enabled'] ||= { })[self]
+      end
+    end
+
+    def _log_enabled= x
+      @_log_enabled = x
+    end
+
+    def _log_enabled?
+      @_log_enabled || self.class._log_enabled?
+    end
+
     def _log msg = nil
+      return unless _log_enabled?
       msg ||= yield
       msg = String === msg ? msg : _log_format(msg)
       msg = "  #{$$} #{Module === self ? self : self.class} #{msg}"
@@ -429,6 +454,7 @@ module ASIR
     end
 
 
+=begin
     # !SLIDE
     # Other Coders
 
@@ -442,7 +468,7 @@ module ASIR
     class JSON < self
       # ...
     end
-
+=end
 
     # !SLIDE
     # Chain Coder
@@ -457,14 +483,14 @@ module ASIR
 
       def _encode obj
         encoders.each do | e |
-          obj = e.encode(obj)
+          obj = e.dup.encode(obj)
         end
         obj
       end
 
       def _decode obj
         encoders.reverse_each do | e |
-          obj = e.decode(obj)
+          obj = e.dup.decode(obj)
         end
         obj
       end
@@ -540,7 +566,7 @@ module ASIR
     def send_request request
       request.create_identifier! if needs_request_identifier?
       _log_result [ :send_request, :request, request ] do
-        request_payload = encoder.encode(request)
+        request_payload = encoder.dup.encode(request)
         opaque = _send_request(request_payload)
         response = receive_response opaque
         _log { [ :send_request, :response, response ] }
@@ -562,7 +588,7 @@ module ASIR
     def receive_request stream
       _log_result [ :receive_request, :stream, stream ] do
         request_payload = _receive_request(stream)
-        encoder.decode(request_payload)
+        encoder.dup.decode(request_payload)
       end
     end
     # !SLIDE END
