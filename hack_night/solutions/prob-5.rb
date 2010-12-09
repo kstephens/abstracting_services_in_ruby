@@ -1,19 +1,30 @@
-# Write a Base64 Coder
+# Write a ASIR::Transport::HTTP class that uses HTTP::Client for transport send_response and receive_response.
 
 $: << File.expand_path("../../../lib", __FILE__)
-require 'asir_coder_base64'
+require 'asir_transport_http'
 
-######################################################################
+require 'math_service'
+MathService.send(:include, ASIR::Client)
 
+port = 3001
 begin
-  input = "abc123"
-  puts "input  = #{input.inspect}"
-  coder = ASIR::Coder::Base64.new
-  coder._log_enabled = true
-  coder.logger = $stderr
-  output = coder.encode(input)
-  puts "output = #{output.inspect}"
-  result = coder.decode(output)
-  puts "result = #{result.inspect}"
+  t = ASIR::Transport::HTTP.new(:uri => "http://localhost:#{port}/")
+  t._log_enabled = true
+  t.logger = $stderr
+  c = t.encoder = ASIR::Coder::Marshal.new
+  c._log_enabled = true
+  c.logger = $stderr
+
+  server_pid = Process.fork do
+    t.setup_server!
+    t.start_server!
+  end
+
+  MathService.client.transport = t
+  MathService.client.sum([1, 2, 3])
+ensure
+  Process.kill(9, server_pid)
 end
+
+
 
