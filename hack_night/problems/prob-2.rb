@@ -9,12 +9,10 @@ module ASIR
     class Simple < self
       def _encode obj
         # ???
-        obj
       end
       def _decode obj
         raise TypeError unless String === obj
         # ???
-        obj
       end
     end
   end

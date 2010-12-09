@@ -1,4 +1,6 @@
-# Write a ASIR::Transport::HTTP class that uses HTTP::Client for transport send_response and receive_response.
+# Write a ASIR::Transport::HTTP class
+# Using HTTP::Client for transport send_request and receive_response.
+# Using WEBrick for transport on the receive_request and send_response.
 # Use the Marshal Coder for the Transport.
 
 require 'rubygems'
@@ -50,7 +52,7 @@ module ASIR
 
       # Parse the port and path of the #uri
       # Create a @server = WEBrick::HTTPServer on the port
-      # Mount the path with a proc that calls server_request!
+      # Mount the path with a proc that calls server_request! with the HTTP request and response objects.
       def setup_server!
         # ???
         self

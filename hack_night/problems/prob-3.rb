@@ -1,4 +1,5 @@
 # Call the MathService using the ASIR::Client mixin.
+# Assume the default Transport and Coder.
 
 $: << File.expand_path("../../../lib", __FILE__)
 require 'asir'
@@ -16,6 +17,6 @@ end
 # Driver:
 
 begin
-  puts MathService.sum([1, 2, 3]) # => 6
+  puts MathService # ???  # => 6
 end
 
