@@ -12,18 +12,12 @@ require 'uri'
 $: << File.expand_path("../../../lib", __FILE__)
 require 'asir'
 
-module MathService
-  include ASIR::Client
-  def sum array
-    # ???
-  end
-  extend self
-end
+require 'math_service'
 
 module ASIR
   class Transport
     class HTTP < self
-      attr_accessor :uri, :server
+      attr_accessor :uri, :server, :debug
 
       # Client-side: HTTPClient
 
