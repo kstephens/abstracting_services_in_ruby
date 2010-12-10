@@ -1,5 +1,7 @@
 These exercises will introduce ASIR and its concepts.
-
+Slides: 
+http://kurtstephens.com/pub/ruby/abstracting_services_in_ruby/asir.slides/
+git clone git://github.com/kstephens/abstracting_services_in_ruby.git
 Gems: httpclient, libxml-ruby
 
 * Writing a service as a ruby Module.
