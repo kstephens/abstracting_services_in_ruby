@@ -226,6 +226,7 @@ module ASIR
       target.send(:extend, ClassMethods)
     end
 
+    @@enabled = false
     def self.enabled
       @@enabled
     end
