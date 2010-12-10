@@ -71,10 +71,9 @@ port = 3001
 begin
   t = # ??? 
   t._log_enabled = true
-  t.logger = $stderr
+
   c = t.encoder = ASIR::Coder::Marshal.new
   c._log_enabled = true
-  c.logger = $stderr
 
   # Setup and run the server in a child process.
   server_pid = Process.fork do

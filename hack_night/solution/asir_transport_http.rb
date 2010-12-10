@@ -8,6 +8,9 @@ require 'uri'
 
 module ASIR
   class Transport
+    # !SLIDE
+    # HTTP Transport
+    #
     # HTTP Transport using HTTPClient and WEBrick.
     class HTTP < self
       attr_accessor :uri, :server, :debug

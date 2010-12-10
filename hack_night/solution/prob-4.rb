@@ -24,11 +24,13 @@ end
 begin
   input = [ 1, 2, 3 ]
   puts "input  = #{input.inspect}"
+
   coder = ASIR::Coder::Simple.new
   coder._log_enabled = true
-  coder.logger = $stderr
+
   output = coder.encode(input)
   puts "output = #{output.inspect}"
+
   result = coder.decode(output)
   puts "result = #{result.inspect}"
 end

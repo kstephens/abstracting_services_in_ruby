@@ -12,6 +12,5 @@ MathService.send(:include, ASIR::Client)
 begin
   MathService.client.transport = ASIR::Transport::Subprocess.new
   MathService.client.transport._log_enabled = true
-  MathService.client.transport.logger = $stderr
   puts MathService.client.sum([1, 2, 3])
 end

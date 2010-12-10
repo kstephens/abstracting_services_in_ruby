@@ -10,10 +10,8 @@ port = 3001
 begin
   t = ASIR::Transport::HTTP.new(:uri => "http://localhost:#{port}/")
   t._log_enabled = true
-  t.logger = $stderr
   c = t.encoder = ASIR::Coder::Marshal.new
   c._log_enabled = true
-  c.logger = $stderr
 
   server_pid = Process.fork do
     t.setup_server!
