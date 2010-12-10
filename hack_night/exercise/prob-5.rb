@@ -7,7 +7,7 @@ require 'asir'
 
 module ASIR
   class Coder
-    class BASE64 < self
+    class Base64 < self
       def _encode obj
         raise TypeError unless String === obj
         # ???
