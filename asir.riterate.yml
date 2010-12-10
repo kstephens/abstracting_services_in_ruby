@@ -76,10 +76,10 @@ riterate:
   - "Returns a connected TCP socket."
   - "Transport#send_response"
   - "Transport#receive_response"
-  - "Sends the encoded Request payload."
-  - "Receives the encoded Request payload."
-  - "Sends the encoded Response payload."
-  - "Receives the encoded Response payload."
+  - "Sends the encoded Request payload String."
+  - "Receives the encoded Request payload String."
+  - "Sends the encoded Response payload String."
+  - "Receives the encoded Response payload String."
   - "Socket service - Output"
   - Socket service with forwarded exception.
   - Example Exception
@@ -92,7 +92,6 @@ riterate:
   - Object Initialization
   - Diagnostic Logging
   - Null Coder
-  - Other Coders
   - Broadcast Transport
   - HTTP Transport
 
