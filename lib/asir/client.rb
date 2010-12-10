@@ -24,7 +24,7 @@ module ASIR
       include Log, Initialization
       
       attr_accessor :receiver, :transport
-      
+
       def transport
         @transport ||=
           Transport::Local.new
@@ -38,6 +38,24 @@ module ASIR
         result = transport.send_request(request)
         result
       end
+
+      # SLIDE
+      # Configuration Callbacks
+
+      def initialize *args
+        super
+        (@@config_callbacks[@receiver] || 
+         @@config_callbacks[@receiver.name] || 
+         @@config_callbacks[nil] ||
+         IDENTITY_LAMBDA).call(self)
+      end
+
+      @@config_callbacks ||= { }
+      def self.config_callbacks
+        @@config_callbacks
+      end
+
+      # !SLIDE END
     end
     # !SLIDE END
   end
