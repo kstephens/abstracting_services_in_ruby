@@ -4,6 +4,7 @@
 require 'pp'
 
 @customer = 123
+puts "*** #{$$}: client process"; $stdout.flush
 def pr result
   puts "*** #{$$}: pr: #{PP.pp(result, '')}"
 end
@@ -14,6 +15,6 @@ require 'asir/transport/tcp_socket'
 require 'asir/coder/marshal'
 require 'asir/coder/yaml'
 require 'asir/coder/sign'
-ASIR::Log.enabled = true
+ASIR::Log.enabled = true unless ENV['ASIR_EXAMPLE_SILENT']
 require 'sample_service'
 

@@ -22,4 +22,6 @@ ensure
   Process.kill 9, child_pid
 end
 
-
+# !SLIDE END
+# EXPECT: : client process
+# EXPECT: : pr: [:exception, #<RuntimeError: Raise Me!>]

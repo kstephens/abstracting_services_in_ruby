@@ -39,12 +39,14 @@ task :default =>
    :slides,
   ]
 
-task :test => [ :spec, :example, :hack_night ]
+task :test => [ :spec, :hack_night ]
 
 task :example do
-  Dir["example/ex*.rb"].each do | rb |
-    sh "ruby -I example -I lib #{rb}"
+  ENV["ASIR_EXAMPLE_SILENT"]="1"
+  Dir["example/ex[0-9]*.rb"].each do | rb |
+    sh %Q{ruby -I example -I lib #{rb}}
   end
+  ENV.delete("ASIR_EXAMPLE_SILENT")
 end
 
 task :hack_night do

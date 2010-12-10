@@ -24,3 +24,8 @@ ensure
   File.unlink(service_pipe) rescue nil
 end
 
+# !SLIDE END
+# EXPECT: : client process
+# EXPECT: : Email.send_mail :pdf_invoice
+# EXPECT: : pr: nil
+

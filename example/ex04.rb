@@ -19,4 +19,18 @@ ensure
   puts File.read(service_log)
 end
 
+# !SLIDE END
+# EXPECT: : client process
+# EXPECT: "service.log" contents:
+# EXPECT: pr: nil
+# EXPECT: --- !ruby/object:ASIR::Request
+# EXPECT: 159
+# EXPECT: --- !ruby/object:ASIR::Request 
+# EXPECT: arguments: 
+# EXPECT: - :pdf_invoice
+# EXPECT: - :to: user@email.com
+# EXPECT:   :customer: 123
+# EXPECT: receiver: Email
+# EXPECT: receiver_class: Module
+# EXPECT: selector: :send_email
 

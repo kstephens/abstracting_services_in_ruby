@@ -6,3 +6,7 @@ pr Email.client.send_email(:pdf_invoice,
                            :to => "user@email.com",
                            :customer => @customer)
 
+# !SLIDE END
+# EXPECT: : client process
+# EXPECT: : Email.send_mail :pdf_invoice
+# EXPECT: : pr: :ok
