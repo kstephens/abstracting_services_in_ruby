@@ -45,7 +45,7 @@ module ASIR
 
       # Parse the port and path of the #uri
       # Create a @server = WEBrick::HTTPServer on the port
-      # Mount the path with a proc that calls server_request! with the HTTP request and response objects.
+      # Mount the path with a proc that calls serve_request! with the HTTP request and response objects.
       def setup_server!
         # ???
         self
