@@ -2,9 +2,6 @@
 # Socket service with local fallback.
 
 require 'example_helper'
-require 'asir/transport/tcp_socket'
-require 'asir/coder/marshal'
-require 'asir/coder/yaml'
 begin
   File.unlink(service_log = "service.log") rescue nil
 

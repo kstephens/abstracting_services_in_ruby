@@ -2,9 +2,6 @@
 # One-way, named pipe service with invalid signature
 
 require 'example_helper'
-require 'asir/coder/marshal'
-require 'asir/coder/yaml'
-require 'asir/coder/sign'
 begin
   File.unlink(service_pipe = "service.pipe") rescue nil
 

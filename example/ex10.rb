@@ -2,8 +2,6 @@
 # Socket service with forwarded exception.
 
 require 'example_helper'
-require 'asir/transport/tcp_socket'
-require 'asir/coder/marshal'
 begin
   Email.client.transport = t =
     ASIR::Transport::TcpSocket.new(:port => 30902)

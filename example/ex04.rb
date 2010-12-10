@@ -2,7 +2,6 @@
 # One-way, file log service
 
 require 'example_helper'
-require 'asir/coder/yaml'
 begin
   File.unlink(service_log = "service.log") rescue nil
 

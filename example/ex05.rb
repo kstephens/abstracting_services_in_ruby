@@ -2,7 +2,6 @@
 # Replay file log
 
 require 'example_helper'
-require 'asir/coder/yaml'
 begin
   service_log = "service.log"
   Email.client.transport = t =

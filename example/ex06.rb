@@ -2,7 +2,6 @@
 # One-way, named pipe service
 
 require 'example_helper'
-require 'asir/coder/yaml'
 begin
   File.unlink(service_pipe = "service.pipe") rescue nil
 
