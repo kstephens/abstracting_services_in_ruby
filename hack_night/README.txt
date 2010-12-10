@@ -4,6 +4,6 @@ These exercises will introduce ASIR and its concepts.
 * Using the default ASIR Coder and Transport to access a service using a client Proxy.
 * Using a Subprocess Transport.
 * Creating new Coders.
-* Creating an HTTP transport using 
-* Chainging coders.
+* Creating an HTTP transport using HTTPClient
+* Chaining coders.
 * Using Broadcast Transports for logging.

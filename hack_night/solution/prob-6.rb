@@ -22,6 +22,8 @@ begin
 
   MathService.client.transport = t
   MathService.client.sum([1, 2, 3])
+rescue Exception => err
+  $stderr.puts "ERROR: #{err.inspect}\n#{err.backtrace * "\n"}"
 ensure
   Process.kill(9, server_pid)
 end
