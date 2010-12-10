@@ -6,21 +6,27 @@ module ASIR
       target.extend ClassMethods
     end
 
-    def self.config_proc
-      @@config_proc || IDENTITY_PROC
-    end
-
-    def self.config_proc= x
-      @@config_proc = x
+    # Global default config_proc
+    def self.config_proc_hash
+      @@config_proc_hash ||= { }
     end
 
     module ClassMethods
-      attr_accessor :config_proc
+      def config_proc
+        ASIR::Configuration.config_proc_hash[self]
+      end
+      def config_proc= x
+        ASIR::Configuration.config_proc_hash[self] = x
+      end
     end
 
     def initialize *args
       super
-      (self.class.config_proc || ASIR::Configuration.config_proc || IDENTITY_PROC).call(self)
+      ch = ASIR::Configuration.config_proc_hash
+      (self.class.ancestors.map{|m| ch[m]}.compact.first ||
+       ch[nil] || 
+       IDENTITY_PROC
+       ).call(self)
     end
   end
 end
