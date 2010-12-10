@@ -1,6 +1,3 @@
-
-require 'socket'
-
 # !SLIDE
 # Abstracting Services in Ruby
 #
