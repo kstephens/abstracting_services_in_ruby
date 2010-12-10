@@ -1,4 +1,5 @@
 *.slides*
 .riterate
 service.fifo
+service.log
 coverage
