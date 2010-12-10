@@ -54,7 +54,7 @@ module ASIR
         self
       end
 
-      def start_webbrick_server!
+      def start_webrick_server!
         @server.start
         self
       end
