@@ -2,6 +2,9 @@
 # One-way, named pipe service with invalid signature
 
 require 'example_helper'
+require 'asir/coder/marshal'
+require 'asir/coder/yaml'
+require 'asir/coder/sign'
 begin
   File.unlink(service_pipe = "service.pipe") rescue nil
 
@@ -18,6 +21,7 @@ begin
   child_pid = Process.fork do 
     t.run_pipe_server!
   end
+  sleep 1
   
   s.secret = 'I do not know the secret! :('
   

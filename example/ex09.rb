@@ -2,6 +2,7 @@
 # Socket service
 
 require 'example_helper'
+require 'asir/coder/marshal'
 begin
   Email.client.transport = t = 
     ASIR::Transport::TcpSocket.new(:port => 30901)
@@ -12,6 +13,7 @@ begin
   child_pid = Process.fork do 
     t.run_socket_server!
   end
+  sleep 1
   
   pr Email.client.send_email(:pdf_invoice, 
                              :to => "user@email.com", :customer => @customer)

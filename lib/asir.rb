@@ -1,5 +1,4 @@
-require 'yaml'
-require 'digest/sha1'
+
 require 'socket'
 
 # !SLIDE
@@ -346,59 +345,6 @@ module ASIR
 
 
     # !SLIDE
-    # Marshal Coder
-    # Use Ruby Marshal for encode/decode.
-    class Marshal < self
-      def _encode obj
-        ::Marshal.dump(obj)
-      end
-
-      def _decode obj
-        ::Marshal.load(obj)
-      end
-    end
-
-
-    # !SLIDE
-    # YAML Coder
-    # Use YAML for encode/decode.
-    class Yaml < self
-      def _encode obj
-        case obj
-        when Request
-          obj = obj.encode_receiver!
-        end
-        ::YAML::dump(obj)
-      end
-
-      def _decode obj
-        case obj = ::YAML::load(obj)
-        when Request
-          obj.decode_receiver!
-        else
-          obj
-        end
-      end
-    end
-
-
-=begin
-    # !SLIDE
-    # Other Coders
-
-    # Encode as XML.
-    class XML < self
-      # ...
-    end
-
-
-    # Encode as JSON.
-    class JSON < self
-      # ...
-    end
-=end
-
-    # !SLIDE
     # Chain Coder
     # Chain multiple Coders as one.
     #
@@ -425,48 +371,6 @@ module ASIR
     end
     # !SLIDE END
 
-    # !SLIDE
-    # Sign Coder
-    #
-    # Sign payload during encode, check signature during decode.
-    #
-    # Signature is the digest of secret + payload.
-    #
-    # Encode payload as Hash containing the digest function name, signature and payload.
-    # Decode and validate Hash containing the digest function name, signature and payload.
-    #
-    class Sign < self
-      attr_accessor :secret, :function
-
-      def _encode obj
-        payload = obj.to_s
-        { 
-          :function => function,
-          :signature => ::Digest.const_get(function).
-                          new.hexdigest(secret + payload),
-          :payload => payload,
-        }
-      end
-
-      def _decode obj
-        raise SignatureError, "expected Hash, given #{obj.class}" unless Hash === obj
-        payload = obj[:payload]
-        raise SignatureError, "signature invalid" unless obj == _encode(payload)
-        payload
-      end
-
-      # !SLIDE
-      # Sign Coder Support
-
-      # Signature Error.
-      class SignatureError < Error; end
-
-      def initialize_before_opts
-        @function = :SHA1
-      end
-      # !SLIDE END
-    end
-    # !SLIDE END
     # !SLIDE resume
   end
   # !SLIDE END
@@ -982,4 +886,5 @@ end
 # * 
 #
 # !SLIDE END
+
 

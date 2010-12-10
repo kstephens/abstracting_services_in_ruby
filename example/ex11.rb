@@ -2,6 +2,8 @@
 # Socket service with local fallback.
 
 require 'example_helper'
+require 'asir/coder/marshal'
+require 'asir/coder/yaml'
 begin
   File.unlink(service_log = "service.log") rescue nil
 
@@ -23,6 +25,7 @@ begin
   child_pid = Process.fork do 
     tcp.run_socket_server!
   end
+  sleep 1
 
   pr Email.client.send_email(:pdf_invoice, 
                              :to => "user2@email.com", :customer => @customer)

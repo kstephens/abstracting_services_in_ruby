@@ -2,6 +2,9 @@
 # One-way, named pipe service with signature
 
 require 'example_helper'
+require 'asir/coder/marshal'
+require 'asir/coder/yaml'
+require 'asir/coder/sign'
 begin
   File.unlink(service_pipe = "service.pipe") rescue nil
   Email.client.transport = t =
@@ -17,6 +20,7 @@ begin
   child_pid = Process.fork do 
     t.run_pipe_server!
   end
+  sleep 1
 
   pr Email.client.send_email(:pdf_invoice, :to => "user@email.com", :customer => @customer)
 ensure
