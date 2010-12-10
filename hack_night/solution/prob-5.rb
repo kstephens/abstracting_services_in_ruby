@@ -1,7 +1,7 @@
 # Write a Base64 Coder
 
 $: << File.expand_path("../../../lib", __FILE__)
-require 'asir_coder_base64'
+require 'asir/coder/base64'
 
 ######################################################################
 
