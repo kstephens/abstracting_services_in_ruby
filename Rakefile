@@ -39,9 +39,17 @@ task :default =>
    :slides,
   ]
 
-task :test do
+task :test => [ :spec, :example, :hack_night ]
+
+task :example do
   Dir["example/ex*.rb"].each do | rb |
     sh "ruby -I example -I lib #{rb}"
+  end
+end
+
+task :hack_night do
+  Dir["hack_night/solution/prob-*.rb"].each do | rb |
+    sh "ruby -I hack_night/solution #{rb}"
   end
 end
 

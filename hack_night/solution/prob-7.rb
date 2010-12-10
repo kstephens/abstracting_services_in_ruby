@@ -2,6 +2,7 @@
 
 $: << File.expand_path("../../../lib", __FILE__)
 require 'asir/transport/http'
+require 'asir/coder/marshal'
 require 'asir/coder/base64'
 
 require 'math_service'
