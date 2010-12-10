@@ -1,6 +1,4 @@
-# Write a Base64 Coder
-
-# require ???
+# Write a Base64 Coder.
 
 $: << File.expand_path("../../../lib", __FILE__)
 require 'asir'

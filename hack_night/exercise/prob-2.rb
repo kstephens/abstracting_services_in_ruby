@@ -5,10 +5,9 @@ $: << File.expand_path("../../../lib", __FILE__)
 require 'asir'
 
 module MathService
-  # ???
+  include # ???
   def sum array_of_numbers
     # ???
-    return -123
   end
   extend self
 end

@@ -22,6 +22,7 @@ begin
     t.setup_webrick_server!
     t.start_webrick_server!
   end
+  sleep 1 # wait for server to start
 
   MathService.client.transport = t
   MathService.client.sum([1, 2, 3])

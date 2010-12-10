@@ -10,7 +10,7 @@ MathService.send(:include, ASIR::Client)
 # Driver:
 
 begin
-  # MathService.client.transport = ??? 
+  MathService.client.transport = # ??? 
   MathService.client.transport._log_enabled = true
   puts MathService.client.sum([1, 2, 3])
 end
