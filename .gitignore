@@ -1,3 +1,4 @@
 *.slides*
 .riterate
 service.fifo
+coverage
