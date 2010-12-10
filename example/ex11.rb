@@ -2,6 +2,7 @@
 # Socket service with local fallback.
 
 require 'example_helper'
+require 'asir/transport/tcp_socket'
 require 'asir/coder/marshal'
 require 'asir/coder/yaml'
 begin

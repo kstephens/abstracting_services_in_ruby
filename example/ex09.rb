@@ -3,6 +3,7 @@
 
 require 'example_helper'
 require 'asir/coder/marshal'
+require 'asir/transport/tcp_socket'
 begin
   Email.client.transport = t = 
     ASIR::Transport::TcpSocket.new(:port => 30901)
