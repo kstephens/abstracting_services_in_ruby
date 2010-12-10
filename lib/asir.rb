@@ -172,9 +172,22 @@ require 'socket'
 module ASIR
   # Reusable constants to avoid unnecessary garbage.
   EMPTY_ARRAY = [ ].freeze; EMPTY_HASH =  { }.freeze; EMPTY_STRING = ''.freeze
+  MODULE_SEP = '::'.freeze
 
   # Generic API error.
   class Error < ::Exception; end
+
+  # !SLIDE
+  # Object Resolving
+  #
+  module ObjectResolving
+    class ResolveError < Error; end
+    def resolve_object name
+      name.to_s.split(MODULE_SEP).inject(Object){|m, n| m.const_get(n)}
+    rescue Exception => err
+      raise ResolveError, "cannot resolve #{name.inspect}: #{err.inspect}", err.backtrace
+    end
+  end
 
   # !SLIDE
   # Object Initialization
@@ -206,11 +219,18 @@ module ASIR
   #
   # Logging mixin.
   module Log
-    attr_accessor :logger
+    attr_accessor :_logger
 
     def self.included target
       super
-      target.send(:include, ClassMethods)
+      target.send(:extend, ClassMethods)
+    end
+
+    def self.enabled
+      @@enabled
+    end
+    def self.enabled= x
+      @@enabled = x
     end
 
     module ClassMethods
@@ -227,22 +247,25 @@ module ASIR
     end
 
     def _log_enabled?
-      @_log_enabled || self.class._log_enabled?
+      ASIR::Log.enabled || 
+        @_log_enabled || 
+        self.class._log_enabled?
     end
 
     def _log msg = nil
       return unless _log_enabled?
-      msg ||= yield
+      msg ||= yield if block_given?
       msg = String === msg ? msg : _log_format(msg)
       msg = "  #{$$} #{Module === self ? self : self.class} #{msg}"
-      case @logger
+      case @_logger
       when Proc
-        @logger.call msg
+        @_logger.call msg
       when IO
-        @logger.puts msg
+        @_logger.puts msg
       else
-        $stderr.puts msg if $_log_verbose
+        $stderr.puts msg
       end
+      nil
     end
 
     def _log_result msg
@@ -271,6 +294,7 @@ module ASIR
   #
   # Encapsulate the request message from the Client to be handled by the Service.
   class Request
+    include ObjectResolving
     attr_accessor :receiver, :receiver_class, :selector, :arguments, :result
     attr_accessor :identifier, :client, :timestamp # optional
 
@@ -282,7 +306,7 @@ module ASIR
     def invoke!
       Response.new(self, @result = @receiver.__send__(@selector, *@arguments))
     rescue Exception => exc
-      Response.new(self, nil, EncapsulatedException.new(exc))
+      Response.new(self, nil, exc)
     end
 
     # !SLIDE
@@ -317,8 +341,8 @@ module ASIR
 
     def decode_receiver!
       if String === @receiver_class
-        @receiver_class = eval("::#{@receiver_class}")
-        @receiver = eval("::#{@receiver}")
+        @receiver_class = resolve_object(@receiver_class)
+        @receiver = resolve_object(@receiver)
         unless @receiver_class === @receiver
           raise Error, "receiver #{@receiver.class.name} is not a #{@receiver_class}" 
         end
@@ -337,7 +361,7 @@ module ASIR
     attr_accessor :identifier, :server, :timestamp # optional
 
     def initialize req, res = nil, exc = nil
-      @request, @result, @exception = req, res, exc
+      @request, @result, @exception = req, res, (exc && EncapsulatedException.new(exc))
     end
   end
 
@@ -346,6 +370,7 @@ module ASIR
   #
   # Encapsulates exceptions raised in the Service.
   class EncapsulatedException
+    include ObjectResolving
     attr_accessor :exception_class, :exception_message, :exception_backtrace
 
     def initialize exc
@@ -355,7 +380,7 @@ module ASIR
     end
 
     def invoke!
-      raise eval("::#{@exception_class}"), @exception_message, @exception_backtrace
+      raise resolve_object(@exception_class), @exception_message, @exception_backtrace
     end
   end
 
@@ -567,8 +592,8 @@ module ASIR
       request.create_identifier! if needs_request_identifier?
       _log_result [ :send_request, :request, request ] do
         request_payload = encoder.dup.encode(request)
-        opaque = _send_request(request_payload)
-        response = receive_response opaque
+        opaque_response = _send_request(request_payload)
+        response = receive_response opaque_response
         _log { [ :send_request, :response, response ] }
         if response
           if exc = response.exception
@@ -607,9 +632,9 @@ module ASIR
     # !SLIDE
     # Transport#receive_response
     # Receieve Response from stream.
-    def receive_response opaque
+    def receive_response opaque_response
       _log_result [ :receive_response ] do
-        response_payload = _receive_response opaque
+        response_payload = _receive_response opaque_response
         decoder.decode(response_payload)
       end
     end
@@ -627,11 +652,11 @@ module ASIR
     # !SLIDE
     # Serve a Request.
     def serve_request! in_stream, out_stream
-      request = request_ok = result = result_ok = exception = nil
+      request = request_ok = response = response_ok = exception = nil
       request = receive_request(in_stream)
       request_ok = true
-      result = invoke_request!(request)
-      result_ok = true
+      response = invoke_request!(request)
+      response_ok = true
     rescue Exception => exc
       exception = exc
       _log [ :request_error, exc ]
@@ -639,10 +664,10 @@ module ASIR
       if out_stream
         begin
           if request_ok 
-            if exception && ! result_ok
-              result = EncapsulatedException.new(exception)
+            if exception && ! response_ok
+              response = Response.new(request, nil, exception)
             end
-            send_response(result, out_stream)
+            send_response(response, out_stream)
           end
         rescue Exception => exc
           _log [ :response_error, exc ]
@@ -671,6 +696,7 @@ module ASIR
         encoder
     end
 
+    # Invokes the the Request object, returns a Response object.
     def invoke_request! request
       _log_result [ :invoke_request!, request ] do
         @response = request.invoke!
@@ -688,7 +714,7 @@ module ASIR
     #
     # Never send Request.
     class Null < self
-      def _send_request request
+      def _send_request request_payload
         nil
       end
     end
@@ -699,6 +725,7 @@ module ASIR
     # Local Transport
     #
     # Send Request to same process.
+    # Requires a Identity Coder.
     class Local < self
       # Returns Response object.
       def _send_request request
@@ -706,8 +733,8 @@ module ASIR
       end
 
       # Returns Response object from #_send_request.
-      def _receive_response opaque
-        opaque
+      def _receive_response opaque_response
+        opaque_response
       end
     end
     # !SLIDE END
@@ -748,6 +775,7 @@ module ASIR
         stream.write payload
         stream.puts EMPTY_STRING
         stream.flush
+        stream
       end
 
       def _read stream
@@ -772,6 +800,7 @@ module ASIR
     # Stream Transport
     #
     # Base class handles Requests on stream.
+    # Stream Transports require a Coder that encodes to and from String payloads.
     class Stream < self
 
       # !SLIDE
@@ -803,22 +832,24 @@ module ASIR
 
       attr_accessor :file, :stream
 
-      def _send_request request
-        _write request, stream
+      # Writes a Request payload String.
+      def _send_request request_payload
+        _write request_payload, stream
       ensure
         close if ::File.pipe?(file)
       end
 
+      # Returns a Request payload String.
       def _receive_request stream
         _read stream
       end
 
-      # one-way; no Response
+      # one-way; no Response.
       def _send_response stream
         nil
       end
 
-      # one-way; no Response
+      # one-way; no Response.
       def _receive_response opaque
         nil
       end
@@ -883,25 +914,25 @@ module ASIR
       end
 
       # !SLIDE
-      # Sends the encoded Request payload.
+      # Sends the encoded Request payload String.
       def _send_request request_payload
         _write request_payload, stream
       end
 
       # !SLIDE
-      # Receives the encoded Request payload.
+      # Receives the encoded Request payload String.
       def _receive_request stream
         _read stream
       end
 
       # !SLIDE
-      # Sends the encoded Response payload.
+      # Sends the encoded Response payload String.
       def _send_response response_payload, stream
         _write response_payload, stream
       end
 
       # !SLIDE
-      # Receives the encoded Response payload.
+      # Receives the encoded Response payload String.
       def _receive_response opaque
         _read stream
       end
@@ -931,20 +962,6 @@ module ASIR
         end
       end
 
-    end
-    # !SLIDE END
-
-
-    # !SLIDE
-    # HTTP Transport
-    #
-    # Send to an HTTP server.
-    class HTTP < self
-      attr_accessor :uri
-
-      def _send_request request
-        # ...
-      end
     end
     # !SLIDE END
 
