@@ -8,35 +8,42 @@ require 'uri'
 
 module ASIR
   class Transport
-    # HTTP Transport using HTTPClient and WEBrick.
+    # !SLIDE
+    # HTTP Transport
+    #
+    # Using HTTPClient and WEBrick.
     class HTTP < self
       attr_accessor :uri, :server, :debug
 
       # Client-side: HTTPClient
 
-      def _send_request request
+      # Send the Request payload String using HTTP POST.
+      # Returns the HTTPClient::Message response object.
+      def _send_request request_payload
         client = ::HTTPClient.new
-        result = client.post(uri, request)
-        opaque = result # ???
+        client.post(uri, request_payload)
       end
 
-      def _receive_response opaque
-        # $stderr.puts "_receive_response opaque.content = #{opaque.content.inspect}"
-        opaque.content.to_s
+      # Recieve the Response payload String from the opaque
+      # HTTPClient::Message response object returned from #_send_request.
+      def _receive_response http_response_message
+        http_response_message.content.to_s
       end
 
-      # Server-side: WEBrick 
-      def _receive_request rq
-        $stderr.puts "  #{self.class}#_receive_request: rq.body = #{rq.body.to_s.inspect}\n" if @debug
-        rq.body
+      # Server-side: WEBrick
+ 
+      # Receive the Request payload String from the WEBrick Request object.
+      def _receive_request webrick_request
+        webrick_request.body
       end
 
-      def _send_response result, rs
-        rs['Content-Type'] = 'application/binary'
-        rs.body = result
+      # Send the Response payload String in the WEBrick Response object.
+      def _send_response result, webrick_response
+        webrick_response['Content-Type'] = 'application/binary'
+        webrick_response.body = result
       end
 
-      def setup_server!
+      def setup_webrick_server!
         u = URI.parse(uri)
         port = u.port
         path = u.path
@@ -47,12 +54,12 @@ module ASIR
         self
       end
 
-      def start_server!
+      def start_webbrick_server!
         @server.start
         self
       end
-    end
-  end
-end
 
+    end # class
+  end # class
+end # module 
 
