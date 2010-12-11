@@ -1,0 +1,8 @@
+task :default => 'asir-sequence.svg'
+
+file 'asir-sequence.svg' => [ 'asir-sequence.pic', 'sequence.pic' ] do
+  sh "pic2plot -Tsvg --font-name HersheySans-Bold --font-size 0.01 asir-sequence.pic > asir-sequence.svg"
+  sh "open asir-sequence.svg"
+end
+
+

@@ -11,7 +11,7 @@ begin
     s.homepage = "http://github.com/kstephens/abstracting_services_in_ruby"
     s.description = s.summary
     s.authors = ["Kurt Stephens"]
-    s.files = FileList["[A-Z]*", "{bin,example,lib,test,spec}/**/*" ]
+    s.files = FileList["[A-Z]*", "{bin,lib,test,spec,doc,example,hack_night}/**/*" ]
     #s.add_dependency 'schacon-git'
   end
 rescue LoadError
@@ -34,10 +34,7 @@ end
 
 ######################################################################
 
-task :default => 
-  [ 
-   :slides,
-  ]
+task :default => :test
 
 task :test => [ :spec, :hack_night ]
 
@@ -86,7 +83,7 @@ task :clean do
 end
 
 =begin
-file 'tmp.svg' => [ 'tmp.pic', 'sequence.pic' ] do
+file 'asir-sequence.svg' => [ 'asir-sequence.pic', 'sequence.pic' ] do
   sh "pic2plot -Tsvg --font-name HersheySans-Bold --font-size 0.01 tmp.pic > tmp.svg"
   sh "open tmp.svg"
 end
