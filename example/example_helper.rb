@@ -3,7 +3,10 @@
 
 $: << File.expand_path("../../lib", __FILE__)
 require 'asir'
+require 'asir/transport/file'
 require 'asir/transport/tcp_socket'
+require 'asir/transport/fallback'
+require 'asir/transport/broadcast'
 require 'asir/coder/marshal'
 require 'asir/coder/yaml'
 require 'asir/coder/sign'
@@ -33,3 +36,4 @@ def server_kill
 end
 
 puts "*** #{$$}: client process"; $stdout.flush
+
