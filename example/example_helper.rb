@@ -15,6 +15,7 @@ require 'asir/transport/tcp_socket'
 require 'asir/coder/marshal'
 require 'asir/coder/yaml'
 require 'asir/coder/sign'
+require 'asir/coder/chain'
 ASIR::Log.enabled = true unless ENV['ASIR_EXAMPLE_SILENT']
 require 'sample_service'
 

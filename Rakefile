@@ -82,10 +82,3 @@ task :clean do
   sh "rm -rf *.slides* .riterate"
 end
 
-=begin
-file 'asir-sequence.svg' => [ 'asir-sequence.pic', 'sequence.pic' ] do
-  sh "pic2plot -Tsvg --font-name HersheySans-Bold --font-size 0.01 tmp.pic > tmp.svg"
-  sh "open tmp.svg"
-end
-=end
-

@@ -22,7 +22,7 @@ begin
   pr Email.client.send_email(:pdf_invoice, :to => "user@email.com", :customer => @customer)
 ensure
   t.close; sleep 1
-  Process.kill 9, child_pid
+  Process.kill 9, child_pid if child_pid
   File.unlink(service_pipe) rescue nil
 end
 
