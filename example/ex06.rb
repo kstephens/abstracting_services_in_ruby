@@ -11,7 +11,7 @@ begin
     ASIR::Coder::Yaml.new
 
   t.prepare_pipe_server!
-  child_pid = Process.fork do 
+  server_process do
     t.run_pipe_server!
   end
   sleep 1
@@ -20,12 +20,13 @@ begin
 ensure
   t.close
   sleep 1
-  Process.kill 9, child_pid
+  server_kill
   File.unlink(service_pipe) rescue nil
 end
 
 # !SLIDE END
 # EXPECT: : client process
+# EXPECT: : server process
 # EXPECT: : Email.send_mail :pdf_invoice
 # EXPECT: : pr: nil
 

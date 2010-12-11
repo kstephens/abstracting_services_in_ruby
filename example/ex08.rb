@@ -15,22 +15,22 @@ begin
       ])
   
   t.prepare_pipe_server!
-  child_pid = Process.fork do 
+  server_process do
     t.run_pipe_server!
   end
-  sleep 1
   
   s.secret = 'I do not know the secret! :('
   
   pr Email.client.send_email(:pdf_invoice, :to => "user@email.com", :customer => @customer)
 ensure
   t.close; sleep 1
-  Process.kill 9, child_pid
+  server_kill
   File.unlink(service_pipe) rescue nil
 end
 
 # !SLIDE END
 # EXPECT: : client process
+# EXPECT: : server process
 # EXPECT!: : Email.send_mail :pdf_invoice
 # EXPECT: : pr: nil
 

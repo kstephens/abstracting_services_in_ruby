@@ -20,10 +20,9 @@ begin
                              :to => "user@email.com", :customer => @customer)
 
   tcp.prepare_socket_server!
-  child_pid = Process.fork do 
+  server_process do
     tcp.run_socket_server!
   end
-  sleep 1
 
   pr Email.client.send_email(:pdf_invoice, 
                              :to => "user2@email.com", :customer => @customer)
@@ -31,13 +30,14 @@ begin
 ensure
   file.close;
   tcp.close; sleep 1
-  Process.kill 9, child_pid
+  server_kill
   puts "\x1a\n#{service_log.inspect} contents:"
   puts File.read(service_log)
 end
 
 # !SLIDE END
 # EXPECT: : client process
+# EXPECT: : server process
 # EXPECT: : Email.send_mail :pdf_invoice {:to=>"user@email.com", :customer=>123}
 # EXPECT: : Email.send_mail :pdf_invoice {:to=>"user2@email.com", :customer=>123}
 # EXPECT: : pr: :ok
