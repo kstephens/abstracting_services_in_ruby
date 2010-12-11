@@ -39,7 +39,7 @@ module ASIR
         result
       end
 
-      # SLIDE
+      # !SLIDE
       # Configuration Callbacks
 
       def initialize *args
