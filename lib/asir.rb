@@ -163,9 +163,6 @@
 #
 # !SLIDE END
 
-require 'asir/log'
-require 'asir/initialization'
-
 # !SLIDE
 # Modules and Classes
 module ASIR
@@ -175,21 +172,12 @@ module ASIR
 
   # Generic API error.
   class Error < ::Exception; end
-
-  # !SLIDE
-  # Object Resolving
-  #
-  module ObjectResolving
-    class ResolveError < Error; end
-    def resolve_object name
-      name.to_s.split(MODULE_SEP).inject(Object){|m, n| m.const_get(n)}
-    rescue Exception => err
-      raise ResolveError, "cannot resolve #{name.inspect}: #{err.inspect}", err.backtrace
-    end
-  end
 end
 # !SLIDE END
 
+require 'asir/log'
+require 'asir/initialization'
+require 'asir/object_resolving'
 require 'asir/request'
 require 'asir/response'
 require 'asir/client'
