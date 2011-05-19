@@ -1,14 +1,23 @@
 # !SLIDE :capture_code_output true
-# Synchronous HTTP service
+# Synchronous HTTP service on instance methods.
 
 require 'example_helper'
 require 'asir/transport/http'
 require 'asir/coder/base64'
-require 'asir/coder/zlib'
 
 begin
-  Email.client.transport = t = 
-    ASIR::Transport::HTTP.new(:uri => "http://localhost:30905/")
+  class MyClass
+    include ASIR::Client
+    def initialize x
+      @x = x
+    end
+    def method_missing sel, *args
+      @x.send(sel, *args)
+    end
+  end
+
+  MyClass.client.transport = t = 
+    ASIR::Transport::HTTP.new(:uri => "http://localhost:30914/")
   t.encoder =
     ASIR::Coder::Chain.new(:encoders => 
                            [
@@ -21,8 +30,7 @@ begin
     t.start_webrick_server!
   end; sleep 2
 
-  pr Email.client.send_email(:pdf_invoice, 
-                             :to => "user@email.com", :customer => @customer)
+  pr MyClass.new("abc123").client.size
 
   sleep 2
   

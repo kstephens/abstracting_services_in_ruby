@@ -6,12 +6,13 @@ module ASIR
   module Client
     def self.included target
       super
-      target.extend ModuleMethods if Module === target
+      target.extend Methods if Module === target
+      target.send(:include, Methods) if Class === target
     end
     
-    module ModuleMethods
+    module Methods
       def client
-        @client ||=
+        @_asir_client ||=
           ASIR::Client::Proxy.new(:receiver => self)
       end
     end
@@ -25,6 +26,9 @@ module ASIR
       
       attr_accessor :receiver, :transport
 
+      # A Proc to call with the Request object before sending to transport#send_request(request).
+      attr_accessor :before_send_request
+
       def transport
         @transport ||=
           Transport::Local.new
@@ -35,6 +39,7 @@ module ASIR
         raise ArgumentError, "block given" if block_given?
         _log { "method_missing #{selector.inspect} #{arguments.inspect}" }
         request = Request.new(receiver, selector, arguments)
+        request = @before_send_request.call(request) if @before_send_request
         result = transport.send_request(request)
         result
       end
@@ -44,8 +49,9 @@ module ASIR
 
       def initialize *args
         super
-        (@@config_callbacks[@receiver] || 
-         @@config_callbacks[@receiver.name] || 
+        key = Module === @receiver ? @receiver : @receiver.class
+        (@@config_callbacks[key] || 
+         @@config_callbacks[key.name] || 
          @@config_callbacks[nil] ||
          IDENTITY_LAMBDA).call(self)
       end
