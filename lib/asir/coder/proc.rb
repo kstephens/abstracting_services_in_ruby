@@ -4,13 +4,14 @@ module ASIR
   class Coder
     # Generic Proc-based coder.
     class Proc < self
-      attr_accessor :encode, :decode
+      # Procs that take one argument.
+      attr_accessor :encoder, :decoder
 
       def _encode obj
-        @encode.call(obj)
+        @encoder.call(obj)
       end
       def _decode obj
-        @decode.call(obj)
+        @decoder.call(obj)
       end
     end
   end
