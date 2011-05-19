@@ -70,6 +70,8 @@ module ASIR
         _log { "prepare_socket_server! #{port}" }
         @server = TCPServer.open(port)
         @server.setsockopt(Socket::SOL_SOCKET, Socket::SO_KEEPALIVE, false)
+      rescue Exception => err
+        raise Error, "Cannot bind to #{addr}:#{port}: #{err.inspect}", err.backtrace
       end
 
       def run_socket_server!

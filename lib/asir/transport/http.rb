@@ -15,12 +15,23 @@ module ASIR
     class HTTP < self
       attr_accessor :uri, :server, :debug
 
+      CONTENT_TYPE = 'Content-Type'.freeze
+      APPLICATION_BINARY = 'application/binary'.freeze
+
       # Client-side: HTTPClient
+
+      def client 
+        @client ||=
+          ::HTTPClient.new
+      end
+
+      def close
+        @client = nil
+      end
 
       # Send the Request payload String using HTTP POST.
       # Returns the HTTPClient::Message response object.
       def _send_request request, request_payload
-        client = ::HTTPClient.new
         client.post(uri, request_payload)
       end
 
@@ -36,10 +47,10 @@ module ASIR
       def _receive_request webrick_request, additional_data
         webrick_request.body
       end
-
-      # Send the Response payload String in the WEBrick Response object.
+      
+      # Send the Response payload String in the WEBrick Response object as application/binary.
       def _send_response response, response_payload, webrick_response
-        webrick_response['Content-Type'] = 'application/binary'
+        webrick_response[CONTENT_TYPE] = APPLICATION_BINARY
         webrick_response.body = response_payload
       end
 
