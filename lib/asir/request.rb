@@ -24,12 +24,7 @@ module ASIR
 
     def create_identifier!
       @identifier ||= 
-        [
-          @@counter += 1,
-          $$,
-          Thread.current.object_id,
-          @@uuid ||= File.read("/proc/sys/kernel/random/uuid").chomp!
-        ] * '-'
+        "#{@@counter += 1}-#{$$}-#{Thread.current.object_id}-#{@@uuid ||= File.read("/proc/sys/kernel/random/uuid").chomp!}"
     end
     @@counter ||= 0; @@uuid ||= nil
 
