@@ -28,7 +28,7 @@ end
 # EXPECT: --- !ruby/object:ASIR::Request 
 # EXPECT: arguments: 
 # EXPECT: - :pdf_invoice
-# EXPECT: - :to: user@email.com
+# EXPECT:   :to: user@email.com
 # EXPECT:   :customer: 123
 # EXPECT: receiver: Email
 # EXPECT: receiver_class: Module
