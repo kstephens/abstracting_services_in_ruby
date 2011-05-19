@@ -1,3 +1,6 @@
+require 'asir/transport/stream'
+require 'asir/transport/payload_io'
+
 module ASIR
   class Transport
     # !SLIDE

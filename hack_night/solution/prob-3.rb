@@ -2,6 +2,7 @@
 
 $: << File.expand_path("../../../lib", __FILE__)
 require 'asir'
+require 'asir/transport/subprocess'
 
 require 'math_service'
 MathService.send(:include, ASIR::Client)

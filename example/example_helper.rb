@@ -4,6 +4,8 @@
 $: << File.expand_path("../../lib", __FILE__)
 require 'asir'
 require 'asir/transport/file'
+require 'asir/transport/local'
+require 'asir/transport/subprocess'
 require 'asir/transport/tcp_socket'
 require 'asir/transport/fallback'
 require 'asir/transport/broadcast'
