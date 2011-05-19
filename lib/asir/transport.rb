@@ -16,6 +16,8 @@ module ASIR
     attr_accessor :request_count
 
     # Proc to call with exception, if exception occurs within #serve_request!
+    # on.error(exception, :request, Request_instance)
+    # or.error(exception, :response, Response_instance)
     attr_accessor :on_error
 
     # !SLIDE
@@ -101,7 +103,7 @@ module ASIR
     rescue Exception => exc
       exception = exc
       _log [ :request_error, exc ]
-      @on_error.call(exc) if @on_error
+      @on_error.call(exc, :request, request) if @on_error
     ensure
       if out_stream
         begin
@@ -113,7 +115,7 @@ module ASIR
           end
         rescue Exception => exc
           _log [ :response_error, exc ]
-          @on_error.call(exc) if @on_error
+          @on_error.call(exc, :response, response) if @on_error
         end
       else
         raise exception if exception
@@ -142,7 +144,7 @@ module ASIR
     # Invokes the the Request object, returns a Response object.
     def invoke_request! request
       _log_result [ :invoke_request!, request ] do
-        @response = request.invoke!
+        request.invoke!
       end
     end
     # !SLIDE END
