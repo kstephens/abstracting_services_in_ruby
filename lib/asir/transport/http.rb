@@ -19,7 +19,7 @@ module ASIR
 
       # Send the Request payload String using HTTP POST.
       # Returns the HTTPClient::Message response object.
-      def _send_request request_payload
+      def _send_request request, request_payload
         client = ::HTTPClient.new
         client.post(uri, request_payload)
       end
@@ -33,14 +33,14 @@ module ASIR
       # Server-side: WEBrick
  
       # Receive the Request payload String from the WEBrick Request object.
-      def _receive_request webrick_request
+      def _receive_request webrick_request, additional_data
         webrick_request.body
       end
 
       # Send the Response payload String in the WEBrick Response object.
-      def _send_response result, webrick_response
+      def _send_response response, response_payload, webrick_response
         webrick_response['Content-Type'] = 'application/binary'
-        webrick_response.body = result
+        webrick_response.body = response_payload
       end
 
       def setup_webrick_server!

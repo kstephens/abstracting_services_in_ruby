@@ -7,7 +7,7 @@ module ASIR
     class Broadcast < self
       attr_accessor :transports
 
-      def _send_request request
+      def _send_request request, request_payload
         result = nil
         transports.each do | transport |
           _log { [ :send_request, :transport, transport ] }

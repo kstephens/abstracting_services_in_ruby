@@ -12,31 +12,45 @@ module ASIR
       # Returns a connected TCP socket.
       def stream 
         @stream ||=
-          begin
-            addr = address || '127.0.0.1'
-            _log { "connect #{addr}:#{port}" }
-            sock = TCPSocket.open(addr, port)
-            sock
-          rescue Exception => err
-            raise Error, "Cannot connect to #{addr}:#{port}: #{err.inspect}", err.backtrace
-          end
+          connect_tcp_socket
+      end
+
+      def connect_tcp_socket
+        addr = address || '127.0.0.1'
+        _log { "connect_tcp_socket #{addr}:#{port}" }
+        sock = TCPSocket.open(addr, port)
+        _log { "connect_tcp_socket: socket=#{sock}" }
+        _after_connect! sock
+        sock
+      rescue Exception => err
+        raise Error, "Cannot connect to #{addr}:#{port}: #{err.inspect}", err.backtrace
+      end
+
+      # Subclasses can override.
+      def _after_connect! stream
+        self
+      end
+
+      # Subclasses can override.
+      def _before_close! stream
+        self
       end
 
       # !SLIDE
       # Sends the encoded Request payload String.
-      def _send_request request_payload
+      def _send_request request, request_payload
         _write request_payload, stream
       end
 
       # !SLIDE
       # Receives the encoded Request payload String.
-      def _receive_request stream
+      def _receive_request stream, additional_data
         _read stream
       end
 
       # !SLIDE
       # Sends the encoded Response payload String.
-      def _send_response response_payload, stream
+      def _send_response response, response_payload, stream
         _write response_payload, stream
       end
 

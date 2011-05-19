@@ -177,6 +177,7 @@ end
 
 require 'asir/log'
 require 'asir/initialization'
+require 'asir/additional_data'
 require 'asir/object_resolving'
 require 'asir/request'
 require 'asir/response'

@@ -12,6 +12,12 @@ module ASIR
 
     attr_accessor :encoder, :decoder
 
+    # Incremented for each request sent or received.
+    attr_accessor :request_count
+
+    # Proc to call with exception, if exception occurs within #serve_request!
+    attr_accessor :on_error
+
     # !SLIDE
     # Transport#send_request 
     # * Encode Request.
@@ -19,10 +25,11 @@ module ASIR
     # * Decode Response.
     # * Extract result or exception.
     def send_request request
+      @request_count ||= 0; @request_count += 1
       request.create_identifier! if needs_request_identifier?
-      _log_result [ :send_request, :request, request ] do
+      _log_result [ :send_request, :request, request, @request_count ] do
         request_payload = encoder.dup.encode(request)
-        opaque_response = _send_request(request_payload)
+        opaque_response = _send_request(request, request_payload)
         response = receive_response opaque_response
         _log { [ :send_request, :response, response ] }
         if response
@@ -41,9 +48,13 @@ module ASIR
     # Transport#receive_request
     # Receive Request payload from stream.
     def receive_request stream
-      _log_result [ :receive_request, :stream, stream ] do
-        request_payload = _receive_request(stream)
-        encoder.dup.decode(request_payload)
+      @request_count ||= 0; @request_count += 1
+      _log_result [ :receive_request, :stream, stream, @request_count ] do
+        additional_data = { }
+        request_payload = _receive_request(stream, additional_data)
+        request = encoder.dup.decode(request_payload)
+        request.additional_data = additional_data if request 
+        request
       end
     end
     # !SLIDE END
@@ -54,7 +65,7 @@ module ASIR
     def send_response response, stream
       _log_result [ :receive_request, :response, response, :stream, stream ] do
         response_payload = decoder.encode(response)
-        _send_response(response_payload, stream)
+        _send_response(response, response_payload, stream)
       end
     end
     # !SLIDE END
@@ -90,6 +101,7 @@ module ASIR
     rescue Exception => exc
       exception = exc
       _log [ :request_error, exc ]
+      @on_error.call(exc) if @on_error
     ensure
       if out_stream
         begin
@@ -101,6 +113,7 @@ module ASIR
           end
         rescue Exception => exc
           _log [ :response_error, exc ]
+          @on_error.call(exc) if @on_error
         end
       else
         raise exception if exception
@@ -144,7 +157,7 @@ module ASIR
     #
     # Never send Request.
     class Null < self
-      def _send_request request_payload
+      def _send_request request, request_payload
         nil
       end
     end
@@ -158,7 +171,7 @@ module ASIR
     # Requires a Identity Coder.
     class Local < self
       # Returns Response object.
-      def _send_request request
+      def _send_request request, request_payload
         invoke_request!(request)
       end
 
@@ -175,7 +188,7 @@ module ASIR
     #
     # Send one-way Request to a forked subprocess.
     class Subprocess < Local
-      def _send_request request
+      def _send_request request, request_payload
         Process.fork do 
           super
         end
@@ -198,6 +211,8 @@ module ASIR
     # * The payload bytes.
     # * Blank line.
     module PayloadIO
+      class UnexpectedResponse < Error; end
+
       def _write payload, stream
         _log { "  _write size = #{payload.size}" }
         stream.puts payload.size
@@ -217,12 +232,26 @@ module ASIR
         payload
       end
 
+      def _read_line_and_expect! stream, regexp
+        _log { "_read_line_and_expect! #{stream} #{regexp.inspect} ..." }
+        line = stream.readline
+        _log { "_read_line_and_expect! #{stream} #{regexp.inspect} =~ #{line.inspect}" }
+        unless match = regexp.match(line)
+          raise UnexpectedResponse, "expected #{regexp.inspect}, received #{line.inspect}"
+        end
+        match
+      end
+
       # !SLIDE pause
       def close
-        @stream.close if @stream
+        if @stream
+          _before_close! stream if respond_to?(:_before_close!)
+          @stream.close
+        end
       ensure
         @stream = nil
       end
+
       # !SLIDE resume
     end
 
@@ -248,6 +277,7 @@ module ASIR
       # !SLIDE
       # Serve a Request from a stream.
       def serve_stream_request! in_stream, out_stream
+        _log { "serve_stream_request! #{in_stream} #{out_stream}" }
         serve_request! in_stream, out_stream
       end
     end

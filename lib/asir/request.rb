@@ -4,7 +4,7 @@ module ASIR
   #
   # Encapsulate the request message from the Client to be handled by the Service.
   class Request
-    include ObjectResolving
+    include ObjectResolving, AdditionalData
     attr_accessor :receiver, :receiver_class, :selector, :arguments, :result
     attr_accessor :identifier, :client, :timestamp # optional
 

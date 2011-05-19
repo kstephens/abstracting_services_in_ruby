@@ -4,6 +4,7 @@ module ASIR
   #
   # Encapsulate the response returned to the Client.
   class Response
+    include AdditionalData
     attr_accessor :request, :result, :exception
     attr_accessor :identifier, :server, :timestamp # optional
 
@@ -19,7 +20,7 @@ module ASIR
   #
   # Encapsulates exceptions raised in the Service.
   class EncapsulatedException
-    include ObjectResolving
+    include ObjectResolving, AdditionalData
     attr_accessor :exception_class, :exception_message, :exception_backtrace
 
     def initialize exc

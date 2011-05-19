@@ -11,19 +11,19 @@ module ASIR
       attr_accessor :file, :stream
 
       # Writes a Request payload String.
-      def _send_request request_payload
+      def _send_request request, request_payload
         _write request_payload, stream
       ensure
         close if ::File.pipe?(file)
       end
 
       # Returns a Request payload String.
-      def _receive_request stream
+      def _receive_request stream, additional_data
         _read stream
       end
 
       # one-way; no Response.
-      def _send_response stream
+      def _send_response response, response_payload, stream
         nil
       end
 
@@ -37,7 +37,11 @@ module ASIR
     
       def stream
         @stream ||=
-          ::File.open(file, "w+")
+          begin
+            stream = ::File.open(file, "w+")
+            after_connect!(stream) if respond_to?(:after_connect!)
+            stream
+          end
       end
 
       # !SLIDE
