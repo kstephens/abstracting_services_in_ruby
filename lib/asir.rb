@@ -171,7 +171,10 @@ module ASIR
   MODULE_SEP = '::'.freeze; IDENTITY_LAMBDA = lambda { | x | x }
 
   # Generic API error.
-  class Error < ::Exception; end
+  class Error < ::Exception
+    # Unsupported Feature.
+    class Unsupported < self; end
+  end
 end
 # !SLIDE END
 
