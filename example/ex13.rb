@@ -37,5 +37,5 @@ end
 # EXPECT: : client process
 # EXPECT: : server process
 # EXPECT: : Email.send_mail :pdf_invoice
-# EXPECT: : pr: nil
+# EXPECT: : pr: :ok
 
