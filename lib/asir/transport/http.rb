@@ -21,18 +21,23 @@ module ASIR
       # Client-side: HTTPClient
 
       def client 
-        @client ||=
-          ::HTTPClient.new
+        @client ||= 
+          Channel.new(:on_connect => 
+            lambda { | channel | ::HTTPClient.new })
       end
 
       def close
-        @client = nil
+        @client.close if @client
+      ensure
+        @client = nil unless Channel === @client
       end
 
       # Send the Request payload String using HTTP POST.
       # Returns the HTTPClient::Message response object.
       def _send_request request, request_payload
+        client.with_stream! do | client |
         client.post(uri, request_payload)
+        end
       end
 
       # Recieve the Response payload String from the opaque
@@ -44,14 +49,14 @@ module ASIR
       # Server-side: WEBrick
  
       # Receive the Request payload String from the WEBrick Request object.
-      def _receive_request webrick_request, additional_data
-        webrick_request.body
+      def _receive_request http_request, additional_data
+        http_request.body
       end
       
       # Send the Response payload String in the WEBrick Response object as application/binary.
-      def _send_response response, response_payload, webrick_response
-        webrick_response[CONTENT_TYPE] = APPLICATION_BINARY
-        webrick_response.body = response_payload
+      def _send_response response, response_payload, http_response
+        http_response[CONTENT_TYPE] = APPLICATION_BINARY
+        http_response.body = response_payload
       end
 
       def setup_webrick_server!

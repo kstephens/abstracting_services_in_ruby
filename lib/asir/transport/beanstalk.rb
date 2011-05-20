@@ -40,12 +40,12 @@ module ASIR
       # !SLIDE
       # Sends the encoded Request payload String.
       def _send_request request, request_payload
-        s = stream
+        stream.with_stream! do | s |; begin
         beanstalk_request = "put #{request[:beanstalk_priority] || @priority} #{@delay} #{@ttr} #{request_payload.size}\r\n"
         _write beanstalk_request, s
         _write request_payload, s
         _write LINE_TERMINATOR, s
-        stream.flush
+        s.flush
         match = _read_line_and_expect! s, /\AINSERTED (\d+)\r\n\Z/
         job_id = request[:beanstalk_job_id] = match[1].to_i
         _log { "beanstalk_job_id = #{job_id.inspect}" }
@@ -53,13 +53,17 @@ module ASIR
         request[:beanstalk_error] = err
         close
         raise err
+        end; end
       end
 
       RESERVE = "reserve\r\n".freeze
 
       # !SLIDE
       # Receives the encoded Request payload String.
-      def _receive_request stream, additional_data
+      def _receive_request channel, additional_data
+        channel.with_stream! do | stream |; begin
+        # Save the original stream used.
+        addtiional_data[:beanstalk_stream] = stream
         _write RESERVE, stream
         stream.flush
         match = _read_line_and_expect! stream, /\ARESERVED (\d+) (\d+)\r\n\Z/
@@ -71,17 +75,42 @@ module ASIR
         request_payload
       rescue Exception => err
         additional_data[:beanstalk_error] = err
-        close
+        channel.close
+        end; end
       end
 
       # !SLIDE
       # Sends the encoded Response payload String.
-      def _send_response response, response_payload, stream
-        job_id = response.request[:beanstalk_job_id] or raise "no beanstalkd_job_id"
+      def _send_response response, response_payload, channel
+        #
+        # There is a possibility here the following could happen:
+        #
+        #   _receive_request
+        #     channel = #<Channel:1>   
+        #     channel.stream == #<TCPSocket:1234>
+        #   end
+        #   ...
+        #   ERROR OCCURES:
+        #      channel.stream.close
+        #      channel.stream = nil
+        #   ...
+        #   _send_response 
+        #     channel = #<Channel:1>
+        #     channel.stream = #<TCPSocket:5678> # NEW CONNECTION
+        #     stream.write "delete #{job_id}"
+        #   ...
+        #
+        # Therefore: _receiver_request saves the TCPSocket stream in the request.additional_data.
+        # We insure that the same stream is still active and use it.
+        stream = response.request.delete(:beanstalk_stream) or raise "no beanstalk_stream"
+        channel.with_stream! do | maybe_other_stream |
+          raise "stream lost" if maybe_other_stream != stream
+        job_id = response.request[:beanstalk_job_id] or raise "no beanstalk_job_id"
         beanstalk_request = "delete #{job_id}\r\n"
         _write beanstalk_request, stream
         stream.flush
         _read_line_and_expect! stream, /\ADELETED\r\n\Z/
+        end
       end
 
       # !SLIDE
@@ -95,11 +124,12 @@ module ASIR
 
       def prepare_beanstalk_server!
         _log { "prepare_beanstalk_server! #{address}:#{port}" }
-        stream = @server = connect_tcp_socket
+        @server = connect_tcp_socket do | stream |
         if @tube
           _write "watch #{@tube}\r\n", stream
           stream.flush
           _read_line_and_expect! stream, /\AWATCHING (\d+)\r\n\Z/
+        end
         end
         self
       end
@@ -166,5 +196,4 @@ module ASIR
     # !SLIDE END
   end # class
 end # module
-
 

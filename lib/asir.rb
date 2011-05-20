@@ -187,6 +187,7 @@ require 'asir/response'
 require 'asir/client'
 require 'asir/coder'
 require 'asir/transport'
+require 'asir/channel'
 require 'asir/transport/local'
 
 # !SLIDE

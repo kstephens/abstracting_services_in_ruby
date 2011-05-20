@@ -46,7 +46,7 @@ module ASIR
           @stream.close
         end
       ensure
-        @stream = nil
+        @stream = nil unless Channel === @stream
       end
 
       # !SLIDE resume

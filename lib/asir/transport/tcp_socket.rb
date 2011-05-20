@@ -12,13 +12,23 @@ module ASIR
       attr_accessor :port, :address
       
       # !SLIDE
-      # Returns a connected TCP socket.
+      # Returns a connected TCP socket Channel.
       def stream 
         @stream ||=
           connect_tcp_socket
       end
 
-      def connect_tcp_socket
+      # Yields (socket) after _connect_tcp_socket (TCPSocket.open(...)).
+      def connect_tcp_socket &blk
+        Channel.new(:on_connect => 
+          lambda { | channel | 
+            socket = _connect_tcp_socket
+            blk.call(socket) if blk
+            socket
+          })
+      end
+
+      def _connect_tcp_socket
         addr = address || '127.0.0.1'
         _log { "connect_tcp_socket #{addr}:#{port}" }
         sock = TCPSocket.open(addr, port)
@@ -42,7 +52,9 @@ module ASIR
       # !SLIDE
       # Sends the encoded Request payload String.
       def _send_request request, request_payload
+        stream.with_stream! do | stream |
         _write request_payload, stream
+        end
       end
 
       # !SLIDE
@@ -60,7 +72,9 @@ module ASIR
       # !SLIDE
       # Receives the encoded Response payload String.
       def _receive_response opaque
+        stream.with_stream! do | stream |
         _read stream
+        end
       end
 
       # !SLIDE
