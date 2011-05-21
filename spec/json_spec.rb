@@ -1,3 +1,4 @@
+require File.expand_path('../spec_helper', __FILE__)
 $: << File.expand_path('../../../lib', __FILE__)
 $: << File.expand_path('../../lib', __FILE__)
 require 'asir/coder/json'
