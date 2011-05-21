@@ -62,8 +62,6 @@ module ASIR
       # Receives the encoded Request payload String.
       def _receive_request channel, additional_data
         channel.with_stream! do | stream |; begin
-        # Save the original stream used.
-        addtiional_data[:beanstalk_stream] = stream
         _write RESERVE, stream
         stream.flush
         match = _read_line_and_expect! stream, /\ARESERVED (\d+) (\d+)\r\n\Z/
@@ -72,7 +70,8 @@ module ASIR
         size = match[2].to_i
         request_payload = _read stream, size
         _read_line_and_expect! stream, /\A\r\n\Z/
-        request_payload
+        # Save the original stream used; see _send_response below.
+        [ request_payload, stream ]
       rescue Exception => err
         additional_data[:beanstalk_error] = err
         channel.close
@@ -81,7 +80,7 @@ module ASIR
 
       # !SLIDE
       # Sends the encoded Response payload String.
-      def _send_response response, response_payload, channel
+      def _send_response response, response_payload, channel, stream
         #
         # There is a possibility here the following could happen:
         #
@@ -100,9 +99,8 @@ module ASIR
         #     stream.write "delete #{job_id}"
         #   ...
         #
-        # Therefore: _receiver_request saves the TCPSocket stream in the request.additional_data.
+        # Therefore: _receiver_request passes the original request stream to us.
         # We insure that the same stream is still active and use it.
-        stream = response.request.delete(:beanstalk_stream) or raise "no beanstalk_stream"
         channel.with_stream! do | maybe_other_stream |
           raise "stream lost" if maybe_other_stream != stream
         job_id = response.request[:beanstalk_job_id] or raise "no beanstalk_job_id"
