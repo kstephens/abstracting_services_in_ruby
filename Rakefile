@@ -25,7 +25,7 @@ desc "Run all tests with RCov"
 Spec::Rake::SpecTask.new('spec') do |t|
   t.spec_opts = [ '-b' ]
   t.spec_files = FileList['spec/**/*_spec.rb']
-  t.rcov = true
+  t.rcov = ! ENV['TEST_NO_RCOV']
   t.rcov_opts = [
                  # '--exclude', 'test', 
                  '--exclude', '/var/lib',
