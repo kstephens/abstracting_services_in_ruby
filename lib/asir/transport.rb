@@ -53,10 +53,10 @@ module ASIR
       @request_count ||= 0; @request_count += 1
       _log_result [ :receive_request, :stream, stream, @request_count ] do
         additional_data = { }
-        request_payload = _receive_request(stream, additional_data)
-        request = encoder.dup.decode(request_payload)
-        request.additional_data = additional_data if request 
-        request
+        req_and_state = _receive_request(stream, additional_data)
+        req = req_and_state[0] = encoder.dup.decode(req_and_state.first)
+        req.additional_data = additional_data if req
+        req_and_state
       end
     end
     # !SLIDE END
@@ -64,10 +64,10 @@ module ASIR
     # !SLIDE
     # Transport#send_response
     # Send Response to stream.
-    def send_response response, stream
-      _log_result [ :receive_request, :response, response, :stream, stream ] do
+    def send_response response, stream, request_state
+      _log_result [ :receive_request, :response, response, :stream, stream, :request_state, request_state ] do
         response_payload = decoder.encode(response)
-        _send_response(response, response_payload, stream)
+        _send_response(response, response_payload, stream, request_state)
       end
     end
     # !SLIDE END
@@ -95,8 +95,8 @@ module ASIR
     # !SLIDE
     # Serve a Request.
     def serve_request! in_stream, out_stream
-      request = request_ok = response = response_ok = exception = nil
-      request = receive_request(in_stream)
+      request = request_state = request_ok = response = response_ok = exception = nil
+      request, request_state = receive_request(in_stream)
       request_ok = true
       response = invoke_request!(request)
       response_ok = true
@@ -111,7 +111,7 @@ module ASIR
             if exception && ! response_ok
               response = Response.new(request, nil, exception)
             end
-            send_response(response, out_stream)
+            send_response(response, out_stream, request_state)
           end
         rescue Exception => exc
           _log [ :response_error, exc ]
