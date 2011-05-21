@@ -1,7 +1,6 @@
 require 'asir'
 
 require 'rubygems'
-require 'webrick'
 gem 'httpclient'
 require 'httpclient'
 require 'uri'
@@ -48,26 +47,31 @@ module ASIR
 
       # Server-side: WEBrick
  
-      # Receive the Request payload String from the WEBrick Request object.
+      # Receive the Request payload String from the HTTP Request object.
+      # Returns the original http_request as the request_state.
       def _receive_request http_request, additional_data
-        http_request.body
+        [ http_request.body, http_request ]
       end
       
-      # Send the Response payload String in the WEBrick Response object as application/binary.
-      def _send_response response, response_payload, http_response
+      # Send the Response payload String in the HTTP Response object as application/binary.
+      def _send_response response, response_payload, http_response, request_state
         http_response[CONTENT_TYPE] = APPLICATION_BINARY
         http_response.body = response_payload
       end
 
-      def setup_webrick_server!
+      def setup_webrick_server! opts = { }
+        require 'webrick'
         u = URI.parse(uri)
         port = u.port
         path = u.path
-        @server = WEBrick::HTTPServer.new(:Port => port)
-        @server.mount_proc path, lambda { | rq, rs |      
+        opts[:Port] ||= port
+        @server = WEBrick::HTTPServer.new(opts)
+        @server.mount_proc path, lambda { | rq, rs |
           serve_request! rq, rs
         }
         self
+      rescue Exception => exc
+        raise Error, "Webrick Server #{uri.inspect}: #{exc.inspect}", exc.backtrace
       end
 
       def start_webrick_server!

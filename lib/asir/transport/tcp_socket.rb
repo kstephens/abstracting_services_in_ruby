@@ -60,12 +60,12 @@ module ASIR
       # !SLIDE
       # Receives the encoded Request payload String.
       def _receive_request stream, additional_data
-        _read stream
+        [ _read(stream), nil ]
       end
 
       # !SLIDE
       # Sends the encoded Response payload String.
-      def _send_response response, response_payload, stream
+      def _send_response response, response_payload, stream, request_state
         _write response_payload, stream
       end
 

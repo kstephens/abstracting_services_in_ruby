@@ -22,11 +22,11 @@ module ASIR
 
       # Returns a Request payload String.
       def _receive_request stream, additional_data
-        _read stream
+        [ _read(stream), nil ]
       end
 
       # one-way; no Response.
-      def _send_response response, response_payload, stream
+      def _send_response response, response_payload, stream, request_state
         nil
       end
 
