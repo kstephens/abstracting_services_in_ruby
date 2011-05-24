@@ -1,4 +1,4 @@
-require 'socket'
+require 'asir/transport/tcp_socket'
 
 module ASIR
   class Transport
