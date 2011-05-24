@@ -15,7 +15,7 @@ module ASIR
       # Transport.
       def client
         @_asir_client ||=
-          ASIR::Client::Proxy.new(:receiver => self)
+          ASIR::Client::Proxy.new(self)
       end
     end
 
@@ -23,7 +23,7 @@ module ASIR
       # Proxies are not cached in instances because receiver is to be serialized by
       # its Transport's coder.
       def client
-        ASIR::Client::Proxy.new(:receiver => self)
+        ASIR::Client::Proxy.new(self)
       end
     end
 
@@ -32,7 +32,7 @@ module ASIR
     #
     # Provide client interface proxy to a service.
     class Proxy
-      include Log, Initialization
+      include Log
       
       attr_accessor :receiver, :transport
 
@@ -57,9 +57,8 @@ module ASIR
       # !SLIDE
       # Configuration Callbacks
 
-      def initialize *args
-        super
-        key = Module === @receiver ? @receiver : @receiver.class
+      def initialize rcvr
+        key = Module === (@receiver = rcvr) ? @receiver : @receiver.class
         (@@config_callbacks[key] || 
          @@config_callbacks[key.name] || 
          @@config_callbacks[nil] ||
