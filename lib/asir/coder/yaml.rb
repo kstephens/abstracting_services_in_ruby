@@ -7,11 +7,13 @@ module ASIR
     # Use YAML for encode/decode.
     class Yaml < self
       def _encode obj
-        case obj
-        when Request
-          obj = obj.encode_receiver!
-        end
+        obj = obj.encode_receiver! if Request === obj
         ::YAML::dump(obj)
+=begin
+      rescue ::Exception
+        require 'pp'
+        raise Error, "#{self}: failed to encode: #{$!.inspect}:\n  #{PP.pp(obj, '')}"
+=end
       end
 
       def _decode obj
