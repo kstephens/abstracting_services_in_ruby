@@ -18,6 +18,7 @@ module ASIR
           rescue ::Exception => exc
             _log { [ :send_request, :transport_failed, exc ] }
             (exceptions ||= [ ]) << [ transport, exc ]
+            (request.additional_data[:transport_exceptions] ||= [ ]) << "#{exc.inspect}\n#{exc.backtrace * "\n"}"
           end
         end
         unless sent
