@@ -6,14 +6,24 @@ module ASIR
   module Client
     def self.included target
       super
-      target.extend Methods if Module === target
-      target.send(:include, Methods) if Class === target
+      target.extend ModuleMethods if Module === target
+      target.send(:include, InstanceMethods) if Class === target
     end
     
-    module Methods
+    module ModuleMethods
+      # Proxies are cached for Module/Class methods because serialization will not include
+      # Transport.
       def client
         @_asir_client ||=
           ASIR::Client::Proxy.new(:receiver => self)
+      end
+    end
+
+    module InstanceMethods
+      # Proxies are not cached in instances because receiver is to be serialized by
+      # its Transport's coder.
+      def client
+        ASIR::Client::Proxy.new(:receiver => self)
       end
     end
 
