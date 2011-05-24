@@ -1,3 +1,5 @@
+require 'asir/transport/composite'
+
 module ASIR
   class Transport
     # !SLIDE
@@ -5,13 +7,23 @@ module ASIR
     #
     # Broadcast to multiple Transports.
     class Broadcast < self
-      attr_accessor :transports
+      include Composite
 
       def _send_request request, request_payload
-        result = nil
+        result = exceptions = nil
         transports.each do | transport |
-          _log { [ :send_request, :transport, transport ] }
-          result = transport.send_request(request)
+          begin
+            _log { [ :send_request, :transport, transport ] }
+            result = transport.send_request(request)
+          rescue ::Exception => exc
+            _log { [ :send_request, :transport_failed, exc ] }
+            (exceptions ||= [ ]) << [ transport, exc ]
+            raise unless @continue_on_exception
+          end
+        end
+        if exceptions && @reraise_first_exception
+          $! = exceptions.first[1]
+          raise
         end
         result
       end
@@ -20,9 +32,6 @@ module ASIR
         opaque
       end
 
-      def needs_request_identifier?
-        transports.any? { | t | t.needs_request_identifier? }
-      end
     end
     # !SLIDE END
   end

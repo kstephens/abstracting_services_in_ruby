@@ -15,9 +15,11 @@ module ASIR
     # Incremented for each request sent or received.
     attr_accessor :request_count
 
-    # Proc to call with exception, if exception occurs within #serve_request!
-    # on.error(exception, :request, Request_instance)
-    # or.error(exception, :response, Response_instance)
+    # Proc to call with exception, if exception occurs within #serve_request!, but outside
+    # Request#invoke!.
+    #
+    # on_error(exception, :request, Request_instance)
+    # on_error(exception, :response, Response_instance)
     attr_accessor :on_error
 
     # !SLIDE

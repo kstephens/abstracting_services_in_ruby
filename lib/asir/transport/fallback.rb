@@ -1,9 +1,11 @@
+require 'asir/transport/composite'
+
 module ASIR
   class Transport
     # !SLIDE
     # Fallback Transport
     class Fallback < self
-      attr_accessor :transports
+      include Composite
 
       def send_request request
         result = sent = exceptions = nil
@@ -14,13 +16,17 @@ module ASIR
             sent = true
             break
           rescue ::Exception => exc
+            _log { [ :send_request, :transport_failed, exc ] }
             (exceptions ||= [ ]) << [ transport, exc ]
-            _log { [ :send_request, :transport_failed, transport, exc ] }
           end
         end
         unless sent
           _log { [ :send_request, :fallback_failed, exceptions ] }
           raise FallbackError, "fallback failed"
+        end
+        if exceptions && @reraise_first_exception
+          $! = exceptions.first[1]
+          raise
         end
         result
       end
