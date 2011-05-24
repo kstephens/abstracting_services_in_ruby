@@ -55,8 +55,9 @@ module ASIR
     end
 
     def _log_result msg
-      msg = String === msg ? msg : _log_format(msg)
-      _log { "#{msg} => ..." }
+      _log { 
+        msg = String === msg ? msg : _log_format(msg);
+        "#{msg} => ..." }
       result = yield
       _log { "#{msg} => \n    #{result.inspect}" }
       result
