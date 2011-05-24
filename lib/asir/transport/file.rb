@@ -11,7 +11,7 @@ module ASIR
     class File < Stream
       include PayloadIO # _write, _read
 
-      attr_accessor :file, :stream
+      attr_accessor :file, :mode, :stream
 
       # Writes a Request payload String.
       def _send_request request, request_payload
@@ -41,7 +41,7 @@ module ASIR
       def stream
         @stream ||=
           begin
-            stream = ::File.open(file, "w+")
+            stream = ::File.open(file, mode || "w+")
             after_connect!(stream) if respond_to?(:after_connect!)
             stream
           end
