@@ -33,13 +33,10 @@ module ASIR
 
     def encode_receiver!
       unless String === @receiver_class
-        case @receiver
-        when Module
-          obj = self.dup
-          obj.receiver = @receiver.name
-          obj.receiver_class = @receiver_class.name
-          return obj
-        end
+        obj = self.dup
+        obj.receiver = @receiver.name if Module === @receiver
+        obj.receiver_class = @receiver_class.name
+        return obj
       end
       self
     end
@@ -47,7 +44,7 @@ module ASIR
     def decode_receiver!
       if String === @receiver_class
         @receiver_class = resolve_object(@receiver_class)
-        @receiver = resolve_object(@receiver)
+        @receiver = resolve_object(@receiver) if Module === @receiver_class
         unless @receiver_class === @receiver
           raise Error, "receiver #{@receiver.class.name} is not a #{@receiver_class}" 
         end
