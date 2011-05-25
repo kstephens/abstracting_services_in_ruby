@@ -13,8 +13,13 @@ module ASIR
       attr_accessor :reraise_first_exception
 
       # Return the subTransports#send_request result unmodified from #_send_request.
-      def _receive_response opaque
-        opaque
+      def _receive_response opaque_response
+        opaque_response
+      end
+
+      # Return the subTransports#send_request result unmodified from #_send_request.
+      def receive_response opaque_response
+        opaque_response
       end
 
       def needs_request_identifier?

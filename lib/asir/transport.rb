@@ -33,8 +33,7 @@ module ASIR
     # Transport#send_request 
     # * Encode Request.
     # * Send encoded Request.
-    # * Decode Response.
-    # * Extract result or exception.
+    # * Receive decoded Response.
     def send_request request
       @request_count ||= 0; @request_count += 1
       request.create_timestamp! if needs_request_timestamp?
@@ -43,17 +42,7 @@ module ASIR
       _log_result [ :send_request, :request, request, @request_count ] do
         request_payload = encoder.dup.encode(request)
         opaque_response = _send_request(request, request_payload)
-        response = receive_response opaque_response
-        _log { [ :send_request, :response, response ] }
-        if response
-          if exc = response.exception
-            exc.invoke!
-          else
-            response.result
-          end
-        else
-          response
-        end
+        receive_response opaque_response
       end
     end
 
@@ -77,7 +66,7 @@ module ASIR
     # Send Response to stream.
     def send_response response, stream, request_state
       _log_result [ :receive_request, :response, response, :stream, stream, :request_state, request_state ] do
-        response_payload = decoder.encode(response)
+        response_payload = decoder.dup.encode(response)
         _send_response(response, response_payload, stream, request_state)
       end
     end
@@ -85,11 +74,24 @@ module ASIR
 
     # !SLIDE
     # Transport#receive_response
-    # Receieve Response from stream.
+    # Receieve Response from stream:
+    # * Receive Response payload
+    # * Decode Response.
+    # * Extract Response result or exception.
     def receive_response opaque_response
       _log_result [ :receive_response ] do
         response_payload = _receive_response opaque_response
-        decoder.decode(response_payload)
+        response = decoder.dup.decode(response_payload)
+        _log { [ :receive_response, :response, response ] }
+        if response
+          if exc = response.exception
+            exc.invoke!
+          else
+            response.result
+          end
+        else
+          response
+        end
       end
     end
     # !SLIDE END
