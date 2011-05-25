@@ -1,3 +1,4 @@
+
 module ASIR
   # !SLIDE
   # Request
@@ -24,17 +25,22 @@ module ASIR
 
     def create_identifier!
       @identifier ||= 
-        "#{@@counter += 1}-#{$$}-#{Thread.current.object_id}-#{@@uuid ||= File.read("/proc/sys/kernel/random/uuid").chomp!}"
+        "#{@@counter += 1}-#{$$}-#{::Thread.current.object_id}-#{@@uuid ||= ::ASIR::UUID.generate}".freeze
     end
     @@counter ||= 0; @@uuid ||= nil
+
+    def create_timestamp!
+      @timestamp ||= 
+        ::Time.now.gmtime
+    end
 
     # !SLIDE
     # Help encode/decode receiver
 
     def encode_receiver!
-      unless String === @receiver_class
+      unless ::String === @receiver_class
         obj = self.dup
-        obj.receiver = @receiver.name if Module === @receiver
+        obj.receiver = @receiver.name if ::Module === @receiver
         obj.receiver_class = @receiver_class.name
         return obj
       end
@@ -42,9 +48,9 @@ module ASIR
     end
 
     def decode_receiver!
-      if String === @receiver_class
+      if ::String === @receiver_class
         @receiver_class = resolve_object(@receiver_class)
-        @receiver = resolve_object(@receiver) if Module === @receiver_class
+        @receiver = resolve_object(@receiver) if ::Module === @receiver_class
         unless @receiver_class === @receiver
           raise Error, "receiver #{@receiver.class.name} is not a #{@receiver_class}" 
         end
@@ -56,3 +62,4 @@ module ASIR
   # !SLIDE END
 end
 
+require 'asir/uuid'
