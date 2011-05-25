@@ -8,7 +8,7 @@ require 'asir/coder/zlib'
 
 begin
   Email.client.transport = t = 
-    ASIR::Transport::HTTP.new(:uri => "http://localhost:30905/")
+    ASIR::Transport::HTTP.new(:uri => "http://localhost:30913/")
   t.encoder =
     ASIR::Coder::Chain.new(:encoders => 
                            [

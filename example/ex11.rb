@@ -7,7 +7,7 @@ begin
 
   Email.client.transport = t =
     ASIR::Transport::Fallback.new(:transports => [
-      tcp = ASIR::Transport::TcpSocket.new(:port => 30903,
+      tcp = ASIR::Transport::TcpSocket.new(:port => 30911,
                                            :encoder => ASIR::Coder::Marshal.new),
       ASIR::Transport::Broadcast.new(:transports => [ 
         file = ASIR::Transport::File.new(:file => service_log,
@@ -22,7 +22,7 @@ begin
   tcp.prepare_socket_server!
   server_process do
     tcp.run_socket_server!
-  end
+  end; sleep 2
 
   pr Email.client.send_email(:pdf_invoice, 
                              :to => "user2@email.com", :customer => @customer)
