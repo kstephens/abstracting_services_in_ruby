@@ -40,6 +40,9 @@ module ASIR
       def _decode obj
         nil
       end
+
+      # Completely stateless.
+      def dup; self; end
     end
 
 
@@ -54,6 +57,9 @@ module ASIR
       def _decode obj
         obj
       end
+
+      # Completely stateless.
+      def dup; self; end
     end
     # !SLIDE resume
   end
