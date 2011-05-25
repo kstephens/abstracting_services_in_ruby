@@ -22,6 +22,13 @@ module ASIR
     # on_error(exception, :response, Response_instance)
     attr_accessor :on_error
 
+    # A Proc to call on Request within
+    attr_accessor :before_send_request
+
+    attr_accessor :needs_request_identifier, :needs_request_timestamp
+    alias :needs_request_identifier? :needs_request_identifier
+    alias :needs_request_timestamp? :needs_request_timestamp
+
     # !SLIDE
     # Transport#send_request 
     # * Encode Request.
@@ -30,7 +37,9 @@ module ASIR
     # * Extract result or exception.
     def send_request request
       @request_count ||= 0; @request_count += 1
+      request.create_timestamp! if needs_request_timestamp?
       request.create_identifier! if needs_request_identifier?
+      @before_send_request.call(request) if @before_send_request
       _log_result [ :send_request, :request, request, @request_count ] do
         request_payload = encoder.dup.encode(request)
         opaque_response = _send_request(request, request_payload)
@@ -128,10 +137,6 @@ module ASIR
     # !SLIDE
     # Transport Support
     # ...
-
-    def needs_request_identifier?
-      false
-    end
 
     def encoder
       @encoder ||=
