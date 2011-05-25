@@ -7,7 +7,7 @@ module ASIR
     class Fallback < self
       include Composite
 
-      def send_request request
+      def _send_request request, request_payload
         result = sent = exceptions = nil
         transports.each do | transport |
           begin
@@ -18,7 +18,7 @@ module ASIR
           rescue ::Exception => exc
             _log { [ :send_request, :transport_failed, exc ] }
             (exceptions ||= [ ]) << [ transport, exc ]
-            (request.additional_data[:transport_exceptions] ||= [ ]) << "#{exc.inspect}\n#{exc.backtrace * "\n"}"
+            (request[:transport_exceptions] ||= [ ]) << "#{exc.inspect}\n#{exc.backtrace * "\n"}"
           end
         end
         unless sent

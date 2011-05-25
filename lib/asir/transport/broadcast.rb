@@ -18,7 +18,7 @@ module ASIR
           rescue ::Exception => exc
             _log { [ :send_request, :transport_failed, exc ] }
             (exceptions ||= [ ]) << [ transport, exc ]
-            (request.additional_data[:transport_exceptions] ||= [ ]) << "#{exc.inspect}\n#{exc.backtrace * "\n"}"
+            (request[:transport_exceptions] ||= [ ]) << "#{exc.inspect}\n#{exc.backtrace * "\n"}"
             raise unless @continue_on_exception
           end
         end
@@ -27,10 +27,6 @@ module ASIR
           raise
         end
         result
-      end
-
-      def _receive_response opaque
-        opaque
       end
 
     end
