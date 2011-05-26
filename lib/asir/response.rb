@@ -15,11 +15,11 @@ module ASIR
     end
 
     def encode_more!
-      @request && @request.encode_more!
+      @request = @request.encode_more! if @request
       self
     end
     def decode_more!
-      @request && @request.decode_more!
+      @request = @request.decode_more! if @request
       self
     end
   end
