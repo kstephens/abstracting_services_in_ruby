@@ -12,11 +12,11 @@ module ASIR
           obj = obj.encode_more!
         end
         ::YAML::dump(obj)
-=begin
       rescue ::Exception
         require 'pp'
-        raise Error, "#{self}: failed to encode: #{$!.inspect}:\n  #{PP.pp(obj, '')}"
-=end
+        msg = "#{self}: failed to encode: #{$!.inspect}:\n  #{PP.pp(obj, '')}"
+        $stderr.puts msg
+        raise Error, msg
       end
 
       def _decode obj
