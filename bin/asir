@@ -1,0 +1,214 @@
+#!/usr/bin/env ruby
+# -*- ruby -*-
+
+$: << File.expand_path('../../lib', __FILE__)
+require 'asir'
+
+module ASIR
+class Main
+  attr_accessor :verb, :adjective, :object, :identifier
+  attr_accessor :config_rb, :config
+  attr_accessor :log_dir, :pid_dir
+
+  attr_accessor :exit_code
+
+  def initialize
+    @progname = File.basename($0)
+    @log_dir = '/var/log'
+    @log_dir = '/tmp' unless File.writable?(@log_dir)
+    @pid_dir = '/var/run'
+    @pid_dir = '/tmp' unless File.writable?(@pid_dir)
+    @exit_code = 0
+  end
+
+  def parse_args! args = ARGV.dup
+    @args = args
+    @verb, @adjective, @object, @identifier = args.map{|x| x.to_sym}
+    @identifier ||= :'0'
+    @log_str = "#{@progname} #{@args * ' '}"
+    self
+  end
+
+  def run!
+    send(:"#{verb}_#{adjective}_#{object}!")
+    self
+  end
+
+  def method_missing! sel, *args
+    case sel.to_s
+    when /^status_([^_]+)_([^_]+)$/
+      pid = server_pid
+      puts "pid #{pid}"
+      system("ps -fw -p #{pid}")
+    else
+      super
+    end
+  end
+
+  def __!
+    usage!
+    raise "Usage Error"
+  end
+
+  def usage!
+    $stderr.puts <<"END"
+SYNOPSIS:
+  asir <<verb>> <<adjective>> <<object>> [ <<identifier>> ]
+
+VERBS: 
+  start 
+  stop 
+  status
+
+OBJECT-ADJECTIVES:
+  beanstalk conduit 
+  beanstalk worker
+  webrick worker
+
+EXAMPLES:
+
+  export ASIR_CONFIG_RB="cnuapp/etc/config/asir_config.rb"
+  asir start beanstalk conduit
+  asir status beanstalk conduit
+  asir start beanstalk worker 1
+  asir start beanstalk worker 2
+END
+  end
+
+  def start_beanstalk_conduit!
+    fork_server "beanstalkd"
+  end
+  def stop_beanstalk_conduit!
+    kill_server
+  end
+
+  def start_beanstalk_worker!
+    fork_server do
+      require 'asir/transport/beanstalk'
+      transport = _create_transport ASIR::Transport::Beanstalk
+      transport.prepare_beanstalk_server!
+      transport.run_beanstalk_server!
+    end
+  end
+  def stop_beanstalk_worker!
+    kill_server
+  end
+
+  def start_webrick_worker!
+    fork_server do
+      require 'asir/transport/http'
+      transport = _create_transport ASIR::Transport::HTTP
+      transport.prepare_webrick_server!
+      transport.run_webrick_server!
+    end
+  end
+  def stop_webrick_worker!
+    kill_server
+  end
+
+  ################################################################
+
+  def config_rb
+    @config_rb ||= 
+      ENV['ASIR_CONFIG_RB'] || 'config/asir_config.rb'
+  end
+
+  def config
+    @config ||=
+      begin
+        file = File.expand_path(config_rb)
+        $stderr.puts "#{@log_str} loading #{file} ..."
+        expr = File.read(file)
+        expr = "begin; #{expr}\n end"
+        cfg = eval(expr, binding, file, 1)
+        # cfg = load file
+        $stderr.puts "#{@log_str} loading #{file} DONE"
+        raise "#{file} did not return a Proc, returned a #{cfg.class}" unless Proc === cfg
+        cfg = cfg.call(self)
+        raise "#{file} Proc#call did not return a Hash" unless Hash === cfg
+        cfg
+      end
+  end
+
+  def pid_file
+    @pid_file ||=
+      "#{pid_dir}/asir-#{adjective}-#{object}-#{identifier}.pid"
+  end
+
+  def log_file
+    @log_file ||=
+      "#{log_dir}/asir-#{adjective}-#{object}-#{identifier}.log"
+  end
+
+  def fork_server cmd = nil, &blk
+    pid = Process.fork do
+      run_server cmd, &blk
+    end
+    File.open(pid_file, "w+") { | o | o.puts pid }
+    self
+  end
+
+  def run_server cmd = nil
+    log = File.open(log_file, "a+")
+    File.chmod(0666, log_file) rescue nil
+    log.puts "#{@log_str} starting pid #{$$}"
+    $stdin.close rescue nil
+    STDIN.close rescue nil
+    STDOUT.reopen(log)
+    STDERR.reopen(log)
+    if cmd
+      exec(cmd)
+    else
+      yield
+      log.puts "#{@log_str} finished pid #{$$}"
+    end
+  rescue ::Exception => exc
+    msg = "#{@log_str} finished pid #{$$}"
+    log.puts msg
+    $stderr.puts msg
+    raise
+  end
+
+  def kill_server 
+    lf = nil
+    lf = File.open(log_file, "a+")
+    lf.puts "#{@log_str} kill"
+    pid = server_pid
+    lf.puts "#{@log_str} kill pid #{pid}"
+    Process.kill('TERM', pid)
+    sleep 5
+    Process.kill('KILL', pid) rescue nil
+    File.unlink(pid_file)
+  rescue ::Exception => exc
+    lf.puts "#{@log_str} ERROR #{exc}\n#{exc.backtrace * "\n"}"
+    raise
+  ensure
+    lf.close if lf
+  end
+
+  def server_pid
+    pid = File.read(pid_file).chomp!
+    pid.to_i
+  end
+
+  def _create_transport default_class
+    cfg = config
+    cfg = cfg[:transport] or raise "#{config_rb} did not return a Hash with [:transport]"
+    c = cfg[adjective] || { }
+    while Symbol === c
+      c = cfg[c]
+    end
+    c_default = cfg[nil] || { }
+    transport = c[:transport_class] || c_default[:transport_class] || default_class
+    transport = transport.new(c[:transport_options] || c_default[:transport_options])
+    transport.encoder = c[:coder] || c_default[:coder]
+    transport._logger = STDERR
+    transport._log_enabled = true
+    @transport = transport
+  end
+
+end # class
+end # module
+
+exit ASIR::Main.new.parse_args!.run!.exit_code
+
