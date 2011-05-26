@@ -15,15 +15,18 @@ module ASIR
     # Incremented for each request sent or received.
     attr_accessor :request_count
 
+    # A Proc to call on Request within
+    attr_accessor :before_send_request
+
+    # Proc to call(response) with Response after #_send_response if response.exception.
+    attr_accessor :on_response_exception
+
     # Proc to call with exception, if exception occurs within #serve_request!, but outside
     # Request#invoke!.
     #
-    # on_error(exception, :request, Request_instance)
-    # on_error(exception, :response, Response_instance)
-    attr_accessor :on_error
-
-    # A Proc to call on Request within
-    attr_accessor :before_send_request
+    # on_exception(exception, :request, Request_instance)
+    # on_exception(exception, :response, Response_instance)
+    attr_accessor :on_exception
 
     attr_accessor :needs_request_identifier, :needs_request_timestamp
     alias :needs_request_identifier? :needs_request_identifier
@@ -53,9 +56,10 @@ module ASIR
       @request_count ||= 0; @request_count += 1
       _log_result [ :receive_request, :stream, stream, @request_count ] do
         additional_data = { }
-        req_and_state = _receive_request(stream, additional_data)
-        req = req_and_state[0] = encoder.dup.decode(req_and_state.first)
-        req.additional_data = additional_data if req
+        if req_and_state = _receive_request(stream, additional_data)
+          req = req_and_state[0] = encoder.dup.decode(req_and_state.first)
+          req.additional_data = additional_data if req
+        end
         req_and_state
       end
     end
@@ -66,6 +70,7 @@ module ASIR
     # Send Response to stream.
     def send_response response, stream, request_state
       _log_result [ :receive_request, :response, response, :stream, stream, :request_state, request_state ] do
+        @on_response_exception.call(response) if @on_response_exception && response.exception
         response_payload = decoder.dup.encode(response)
         _send_response(response, response_payload, stream, request_state)
       end
@@ -116,7 +121,7 @@ module ASIR
     rescue Exception => exc
       exception = exc
       _log [ :request_error, exc ]
-      @on_error.call(exc, :request, request) if @on_error
+      @on_exeception.call(exc, :request, request) if @on_exception
     ensure
       if out_stream
         begin
@@ -128,7 +133,7 @@ module ASIR
           end
         rescue Exception => exc
           _log [ :response_error, exc ]
-          @on_error.call(exc, :response, response) if @on_error
+          @on_exception.call(exc, :response, response) if @on_exception
         end
       else
         raise exception if exception
