@@ -11,7 +11,7 @@ module ASIR
     class File < Stream
       include PayloadIO # _write, _read
 
-      attr_accessor :file, :mode, :stream
+      attr_accessor :file, :mode, :perms, :stream
 
       # Writes a Request payload String.
       def _send_request request, request_payload
@@ -42,6 +42,7 @@ module ASIR
         @stream ||=
           begin
             stream = ::File.open(file, mode || "w+")
+            ::File.chmod(perms, file) rescue nil if @perms 
             after_connect!(stream) if respond_to?(:after_connect!)
             stream
           end
@@ -63,6 +64,7 @@ module ASIR
         _log :prepare_pipe_server!
         unless ::File.exist? file
           system(cmd = "mkfifo #{file.inspect}") or raise "cannot run #{cmd.inspect}"
+          ::File.chmod(perms, file) rescue nil if @perms 
         end
       end
 
