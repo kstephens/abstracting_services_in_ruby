@@ -65,7 +65,7 @@ module ASIR
 
       # !SLIDE
       # Sends the encoded Response payload String.
-      def _send_response response, response_payload, stream, request_state
+      def _send_response request, response, response_payload, stream, request_state
         _write response_payload, stream
       end
 

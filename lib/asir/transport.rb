@@ -69,10 +69,18 @@ module ASIR
     # Transport#send_response
     # Send Response to stream.
     def send_response response, stream, request_state
-      _log_result [ :receive_request, :response, response, :stream, stream, :request_state, request_state ] do
-        @on_response_exception.call(response) if @on_response_exception && response.exception
+      request = response.request
+      _log_result [ :send_response, :response, response, :stream, stream, :request_state, request_state ] do
+        if @on_response_exception && response.exception
+          begin
+            @on_response_exception.call(response)
+          rescue ::Exception => exc
+            _log { [ :send_response, :response, response, :on_response_exception, exc ] }
+          end
+        end
+        response.request = nil # avoid sending back entire Request.
         response_payload = decoder.dup.encode(response)
-        _send_response(response, response_payload, stream, request_state)
+        _send_response(request, response, response_payload, stream, request_state)
       end
     end
     # !SLIDE END

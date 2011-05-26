@@ -80,7 +80,7 @@ module ASIR
 
       # !SLIDE
       # Sends the encoded Response payload String.
-      def _send_response response, response_payload, channel, stream
+      def _send_response request, response, response_payload, channel, stream
         #
         # There is a possibility here the following could happen:
         #
@@ -103,11 +103,14 @@ module ASIR
         # We insure that the same stream is still active and use it.
         channel.with_stream! do | maybe_other_stream |
           raise "stream lost" if maybe_other_stream != stream
-        job_id = response.request[:beanstalk_job_id] or raise "no beanstalk_job_id"
+        job_id = request[:beanstalk_job_id] or raise "no beanstalk_job_id"
         beanstalk_request = "delete #{job_id}\r\n"
         _write beanstalk_request, stream
         stream.flush
         _read_line_and_expect! stream, /\ADELETED\r\n\Z/
+        end
+        if exc = response.exception
+          
         end
       end
 

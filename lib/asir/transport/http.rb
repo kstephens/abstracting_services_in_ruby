@@ -54,7 +54,7 @@ module ASIR
       end
       
       # Send the Response payload String in the HTTP Response object as application/binary.
-      def _send_response response, response_payload, http_response, request_state
+      def _send_response request, response, response_payload, http_response, request_state
         http_response[CONTENT_TYPE] = APPLICATION_BINARY
         http_response.body = response_payload
       end

@@ -26,7 +26,7 @@ module ASIR
       end
 
       # one-way; no Response.
-      def _send_response response, response_payload, stream, request_state
+      def _send_response request, response, response_payload, stream, request_state
         nil
       end
 
