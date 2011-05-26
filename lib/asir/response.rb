@@ -11,6 +11,16 @@ module ASIR
     def initialize req, res = nil, exc = nil
       @request, @result, @exception = 
         req, res, (exc && EncapsulatedException.new(exc))
+      @identifier = @request.identifier
+    end
+
+    def encode_more!
+      @request && @request.encode_more!
+      self
+    end
+    def decode_more!
+      @request && @request.decode_more!
+      self
     end
   end
   # !SLIDE END

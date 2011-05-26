@@ -6,7 +6,8 @@ module ASIR
   # Encapsulate the request message from the Client to be handled by the Service.
   class Request
     include ObjectResolving, AdditionalData
-    attr_accessor :receiver, :receiver_class, :selector, :arguments, :result
+    attr_accessor :receiver, :receiver_class, :selector, :arguments
+    attr_accessor :response
     attr_accessor :identifier, :client, :timestamp # optional
 
     def initialize r, s, a
@@ -15,9 +16,9 @@ module ASIR
     end
 
     def invoke!
-      Response.new(self, @result = @receiver.__send__(@selector, *@arguments))
-    rescue Exception => exc
-      Response.new(self, nil, exc)
+      @response = Response.new(self, @result = @receiver.__send__(@selector, *@arguments))
+    rescue ::Exception => exc
+      @response = Response.new(self, nil, exc)
     end
 
     # !SLIDE
@@ -37,7 +38,7 @@ module ASIR
     # !SLIDE
     # Help encode/decode receiver
 
-    def encode_receiver!
+    def encode_more!
       unless ::String === @receiver_class
         obj = self.dup
         obj.receiver = @receiver.name if ::Module === @receiver
@@ -47,7 +48,7 @@ module ASIR
       self
     end
 
-    def decode_receiver!
+    def decode_more!
       if ::String === @receiver_class
         @receiver_class = resolve_object(@receiver_class)
         @receiver = resolve_object(@receiver) if ::Module === @receiver_class
