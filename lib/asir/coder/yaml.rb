@@ -7,7 +7,10 @@ module ASIR
     # Use YAML for encode/decode.
     class Yaml < self
       def _encode obj
-        obj = obj.encode_receiver! if Request === obj
+        case obj
+        when Request, Response
+          obj = obj.encode_more!
+        end
         ::YAML::dump(obj)
 =begin
       rescue ::Exception
@@ -18,8 +21,8 @@ module ASIR
 
       def _decode obj
         case obj = ::YAML::load(obj)
-        when Request
-          obj.decode_receiver!
+        when Request, Response
+          obj.decode_more!
         else
           obj
         end
