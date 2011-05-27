@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 # -*- ruby -*-
 
+require 'time'
+
 $: << File.expand_path('../../lib', __FILE__)
 require 'asir'
 
@@ -13,6 +15,7 @@ class Main
   attr_accessor :exit_code
 
   def initialize
+    @verbose = 0
     @progname = File.basename($0)
     @log_dir = '/var/log'
     @log_dir = '/tmp' unless File.writable?(@log_dir)
@@ -25,8 +28,15 @@ class Main
     @args = args
     @verb, @adjective, @object, @identifier = args.map{|x| x.to_sym}
     @identifier ||= :'0'
-    @log_str = "#{@progname} #{@args * ' '}"
     self
+  end
+  
+  def log_str
+    "#{Time.now.gmtime.iso8601(4)} #{$$} #{log_str_no_time}"
+  end
+
+  def log_str_no_time
+    "#{@progname} #{@verb} #{@adjective} #{@object} #{@identifier}"
   end
 
   def run!
@@ -34,6 +44,7 @@ class Main
       @exit_code = 1
       return usage! 
     end
+    config(:config)
     case verb
     when :restart
       @verb = :stop
@@ -49,7 +60,7 @@ class Main
   def _run!
     send(:"#{verb}_#{adjective}_#{object}!")
   rescue ::Exception => exc
-    $stderr.puts "#{@log_str} ERROR #{exc.inspect}\n  #{exc.backtrace * "\n  "}"
+    $stderr.puts "#{log_str} ERROR\n#{exc.inspect}\n  #{exc.backtrace * "\n  "}"
     @exit_code += 1
     nil
   end
@@ -58,8 +69,16 @@ class Main
     case sel.to_s
     when /^status_([^_]+)_([^_]+)!$/
       pid = server_pid
-      puts "#{@log_str} pid #{pid}"
+      puts "#{log_str} pid #{pid}"
       system("ps -fw -p #{pid}")
+    when /^log_([^_]+)_([^_]+)!$/
+      puts log_file
+    when /^taillog_([^_]+)_([^_]+)!$/
+      exec "tail -f #{log_file.inspect}"
+    when /^pid_([^_]+)_([^_]+)!$/
+      puts "#{pid_file} #{File.read(pid_file) rescue nil}"
+    when /^stop_([^_]+)_([^_]+)!$/
+      kill_server!
     else
       super
     end
@@ -72,10 +91,13 @@ SYNOPSIS:
 
 VERBS: 
   start 
-  stop 
+  stop
+  restart
   status
+  log
+  pid
 
-OBJECT-ADJECTIVES:
+ADJECTIVE-OBJECTs:
   beanstalk conduit 
   beanstalk worker
   webrick worker
@@ -94,112 +116,127 @@ END
   def start_beanstalk_conduit!
     fork_server "beanstalkd"
   end
-  def stop_beanstalk_conduit!
-    kill_server
-  end
 
   def start_beanstalk_worker!
     fork_server do
       require 'asir/transport/beanstalk'
-      transport = _create_transport ASIR::Transport::Beanstalk
-      transport.prepare_beanstalk_server!
-      transport.run_beanstalk_server!
+      _create_transport ASIR::Transport::Beanstalk
+      _run_workers!
     end
-  end
-  def stop_beanstalk_worker!
-    kill_server
   end
 
   def start_webrick_worker!
     fork_server do
       require 'asir/transport/http'
-      transport = _create_transport ASIR::Transport::HTTP
-      transport.prepare_webrick_server!
-      transport.run_webrick_server!
+      _create_transport ASIR::Transport::Webrick
+      _run_workers!
     end
-  end
-  def stop_webrick_worker!
-    kill_server
   end
 
   ################################################################
 
   def config_rb
     @config_rb ||= 
-      ENV['ASIR_CONFIG_RB'] || 'config/asir_config.rb'
+      File.expand_path(ENV['ASIR_CONFIG_RB'] || 'config/asir_config.rb')
   end
 
-  def config
-    @config ||=
+  def config_lambda
+    @config_lambda ||=
       begin
-        file = File.expand_path(config_rb)
-        $stderr.puts "#{@log_str} loading #{file} ..."
+        file = config_rb
+        $stderr.puts "#{log_str} loading #{file} ..." if @verbose >= 1
         expr = File.read(file)
-        expr = "begin; #{expr}\n end"
-        cfg = eval(expr, binding, file, 1)
+        expr = "begin; lambda do | asir |; #{expr}\n end; end"
+        cfg = Object.new.send(:eval, expr, binding, file, 1)
         # cfg = load file
-        $stderr.puts "#{@log_str} loading #{file} DONE"
+        # $stderr.puts "#{log_str} loading #{file} DONE" if @verbose >= 1
         raise "#{file} did not return a Proc, returned a #{cfg.class}" unless Proc === cfg
-        cfg = cfg.call(self)
-        raise "#{file} Proc#call did not return a Hash" unless Hash === cfg
         cfg
       end
   end
 
+  def config verb = @verb
+    (@config ||= { })[verb] ||=
+      begin
+        save_verb = @verb
+        @verb = verb
+        $stderr.puts "#{log_str} calling #{config_rb} asir.verb=#{@verb.inspect} ..." if @verbose >= 1
+        cfg = config_lambda.call(self)
+        $stderr.puts "#{log_str} calling #{config_rb} asir.verb=#{@verb.inspect} DONE" if @verbose >= 1
+        cfg
+      ensure 
+        @verb = save_verb
+      end
+  end
+
   def pid_file
-    @pid_file ||=
-      "#{pid_dir}/asir-#{adjective}-#{object}-#{identifier}.pid"
+    "#{pid_dir}/asir-#{adjective}-#{object}-#{identifier}.pid"
   end
 
   def log_file
-    @log_file ||=
-      "#{log_dir}/asir-#{adjective}-#{object}-#{identifier}.log"
+    "#{log_dir}/asir-#{adjective}-#{object}-#{identifier}.log"
   end
 
   def fork_server cmd = nil, &blk
     pid = Process.fork do
       run_server cmd, &blk
     end
+    Process.detach(pid) # Forks a Thread?  We are gonna exit anyway.
     File.open(pid_file, "w+") { | o | o.puts pid }
+    File.chmod(0666, pid_file) rescue nil
     self
   end
 
   def run_server cmd = nil
     log = File.open(log_file, "a+")
     File.chmod(0666, log_file) rescue nil
-    log.puts "#{@log_str} starting pid #{$$}"
+    log.puts "#{log_str} starting pid #{$$}"
     $stdin.close rescue nil
     STDIN.close rescue nil
     STDOUT.reopen(log)
     STDERR.reopen(log)
+    Process.daemon rescue nil # Ruby 1.9.x only.
     if cmd
       exec(cmd)
     else
-      yield
-      log.puts "#{@log_str} finished pid #{$$}"
+      begin
+        yield
+      ensure
+        log.puts "#{log_str} finished pid #{$$}"
+        File.unlink(pid_file) rescue nil
+      end
     end
   rescue ::Exception => exc
-    msg = "#{@log_str} finished pid #{$$}"
-    log.puts msg
+    msg = "#{log_str} ERROR pid #{$$}\n#{exc.inspect}\n  #{exc.backtrace * "\n  "}"
     $stderr.puts msg
+    log.puts msg
     raise
   end
 
-  def kill_server 
-    lf = nil
-    lf = File.open(log_file, "a+")
-    lf.puts "#{@log_str} kill"
+  def kill_server!
+    log = nil
+    log = File.open(log_file, "a+")
+    log.puts "#{log_str} kill"
     pid = server_pid
-    lf.puts "#{@log_str} kill pid #{pid}"
-    Process.kill('TERM', pid)
-    sleep 5
-    Process.kill('KILL', pid) rescue nil
-    File.unlink(pid_file)
+    log.puts "#{log_str} kill pid #{pid}"
+    begin
+      Process.kill('TERM', pid)
+      if @force
+        sleep 5
+        Process.kill('KILL', pid) rescue nil
+      end
+    end
   rescue ::Exception => exc
-    lf.puts "#{@log_str} ERROR #{exc}\n#{exc.backtrace * "\n"}"
+    log.puts "#{log_str} ERROR\n#{exc.inspect}\n  #{exc.backtrace * "\n  "}"
     raise
   ensure
-    lf.close if lf
+    log.close if log
+  end
+
+  def log msg
+    File.open(log_file, "a+") do | log |
+      log.puts "#{log_str} #{msg}"
+    end
   end
 
   def server_pid
@@ -208,19 +245,70 @@ END
   end
 
   def _create_transport default_class
-    cfg = config
-    cfg = cfg[:transport] or raise "#{config_rb} did not return a Hash with [:transport]"
-    c = cfg[adjective] || { }
-    while Symbol === c
-      c = cfg[c]
+    config(:environment)
+    case transport = config(:start)
+    when default_class
+      @transport = transport
+    else
+      raise "Expected config to return a #{default_class}, not a #{transport.class}"
     end
-    c_default = cfg[nil] || { }
-    transport = c[:transport_class] || c_default[:transport_class] || default_class
-    transport = transport.new(c[:transport_options] || c_default[:transport_options])
-    transport.encoder = c[:coder] || c_default[:coder]
-    transport._logger = STDERR
-    transport._log_enabled = true
-    @transport = transport
+  end
+
+  def worker_pids
+    (@worker_pids ||= { })[@adjective] ||= { }
+  end
+
+  def _run_workers!
+    $0 = "#{@progname} #{@adjective} #{@object} #{@identifier}"
+
+    worker_id = 0
+    @transport.prepare_server!
+    worker_processes = @transport[:worker_processes] || 1
+    (worker_processes - 1).times do
+      wid = worker_id += 1
+      pid = Process.fork do
+        _run_transport_server! wid
+      end
+      Process.setgprp(pid, 0) rescue nil
+      worker_pids[wid] = pid
+      log "forked #{wid} pid #{pid}"
+    end
+
+    _run_transport_server!
+  ensure
+    log "worker 0 stopped"
+    _stop_workers!
+  end
+
+  def _run_transport_server! wid = 0
+    $0 += " #{wid}"
+    old_arg0 = $0.dup
+    after_receive_request = @transport.after_receive_request || lambda { | transport, request | nil }
+    @transport.after_receive_request = lambda do | transport, request | 
+      $0 = "#{old_arg0} #{transport.request_count} #{request.identifier}"
+      after_receive_request.call(transport, request)
+    end
+    @transport.run_server!
+    self
+  end
+
+  def _stop_workers!
+    workers = worker_pids.dup
+    worker_pids.clear
+    workers.each do | wid, pid |
+      log "stopping #{wid} pid #{pid}"
+      Process.kill('TERM', pid) rescue nil
+      if @force
+        sleep 1
+        Process.kill('KILL', pid) rescue nil
+      end
+    end
+    workers.each do | wid, pid |
+      wr = Process.waitpid(pid) rescue nil
+      log "stopped #{wid} pid #{pid} => #{wr.inspect}"
+    end
+  ensure
+    worker_pids.clear
   end
 
 end # class
