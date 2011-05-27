@@ -30,32 +30,39 @@ class Main
   end
 
   def run!
+    unless verb && adjective && object
+      @exit_code = 1
+      return usage! 
+    end
     case verb
     when :restart
       @verb = :stop
-      run! rescue nil && sleep 1
+      _run! && sleep(1)
       @verb = :start
-      run!
+      _run!
     else
-      send(:"#{verb}_#{adjective}_#{object}!")
+      _run!
     end
     self
   end
 
-  def method_missing! sel, *args
+  def _run!
+    send(:"#{verb}_#{adjective}_#{object}!")
+  rescue ::Exception => exc
+    $stderr.puts "#{@log_str} ERROR #{exc.inspect}\n  #{exc.backtrace * "\n  "}"
+    @exit_code += 1
+    nil
+  end
+
+  def method_missing sel, *args
     case sel.to_s
-    when /^status_([^_]+)_([^_]+)$/
+    when /^status_([^_]+)_([^_]+)!$/
       pid = server_pid
-      puts "pid #{pid}"
+      puts "#{@log_str} pid #{pid}"
       system("ps -fw -p #{pid}")
     else
       super
     end
-  end
-
-  def __!
-    usage!
-    raise "Usage Error"
   end
 
   def usage!
@@ -78,6 +85,7 @@ EXAMPLES:
   export ASIR_CONFIG_RB="cnuapp/etc/config/asir_config.rb"
   asir start beanstalk conduit
   asir status beanstalk conduit
+  asir start webrick worker 
   asir start beanstalk worker 1
   asir start beanstalk worker 2
 END
