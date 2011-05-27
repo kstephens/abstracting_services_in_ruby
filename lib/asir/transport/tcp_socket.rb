@@ -88,22 +88,32 @@ module ASIR
         _log [ "prepare_socket_server! #{address}:#{port}", :exception, err ]
         raise Error, "Cannot bind to #{address}:#{port}: #{err.inspect}", err.backtrace
       end
+      alias :prepare_server! :prepare_socket_server!
 
       def run_socket_server!
         _log { "connect_tcp_socket #{address}:#{port}" }
-        @running = true
-        while @running
-          stream = @server.accept
-          _log { "run_socket_server!: connected" } if @verbose
-          begin
-            # Same socket for both in and out stream.
-            serve_stream! stream, stream
-          ensure
-            stream.close
+        with_server_signals! do
+          @running = true
+          while @running
+            stream = @server.accept
+            _log { "run_socket_server!: connected" } if @verbose >= 1
+            begin
+              # Same socket for both in and out stream.
+              serve_stream! stream, stream
+            ensure
+              stream.close rescue nil
+            end
+            _log { "run_socket_server!: disconnected" } if @verbose >= 1
           end
-          _log { "run_socket_server!: disconnected" } if @verbose
         end
+        self
+      ensure
+        if @server
+          @server.close rescue nil
+        end
+        @server = nil
       end
+      alias :run_server! :run_socket_server!
 
     end
     # !SLIDE END

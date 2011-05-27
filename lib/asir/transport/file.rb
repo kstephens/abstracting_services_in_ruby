@@ -64,15 +64,17 @@ module ASIR
         _log [ :prepare_pipe_server!, file ]
         unless ::File.exist? file
           system(cmd = "mkfifo #{file.inspect}") or raise "cannot run #{cmd.inspect}"
-          ::File.chmod(perms, file) rescue nil if @perms 
+          ::File.chmod(perms, file) rescue nil if perms 
         end
       end
 
       def run_pipe_server!
         _log [ :run_pipe_server!, file ]
-        @running = true
-        while @running
-          serve_file!
+        with_server_signals! do
+          @running = true
+          while @running
+            serve_file!
+          end
         end
       end
 

@@ -8,29 +8,42 @@ module ASIR
   # Service: Send the Response to the Client.
   # Client: Receive the Response from the Service.
   class Transport
-    include Log, Initialization
+    include Log, Initialization, AdditionalData
 
     attr_accessor :encoder, :decoder
 
     # Incremented for each request sent or received.
     attr_accessor :request_count
 
-    # A Proc to call on Request within
+    # A Proc to call within #receive_request, after #_receive_request.
+    # trans.after_receiver_request(trans, request)
+    attr_accessor :after_receive_request
+
+    # A Proc to call within #send_request, before #_send_request.
+    # trans.before_send_request(trans, request)
     attr_accessor :before_send_request
 
-    # Proc to call(response) with Response after #_send_response if response.exception.
+    # Proc to call after #_send_response if response.exception.
+    # trans.on_response_exception.call(trans, response)
     attr_accessor :on_response_exception
 
     # Proc to call with exception, if exception occurs within #serve_request!, but outside
     # Request#invoke!.
     #
-    # on_exception(exception, :request, Request_instance)
-    # on_exception(exception, :response, Response_instance)
+    # trans.on_exception.call(trans, exception, :request, Request_instance)
+    # trans.on_exception.call(trans, exception, :response, Response_instance)
     attr_accessor :on_exception
 
     attr_accessor :needs_request_identifier, :needs_request_timestamp
     alias :needs_request_identifier? :needs_request_identifier
     alias :needs_request_timestamp? :needs_request_timestamp
+
+    attr_accessor :verbose
+
+    def initialize *args
+      @verbose = 0
+      super
+    end
 
     # !SLIDE
     # Transport#send_request 
@@ -41,7 +54,7 @@ module ASIR
       @request_count ||= 0; @request_count += 1
       request.create_timestamp! if needs_request_timestamp?
       request.create_identifier! if needs_request_identifier?
-      @before_send_request.call(request) if @before_send_request
+      @before_send_request.call(self, request) if @before_send_request
       request_payload = encoder.dup.encode(request)
       opaque_response = _send_request(request, request_payload)
       receive_response opaque_response
@@ -54,8 +67,17 @@ module ASIR
       @request_count ||= 0; @request_count += 1
       additional_data = { }
       if req_and_state = _receive_request(stream, additional_data)
-        req = req_and_state[0] = encoder.dup.decode(req_and_state.first)
-        req.additional_data = additional_data if req
+        # $stderr.puts "req_and_state = #{req_and_state.inspect}"
+        request = req_and_state[0] = encoder.dup.decode(req_and_state.first)
+        # $stderr.puts "req_and_state AFTER DECODE = #{req_and_state.inspect}"
+        request.additional_data!.update(additional_data) if request
+        if @after_receive_request
+          begin
+            @after_receive_request.call(self, request)
+          rescue ::Exception => exc
+            _log { [ :receive_request, :after_receive_request, :exception, exc ] }
+          end
+        end
       end
       req_and_state
     end
@@ -68,7 +90,7 @@ module ASIR
       request = response.request
       if @on_response_exception && response.exception
         begin
-          @on_response_exception.call(response)
+          @on_response_exception.call(self, response)
         rescue ::Exception => exc
           _log { [ :send_response, :response, response, :on_response_exception, exc ] }
         end
@@ -114,32 +136,58 @@ module ASIR
     def serve_request! in_stream, out_stream
       request = request_state = request_ok = response = response_ok = exception = nil
       request, request_state = receive_request(in_stream)
-      request_ok = true
-      response = invoke_request!(request)
-      response_ok = true
-    rescue Exception => exc
+      if request
+        request_ok = true
+        response = invoke_request!(request)
+        response_ok = true
+        self
+      else
+        nil
+      end
+    rescue ::Exception => exc
       exception = exc
       _log [ :request_error, exc ]
-      @on_exeception.call(exc, :request, request) if @on_exception
+      @on_exception.call(self, exc, :request, request) if @on_exception
     ensure
-      if out_stream
-        begin
-          if request_ok 
-            if exception && ! response_ok
-              response = Response.new(request, nil, exception)
-            end
+      begin
+        if request_ok 
+          if exception && ! response_ok
+            response = Response.new(request, nil, exception)
+          end
+          if out_stream
             send_response(response, out_stream, request_state)
           end
-        rescue Exception => exc
-          _log [ :response_error, exc ]
-          @on_exception.call(exc, :response, response) if @on_exception
         end
-      else
-        raise exception if exception
+      rescue Exception => exc
+        _log [ :response_error, exc ]
+        @on_exception.call(self, exc, :response, response) if @on_exception
       end
     end
 
     # !SLIDE pause
+
+    # !SLIDE 
+    # Transport Server Support
+
+    def with_server_signals!
+      old_trap = { }
+      [ "TERM", "HUP" ].each do | sig |
+        trap = proc do | *args |
+          @running = false
+          unless @processing_request
+            raise ::ASIR::Error::Terminate, "#{self} by SIG#{sig} #{args.inspect} in #{__FILE__}:#{__LINE__}"
+          end
+        end
+        old_trap[sig] = Signal.trap(sig, trap)
+      end
+      yield
+    ensure
+      # $stderr.puts "old_trap = #{old_trap.inspect}"
+      old_trap.each do | sig, trap |
+        Signal.trap(sig, trap) rescue nil
+      end
+    end
+
     # !SLIDE
     # Transport Support
     # ...
@@ -156,7 +204,11 @@ module ASIR
 
     # Invokes the the Request object, returns a Response object.
     def invoke_request! request
+      _processing_request = @processing_request
+      @processing_request = true
       request.invoke!
+    ensure
+      @processing_request = _processing_request
     end
     # !SLIDE END
     # !SLIDE resume

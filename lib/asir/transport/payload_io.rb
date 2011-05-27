@@ -10,10 +10,12 @@ module ASIR
     module PayloadIO
       class UnexpectedResponse < Error; end
 
+      NEWLINE = "\n"
+
       def _write payload, stream
         stream.puts payload.size
         stream.write payload
-        stream.puts EMPTY_STRING
+        stream.write NEWLINE
         stream.flush
         stream
       end

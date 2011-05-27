@@ -10,11 +10,13 @@ module ASIR
       # !SLIDE
       # Serve all Requests from a stream.
       def serve_stream! in_stream, out_stream
-        until in_stream.eof?
-          begin
-            serve_stream_request! in_stream, out_stream
-          rescue Exception => err
-            _log [ :serve_stream_error, err ]
+        with_server_signals! do
+          while @running && ! in_stream.eof?
+            begin
+              serve_stream_request! in_stream, out_stream
+            rescue ::Exception => err
+              _log [ :serve_stream_error, err ]
+            end
           end
         end
       end

@@ -59,13 +59,14 @@ module ASIR
         http_response.body = response_payload
       end
 
+      # TODO: rename prepare_webrick_server!
       def setup_webrick_server! opts = { }
         require 'webrick'
         u = URI.parse(uri)
         port = u.port
         path = u.path
         opts[:Port] ||= port
-        @server = WEBrick::HTTPServer.new(opts)
+        @server = ::WEBrick::HTTPServer.new(opts)
         @server.mount_proc path, lambda { | rq, rs |
           serve_request! rq, rs
         }
@@ -74,12 +75,20 @@ module ASIR
         raise Error, "Webrick Server #{uri.inspect}: #{exc.inspect}", exc.backtrace
       end
 
+      # TODO: rename run_webrick_server!
       def start_webrick_server!
         @server.start
         self
       end
 
     end # class
+
+    # Webrick transport.
+    class Webrick < HTTP
+      alias :prepare_server! :setup_webrick_server!
+      alias :run_server! :start_webrick_server!
+    end
+
   end # class
 end # module 
 
