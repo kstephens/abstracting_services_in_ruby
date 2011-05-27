@@ -18,38 +18,24 @@ module ASIR
         super
       end
 
-      def _read stream, size
-        stream.read size
-      end
-
-      def _write payload, stream
-        stream.write payload
-      end
-
-      def _after_connect! stream
-        if @tube
-          _write "use #{@tube}\r\n", stream
-          _read_line_and_expect! stream, /\AUSING #{@tube}\r\n\Z/
-        end
-      end
-
       # !SLIDE
       # Sends the encoded Request payload String.
       def _send_request request, request_payload
-        stream.with_stream! do | s |; begin
-        beanstalk_request = "put #{request[:beanstalk_priority] || @priority} #{@delay} #{@ttr} #{request_payload.size}\r\n"
-        _write beanstalk_request, s
-        _write request_payload, s
-        _write LINE_TERMINATOR, s
-        s.flush
-        match = _read_line_and_expect! s, /\AINSERTED (\d+)\r\n\Z/
-        job_id = request[:beanstalk_job_id] = match[1].to_i
-        _log { "beanstalk_job_id = #{job_id.inspect}" } if @verbose
-      rescue Exception => err
-        request[:beanstalk_error] = err
-        close
-        raise err
-        end; end
+        stream.with_stream! do | s |
+          begin
+            match = 
+              _beanstalk(s, 
+                         "put #{request[:beanstalk_priority] || @priority} #{request[:beanstalk_delay] || @delay} #{request[:beanstalk_ttr] || @ttr} #{request_payload.size}\r\n",
+                         /\AINSERTED (\d+)\r\n\Z/,
+                         request_payload)
+            job_id = request[:beanstalk_job_id] = match[1].to_i
+            _log { "beanstalk_job_id = #{job_id.inspect}" } if @verbose >= 2
+          rescue ::Exception => exc
+            request[:beanstalk_error] = exc
+            close
+            raise exc
+          end
+        end
       end
 
       RESERVE = "reserve\r\n".freeze
@@ -57,21 +43,25 @@ module ASIR
       # !SLIDE
       # Receives the encoded Request payload String.
       def _receive_request channel, additional_data
-        channel.with_stream! do | stream |; begin
-        _write RESERVE, stream
-        stream.flush
-        match = _read_line_and_expect! stream, /\ARESERVED (\d+) (\d+)\r\n\Z/
-        additional_data[:beanstalk_job_id] = match[1].to_i
-        additional_data[:beanstalk_request_size] = 
-        size = match[2].to_i
-        request_payload = _read stream, size
-        _read_line_and_expect! stream, /\A\r\n\Z/
-        # Save the original stream used; see _send_response below.
-        [ request_payload, stream ]
-      rescue Exception => err
-        additional_data[:beanstalk_error] = err
-        channel.close
-        end; end
+        channel.with_stream! do | stream |
+          begin
+            match = 
+              _beanstalk(stream,
+                         RESERVE,
+                         /\ARESERVED (\d+) (\d+)\r\n\Z/)
+            additional_data[:beanstalk_job_id] = match[1].to_i
+            additional_data[:beanstalk_request_size] = 
+              size = match[2].to_i
+            request_payload = stream.read(size)
+            _read_line_and_expect! stream, /\A\r\n\Z/
+            # Pass the original stream used to #_send_response below.
+            [ request_payload, stream ]
+          rescue ::Exception => exc
+            _log { [ :_receive_request, :exception, exc ] }
+            additional_data[:beanstalk_error] = exc
+            channel.close
+          end
+        end
       end
 
       # !SLIDE
@@ -81,7 +71,7 @@ module ASIR
         # There is a possibility here the following could happen:
         #
         #   _receive_request
-        #     channel = #<Channel:1>   
+        #     channel == #<Channel:1>   
         #     channel.stream == #<TCPSocket:1234>
         #   end
         #   ...
@@ -90,23 +80,19 @@ module ASIR
         #      channel.stream = nil
         #   ...
         #   _send_response 
-        #     channel = #<Channel:1>
-        #     channel.stream = #<TCPSocket:5678> # NEW CONNECTION
+        #     channel == #<Channel:1>
+        #     channel.stream == #<TCPSocket:5678> # NEW CONNECTION
         #     stream.write "delete #{job_id}"
         #   ...
         #
         # Therefore: _receiver_request passes the original request stream to us.
-        # We insure that the same stream is still active and use it.
+        # We insure that the same stream is still the active one and use it.
         channel.with_stream! do | maybe_other_stream |
-          raise "stream lost" if maybe_other_stream != stream
-        job_id = request[:beanstalk_job_id] or raise "no beanstalk_job_id"
-        beanstalk_request = "delete #{job_id}\r\n"
-        _write beanstalk_request, stream
-        stream.flush
-        _read_line_and_expect! stream, /\ADELETED\r\n\Z/
-        end
-        if exc = response.exception
-          
+          _log [ :_send_response, "stream lost" ] if maybe_other_stream != stream
+          job_id = request[:beanstalk_job_id] or raise "no beanstalk_job_id"
+          _beanstalk(stream,
+                     "delete #{job_id}\r\n",
+                     /\ADELETED\r\n\Z/)
         end
       end
 
@@ -116,47 +102,78 @@ module ASIR
         nil
       end
 
+
       # !SLIDE
-      # TCP Socket Server
+      # Beanstalk protocol support
+
+      # Send "something ...\r\n".
+      # Expect /\ASOMETHING (\d+)...\r\n".
+      def _beanstalk stream, request, expect, payload = nil
+        _log { [ :_beanstalk, :request, request ] } if @verbose >= 3
+        stream.write request
+        if payload
+          stream.write payload
+          stream.write LINE_TERMINATOR
+        end
+        stream.flush
+        if match = _read_line_and_expect!(stream, expect)
+          _log { [ :_beanstalk, :response, match[0] ] } if @verbose >= 3
+        end
+        match
+      end
+
+      def _after_connect! stream
+        if @tube
+          _beanstalk(stream,
+                     "use #{@tube}\r\n",
+                     /\AUSING #{@tube}\r\n\Z/)
+        end
+      end
+
+      # !SLIDE
+      # Beanstalk Server
 
       def prepare_beanstalk_server!
         _log { "prepare_beanstalk_server! #{address}:#{port}" }
         @server = connect_tcp_socket do | stream |
-        if @tube
-          _write "watch #{@tube}\r\n", stream
-          stream.flush
-          _read_line_and_expect! stream, /\AWATCHING (\d+)\r\n\Z/
-        end
+          if @tube
+            _beanstalk(stream, 
+                       "watch #{@tube}\r\n",
+                       /\AWATCHING (\d+)\r\n\Z/)
+          end
         end
         self
       end
+      alias :prepare_server! :prepare_beanstalk_server!
 
       def run_beanstalk_server!
         _log :run_beanstalk_server!
-        @running = true
-        while @running
-          prepare_beanstalk_server! unless @server
-          stream = @server
-
-          # Same socket for both in and out stream.
-          serve_stream! stream, stream
-          close_server!
+        with_server_signals! do
+          @running = true
+          while @running
+            prepare_beanstalk_server! unless @server
+            # Same socket for both in and out stream.
+            serve_stream! @server, @server
+          end
         end
         self
       ensure
         close_server!
       end
+      alias :run_server! :run_beanstalk_server!
  
       def serve_stream! in_stream, out_stream
         while @running
           begin
             serve_stream_request! in_stream, out_stream
-          rescue Exception => err
-            _log [ :serve_stream_error, err ]
-            close_server!
-            break
+          rescue ::Exception => exc
+            _log [ :serve_stream_error, exc ]
+            @running = false
           end
         end
+        self
+      ensure
+        close_server!
       end
 
       def close_server!
@@ -170,7 +187,8 @@ module ASIR
       def start_beanstalkd!
         _log { "run_beanstalkd! #{address}:#{port}" }
         raise "already running #{@beanstalkd_pid}" if @beanstalkd_pid
-        cmd = "beanstalkd -l #{address} -p #{port}"
+        addr = address ? "-l #{address} " : ""
+        cmd = "beanstalkd #{addr}-p #{port}"
         @beanstalkd_pid = Process.fork do 
           $stderr.puts "Start beanstalkd: #{cmd} ..."
           exec(cmd)
