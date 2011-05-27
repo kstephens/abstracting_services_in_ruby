@@ -7,6 +7,9 @@ module ASIR
     def additional_data
       @additional_data || EMPTY_HASH
     end
+    def additional_data!
+      @additional_data ||= { }
+    end
     def additional_data= x
       @additional_data = x
     end
