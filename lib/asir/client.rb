@@ -47,7 +47,6 @@ module ASIR
       # Accept all other messages to be encoded and transported to a service.
       def method_missing selector, *arguments
         raise Error::Unsupported, "block given" if block_given?
-        _log { "method_missing #{selector.inspect} #{arguments.inspect}" }
         request = Request.new(receiver, selector, arguments)
         request = @before_send_request.call(request) if @before_send_request
         result = transport.send_request(request)

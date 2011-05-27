@@ -19,14 +19,10 @@ module ASIR
       end
 
       def _read stream, size
-        _log { "_read #{stream} #{size} ..." }
-        result = stream.read size
-        _log { "_read #{stream} #{size} => #{result.inspect}" }
-        result
+        stream.read size
       end
 
       def _write payload, stream
-        _log { "_write #{stream} #{payload.size} #{payload.inspect}" }
         stream.write payload
       end
 
@@ -48,7 +44,7 @@ module ASIR
         s.flush
         match = _read_line_and_expect! s, /\AINSERTED (\d+)\r\n\Z/
         job_id = request[:beanstalk_job_id] = match[1].to_i
-        _log { "beanstalk_job_id = #{job_id.inspect}" }
+        _log { "beanstalk_job_id = #{job_id.inspect}" } if @verbose
       rescue Exception => err
         request[:beanstalk_error] = err
         close

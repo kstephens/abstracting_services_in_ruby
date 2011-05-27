@@ -30,7 +30,15 @@ class Main
   end
 
   def run!
-    send(:"#{verb}_#{adjective}_#{object}!")
+    case verb
+    when :restart
+      @verb = :stop
+      run! rescue nil && sleep 1
+      @verb = :start
+      run!
+    else
+      send(:"#{verb}_#{adjective}_#{object}!")
+    end
     self
   end
 

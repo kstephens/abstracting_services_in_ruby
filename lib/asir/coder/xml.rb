@@ -93,7 +93,6 @@ module ASIR
 
       def _decode_dom dom
         cls_name = dom.name
-        _log { "_decode_dom #{dom} => #{cls_name.inspect}" }
         case cls_name
         when "String"
           dom.content

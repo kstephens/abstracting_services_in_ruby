@@ -13,7 +13,6 @@ module ASIR
         result = exceptions = nil
         transports.each do | transport |
           begin
-            _log { [ :send_request, :transport, transport ] }
             result = transport.send_request(request)
           rescue ::Exception => exc
             _log { [ :send_request, :transport_failed, exc ] }

@@ -11,7 +11,6 @@ module ASIR
         result = sent = exceptions = nil
         transports.each do | transport |
           begin
-            _log { [ :send_request, :transport, transport ] }
             result = transport.send_request request
             sent = true
             break

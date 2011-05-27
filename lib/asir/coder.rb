@@ -7,15 +7,11 @@ module ASIR
     include Log, Initialization
 
     def encode obj
-      _log_result [ :encode, obj ] do
-        _encode obj
-      end
+      _encode obj
     end
 
     def decode obj
-      _log_result [ :decode, obj ] do
-        obj and _decode obj
-      end
+      obj and _decode obj
     end
 
     def _subclass_responsibility *args

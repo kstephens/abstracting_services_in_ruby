@@ -22,7 +22,6 @@ module ASIR
       # !SLIDE
       # Serve a Request from a stream.
       def serve_stream_request! in_stream, out_stream
-        _log { "serve_stream_request! #{in_stream} #{out_stream}" }
         serve_request! in_stream, out_stream
       end
     end

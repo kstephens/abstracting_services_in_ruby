@@ -11,9 +11,7 @@ module ASIR
       class UnexpectedResponse < Error; end
 
       def _write payload, stream
-        _log { "  _write size = #{payload.size}" }
         stream.puts payload.size
-        _log { "  _write #{payload.inspect}" }
         stream.write payload
         stream.puts EMPTY_STRING
         stream.flush
@@ -22,18 +20,15 @@ module ASIR
 
       def _read stream
         size = stream.readline.chomp.to_i
-        _log { "  _read  size = #{size.inspect}" }
         payload = stream.read(size)
-        _log { "  _read  #{payload.inspect}" }
         stream.readline
         payload
       end
 
       def _read_line_and_expect! stream, regexp
-        _log { "_read_line_and_expect! #{stream} #{regexp.inspect} ..." }
         line = stream.readline
-        _log { "_read_line_and_expect! #{stream} #{regexp.inspect} =~ #{line.inspect}" }
         unless match = regexp.match(line)
+          _log { "_read_line_and_expect! #{stream} #{regexp.inspect} !~ #{line.inspect}" }
           raise UnexpectedResponse, "expected #{regexp.inspect}, received #{line.inspect}"
         end
         match

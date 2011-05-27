@@ -42,11 +42,9 @@ module ASIR
       request.create_timestamp! if needs_request_timestamp?
       request.create_identifier! if needs_request_identifier?
       @before_send_request.call(request) if @before_send_request
-      _log_result [ :send_request, :request, request, @request_count ] do
-        request_payload = encoder.dup.encode(request)
-        opaque_response = _send_request(request, request_payload)
-        receive_response opaque_response
-      end
+      request_payload = encoder.dup.encode(request)
+      opaque_response = _send_request(request, request_payload)
+      receive_response opaque_response
     end
 
     # !SLIDE
@@ -54,14 +52,12 @@ module ASIR
     # Receive Request payload from stream.
     def receive_request stream
       @request_count ||= 0; @request_count += 1
-      _log_result [ :receive_request, :stream, stream, @request_count ] do
-        additional_data = { }
-        if req_and_state = _receive_request(stream, additional_data)
-          req = req_and_state[0] = encoder.dup.decode(req_and_state.first)
-          req.additional_data = additional_data if req
-        end
-        req_and_state
+      additional_data = { }
+      if req_and_state = _receive_request(stream, additional_data)
+        req = req_and_state[0] = encoder.dup.decode(req_and_state.first)
+        req.additional_data = additional_data if req
       end
+      req_and_state
     end
     # !SLIDE END
 
@@ -70,18 +66,16 @@ module ASIR
     # Send Response to stream.
     def send_response response, stream, request_state
       request = response.request
-      _log_result [ :send_response, :response, response, :stream, stream, :request_state, request_state ] do
-        if @on_response_exception && response.exception
-          begin
-            @on_response_exception.call(response)
-          rescue ::Exception => exc
-            _log { [ :send_response, :response, response, :on_response_exception, exc ] }
-          end
+      if @on_response_exception && response.exception
+        begin
+          @on_response_exception.call(response)
+        rescue ::Exception => exc
+          _log { [ :send_response, :response, response, :on_response_exception, exc ] }
         end
-        response.request = nil # avoid sending back entire Request.
-        response_payload = decoder.dup.encode(response)
-        _send_response(request, response, response_payload, stream, request_state)
       end
+      response.request = nil # avoid sending back entire Request.
+      response_payload = decoder.dup.encode(response)
+      _send_response(request, response, response_payload, stream, request_state)
     end
     # !SLIDE END
 
@@ -92,19 +86,16 @@ module ASIR
     # * Decode Response.
     # * Extract Response result or exception.
     def receive_response opaque_response
-      _log_result [ :receive_response ] do
-        response_payload = _receive_response opaque_response
-        response = decoder.dup.decode(response_payload)
-        _log { [ :receive_response, :response, response ] }
-        if response
-          if exc = response.exception
-            exc.invoke!
-          else
-            response.result
-          end
+      response_payload = _receive_response opaque_response
+      response = decoder.dup.decode(response_payload)
+      if response
+        if exc = response.exception
+          exc.invoke!
         else
-          response
+          response.result
         end
+      else
+        response
       end
     end
     # !SLIDE END
@@ -165,9 +156,7 @@ module ASIR
 
     # Invokes the the Request object, returns a Response object.
     def invoke_request! request
-      _log_result [ :invoke_request!, request ] do
-        request.invoke!
-      end
+      request.invoke!
     end
     # !SLIDE END
     # !SLIDE resume
