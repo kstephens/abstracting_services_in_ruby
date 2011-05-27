@@ -26,9 +26,9 @@ module ASIR
 
     def create_identifier!
       @identifier ||= 
-        "#{@@counter += 1}-#{$$}-#{::Thread.current.object_id}-#{@@uuid ||= ::ASIR::UUID.generate}".freeze
+        "#{@@counter += 1}-#{@@uuid_pid == $$ ? @@uuid ||= ::ASIR::UUID.generate : @@uuid = ::ASIR::UUID.generate}".freeze
     end
-    @@counter ||= 0; @@uuid ||= nil
+    @@counter ||= 0; @@uuid ||= nil; @@uuid_pid = nil
 
     def create_timestamp!
       @timestamp ||= 
