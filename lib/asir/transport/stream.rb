@@ -11,6 +11,7 @@ module ASIR
       # Serve all Requests from a stream.
       def serve_stream! in_stream, out_stream
         with_server_signals! do
+          @running = true if @running == nil
           while @running && ! in_stream.eof?
             begin
               serve_stream_request! in_stream, out_stream
