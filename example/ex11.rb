@@ -7,7 +7,7 @@ begin
 
   Email.client.transport = t =
     ASIR::Transport::Fallback.new(:transports => [
-      tcp = ASIR::Transport::TcpSocket.new(:port => 30911,
+      tcp = ASIR::Transport::TcpSocket.new(:port => 31911,
                                            :encoder => ASIR::Coder::Marshal.new),
       ASIR::Transport::Broadcast.new(:transports => [ 
         file = ASIR::Transport::File.new(:file => service_log,
@@ -19,8 +19,8 @@ begin
   pr Email.client.send_email(:pdf_invoice, 
                              :to => "user@email.com", :customer => @customer)
 
-  tcp.prepare_socket_server!
   server_process do
+    tcp.prepare_socket_server!
     tcp.run_socket_server!
   end; sleep 2
 
@@ -28,8 +28,8 @@ begin
                              :to => "user2@email.com", :customer => @customer)
   
 ensure
-  file.close;
-  tcp.close; sleep 1
+  file.close rescue nil;
+  tcp.close rescue nil; sleep 1
   server_kill
   puts "\x1a\n#{service_log.inspect} contents:"
   puts File.read(service_log)
@@ -42,8 +42,9 @@ end
 # EXPECT: : Email.send_mail :pdf_invoice {:to=>"user2@email.com", :customer=>123}
 # EXPECT: : pr: :ok
 # EXPECT: "service.log" contents:
-# EXPECT: 159
 # EXPECT: --- !ruby/object:ASIR::Request 
+# EXPECT:   :transport_exceptions:
+# EXPECT: ASIR::Error: Cannot connect to 127.0.0.1:
 # EXPECT: arguments: 
 # EXPECT: - :pdf_invoice
 # EXPECT: - :to: user@email.com

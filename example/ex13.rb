@@ -8,7 +8,7 @@ require 'asir/coder/zlib'
 
 begin
   Email.client.transport = t = 
-    ASIR::Transport::HTTP.new(:uri => "http://localhost:30913/")
+    ASIR::Transport::HTTP.new(:uri => "http://localhost:31913/")
   t.encoder =
     ASIR::Coder::Chain.new(:encoders => 
                            [
@@ -29,7 +29,7 @@ begin
 rescue Object => err
   $stderr.puts "#{err.inspect}\n#{err.backtrace * "\n"}"
 ensure
-  t.close; sleep 3
+  t.close rescue nil; sleep 3
   server_kill; sleep 2
 end
 
