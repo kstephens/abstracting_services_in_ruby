@@ -53,6 +53,7 @@ module ASIR
 
       def serve_file!
         ::File.open(file, "r") do | stream |
+          @running = true
           serve_stream! stream, nil
         end
       end
