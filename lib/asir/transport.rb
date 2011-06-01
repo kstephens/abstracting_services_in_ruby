@@ -158,7 +158,7 @@ module ASIR
             send_response(response, out_stream, request_state)
           end
         end
-      rescue Exception => exc
+      rescue ::Exception => exc
         _log [ :response_error, exc ]
         @on_exception.call(self, exc, :response, response) if @on_exception
       end

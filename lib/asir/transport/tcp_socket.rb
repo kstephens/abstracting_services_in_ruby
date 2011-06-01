@@ -35,7 +35,7 @@ module ASIR
         _log { "connect_tcp_socket: socket=#{sock}" }
         _after_connect! sock
         sock
-      rescue Exception => err
+      rescue ::Exception => err
         raise Error, "Cannot connect to #{addr}:#{port}: #{err.inspect}", err.backtrace
       end
 
@@ -84,7 +84,7 @@ module ASIR
         _log { "prepare_socket_server! #{address}:#{port}" }
         @server = TCPServer.open(port)
         @server.setsockopt(Socket::SOL_SOCKET, Socket::SO_KEEPALIVE, false)
-      rescue Exception => err
+      rescue ::Exception => err
         _log [ "prepare_socket_server! #{address}:#{port}", :exception, err ]
         raise Error, "Cannot bind to #{address}:#{port}: #{err.inspect}", err.backtrace
       end

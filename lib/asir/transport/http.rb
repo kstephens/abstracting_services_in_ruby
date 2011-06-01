@@ -71,7 +71,7 @@ module ASIR
           serve_request! rq, rs
         }
         self
-      rescue Exception => exc
+      rescue ::Exception => exc
         raise Error, "Webrick Server #{uri.inspect}: #{exc.inspect}", exc.backtrace
       end
 

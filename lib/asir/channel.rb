@@ -33,7 +33,7 @@ module ASIR
     # On Exception, invokes @on_error.call(self, exc, :connect, nil).
     def connect!
       @on_connect.call(self)
-    rescue Exception => exc
+    rescue ::Exception => exc
       handle_error!(exc, :connect, nil)
     end
     
@@ -44,7 +44,7 @@ module ASIR
         self.stream = nil
         @on_close.call(self, stream)
       end
-    rescue Exception => exc
+    rescue ::Exception => exc
       handle_error!(exc, :close, stream)
     end
     
@@ -54,7 +54,7 @@ module ASIR
       x = stream
       begin
         yield x
-      rescue Exception => exc
+      rescue ::Exception => exc
         handle_error!(exc, :with_stream, x)
       end
     end
