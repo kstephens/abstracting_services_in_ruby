@@ -205,7 +205,7 @@ module ASIR
         encoder
     end
 
-    # Invokes the the Request object, returns a Response object.
+    # Invokes the Request object, returns a Response object.
     def invoke_request! request
       _processing_request = @processing_request
       @processing_request = true

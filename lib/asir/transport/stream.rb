@@ -3,7 +3,7 @@ module ASIR
     # !SLIDE
     # Stream Transport
     #
-    # Base class handles Requests on stream.
+    # Base class handles Requests on a stream.
     # Stream Transports require a Coder that encodes to and from String payloads.
     class Stream < self
 
