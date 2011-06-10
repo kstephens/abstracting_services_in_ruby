@@ -37,18 +37,32 @@ module ASIR
       attr_accessor :receiver, :transport
 
       # A Proc to call with the Request object before sending to transport#send_request(request).
+      # Must return a Request object.
       attr_accessor :before_send_request
+
+      # A Proc to call with the Request object before sending to transport#send_request(request).
+      # See #_configure.
+      attr_accessor :__configure
 
       def transport
         @transport ||=
           Transport::Local.new
       end
       
+      # Returns a new Client proxy with a block to be called with the Request.
+      # This block can configure additional options to the Request before
+      # it is sent to the Transport.
+      def _configure &blk
+        client = self.dup
+        client.__configure = blk
+        client
+      end
+
       # Accept all other messages to be encoded and transported to a service.
       def method_missing selector, *arguments
-        raise Error::Unsupported, "block given" if block_given?
         request = Request.new(receiver, selector, arguments)
         request = @before_send_request.call(request) if @before_send_request
+        @__configure.call(request) if @__configure
         result = transport.send_request(request)
         result
       end

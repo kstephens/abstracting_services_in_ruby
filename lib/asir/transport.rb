@@ -1,3 +1,5 @@
+require 'time'
+
 module ASIR
   # !SLIDE
   # Transport
@@ -55,6 +57,7 @@ module ASIR
       request.create_timestamp! if needs_request_timestamp?
       request.create_identifier! if needs_request_identifier?
       @before_send_request.call(self, request) if @before_send_request
+      relative_request_delay! request
       request_payload = encoder.dup.encode(request)
       opaque_response = _send_request(request, request_payload)
       receive_response opaque_response
@@ -206,10 +209,41 @@ module ASIR
     def invoke_request! request
       _processing_request = @processing_request
       @processing_request = true
+      wait_for_delay! request
       request.invoke!
     ensure
       @processing_request = _processing_request
     end
+
+    # Returns the number of seconds from now, that the request should be delayed.
+    # If request.delay is Numeric, sets request.delay to the Time to delay til.
+    # If request.delay is Time, returns (now - request.delay).to_f
+    # Returns Float if request.delay was set, or nil.
+    # Returns 0 if delay has already expired.
+    def relative_request_delay! request, now = nil
+      case delay = request.delay
+      when nil
+      when Numeric
+        now ||= Time.now
+        delay = delay.to_f
+        request.delay = (now + delay).utc
+      when Time
+        now ||= Time.now
+        delay = (delay - now).to_f
+        delay = 0 if delay < 0
+      else
+        raise TypeError, "Expected request.delay to be Numeric or Time, given #{delay.class}"
+      end
+      delay
+    end
+
+    def wait_for_delay! request
+      while (delay = relative_request_delay!(request)) && delay > 0 
+        sleep delay
+      end
+      self
+    end
+
     # !SLIDE END
     # !SLIDE resume
 

@@ -102,6 +102,14 @@ module ASIR
         nil
       end
 
+      # !SLIDE
+      # Sets beanstalk_delay if request.delay was specified.
+      def relative_request_delay! request, now = nil
+        if delay = super
+          request[:beanstalk_delay] = delay.to_i
+        end
+        delay
+      end
 
       # !SLIDE
       # Beanstalk protocol support

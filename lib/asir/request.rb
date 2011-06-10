@@ -10,6 +10,9 @@ module ASIR
     attr_accessor :response
     attr_accessor :identifier, :client, :timestamp # optional
 
+    # Optional: Specifies the Numeric seconds or absolute Time to delay the Request until actual processing.
+    attr_accessor :delay 
+
     def initialize r, s, a
       @receiver, @selector, @arguments = r, s, a
       @receiver_class = @receiver.class
