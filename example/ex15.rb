@@ -9,5 +9,5 @@ pr DelayedService.client.
 
 # !SLIDE END
 # EXPECT: : client process
-# EXPECT: : DelayedService
+# EXPECT: DelayedService.do_it => :ok
 # EXPECT: : pr: :ok

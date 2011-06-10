@@ -7,7 +7,7 @@ require 'asir/coder/zlib'
 
 begin
   DelayedService.client.transport = t = 
-    ASIR::Transport::Beanstalk.new(:address => '127.0.0.1', :port => 30904)
+    ASIR::Transport::Beanstalk.new(:address => '127.0.0.1', :port => 30916)
   t.encoder =
     ASIR::Coder::Chain.new(:encoders => 
                            [
@@ -39,6 +39,6 @@ end
 # !SLIDE END
 # EXPECT: : client process
 # EXPECT: : server process
-# EXPECT: : DelayedService.do_it
+# EXPECT: DelayedService.do_it => :ok
 # EXPECT: : pr: nil
 
