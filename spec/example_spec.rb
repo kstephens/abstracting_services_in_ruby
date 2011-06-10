@@ -43,7 +43,9 @@ describe "ASIR Example" do
   end
 
   Dir['example/**/ex[0-9]*.rb'].sort.each do | file |
-    it "#{file}" do
+    title = File.open(file) { | fh | fh.read(4096) }
+    title = title =~ /#\s+!SLIDE[^\n]*\n\s*#\s*([^\n]+)/ && $1
+    it "#{file} - #{title}" do
       @file = file
     end
   end
