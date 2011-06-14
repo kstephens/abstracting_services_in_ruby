@@ -10,7 +10,14 @@ module ASIR
       target.send(:include, InstanceMethods) if Class === target
     end
     
+    module CommonMethods
+      def client_options &blk
+        client._configure(&blk)
+      end
+    end
+
     module ModuleMethods
+      include CommonMethods
       # Proxies are cached for Module/Class methods because serialization will not include
       # Transport.
       def client
@@ -20,6 +27,7 @@ module ASIR
     end
 
     module InstanceMethods
+      include CommonMethods
       # Proxies are not cached in instances because receiver is to be serialized by
       # its Transport's coder.
       def client
@@ -57,6 +65,7 @@ module ASIR
         client.__configure = blk
         client
       end
+      alias :_options :_configure
 
       # Accept all other messages to be encoded and transported to a service.
       def method_missing selector, *arguments
