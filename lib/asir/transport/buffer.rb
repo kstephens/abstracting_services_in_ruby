@@ -67,15 +67,21 @@ module ASIR
 
       # Will flush pending Requests even if ! #paused?.
       def flush!
+        clear!.each do | request |
+          @transport.send_request(request)
+        end
+        self
+      end
+
+      # Clear all pending Requests without sending them.
+      # Returns requests that would have been sent.
+      def clear!
         requests = nil
         @requests_mutex.synchronize do
           requests = @requests
           @requests = [ ]
         end
-        requests.each do | request |
-          @transport.send_request(request)
-        end
-        self
+        requests
       end
     end
     # !SLIDE END
