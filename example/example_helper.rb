@@ -19,6 +19,10 @@ require 'delayed_service'
 
 require 'pp'
 
+require 'rubygems'
+gem 'ruby-debug'
+require 'ruby-debug'
+
 @customer = 123
 
 def pr result

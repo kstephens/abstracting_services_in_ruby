@@ -38,10 +38,14 @@ module ASIR
         opaque_response
       end
 
+      # Returns true if currently paused.
+      # Requests are queued until #resume!.
       def paused?
         @paused > 0
       end
 
+      # Pauses all requests until resume!.
+      # May be called multiple times.
       def pause!
         @paused_mutex.synchronize do
           @paused += 1
@@ -49,7 +53,7 @@ module ASIR
         self
       end
 
-      # Will automatically call #flush! when ! #paused?.
+      # Will automatically call #flush! when not #paused?.
       def resume!
         should_flush = @paused_mutex.synchronize do
           @paused -= 1 if @paused > 0
