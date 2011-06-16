@@ -27,7 +27,6 @@ module ASIR
       def _send_request request, request_payload
         if paused?
           @requests_mutex.synchronize do
-            relative_request_delay! request
             @requests << request
           end
           nil
