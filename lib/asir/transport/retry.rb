@@ -1,57 +1,40 @@
 require 'asir/transport/delegation'
+require 'asir/retry_behavior'
 
 module ASIR
   class Transport
     # !SLIDE
     # Retry Transport
     class Retry < self
-      include Delegation
+      include Delegation, RetryBehavior
 
       # The transport to delegate to.
       attr_accessor :transport
-      # Maximum trys.
-      attr_accessor :max_try
-      # Amount of seconds to sleep between each try.
-      attr_accessor :sleep_between_try
-      # Amount of seconds to increment between sleep.
-      attr_accessor :sleep_increment
-      # Proc to call before retry.
+      # Proc to call(transport, request) before retry.
       attr_accessor :before_retry
 
       def _send_request request, request_payload
-        n_try = 0
-        sleep_secs = sleep_between_try
-        result = sent = exceptions = nil
-        begin
-          n_try += 1
-          $stderr.puts "n_try = #{n_try.inspect}"
-          result = transport.send_request(request)
-          sent = true
-        rescue ::Exception => exc
-          $stderr.puts "exc = #{exc.inspect}"
-         _log { [ :send_request, :transport_failed, exc ] }
-          (exceptions ||= [ ]) << [ transport, exc ]
-          (request[:transport_exceptions] ||= [ ]) << "#{exc.inspect}\n#{exc.backtrace * "\n"}"
-          if ! max_try || max_try > n_try
+        first_exception = nil
+        with_retry do | action, data |
+          case action
+          when :try
+            transport.send_request(request)
+          when :rescue #, exc
+            first_exception ||= data
+            _handle_send_request_exception! transport, request, data
+          when :retry #, exc
             before_retry.call(self, request) if before_retry
-            if sleep_secs
-              sleep sleep_secs
-              sleep_secs += sleep_increment if sleep_increment
+          when :failed
+            _log { [ :send_request, :retry_failed, first_exception ] }
+            @on_failed_request.call(self, request) if @on_failed_request
+            if first_exception && @reraise_first_exception
+              $! = first_exception
+              raise
             end
-            retry
+            nil # fallback to raise RetryError
           end
         end
-        unless sent
-          _log { [ :send_request, :retry_failed, exceptions ] }
-          if exceptions && @reraise_first_exception
-            $! = exceptions.first[1]
-            raise
-          end
-          raise RetryError, "retry failed"
-        end
-        result
       end
-      class RetryError < Error; end
     end
     # !SLIDE END
   end

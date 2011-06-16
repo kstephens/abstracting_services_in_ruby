@@ -18,14 +18,17 @@ module ASIR
           connect_tcp_socket
       end
 
-      # Yields (socket) after _connect_tcp_socket (TCPSocket.open(...)).
-      def connect_tcp_socket &blk
-        Channel.new(:on_connect => 
-          lambda { | channel | 
+      # Yields Channel after _connect_tcp_socket (TCPSocket.open(...)).
+      def connect_tcp_socket(opts = nil, &blk)
+        base_opts = {
+          :on_connect => lambda { | channel | 
             socket = _connect_tcp_socket
             blk.call(socket) if blk
             socket
-          })
+          }
+        }
+        base_opts.update(opts) if opts
+        Channel.new(base_opts)
       end
 
       def _connect_tcp_socket
@@ -52,8 +55,8 @@ module ASIR
       # !SLIDE
       # Sends the encoded Request payload String.
       def _send_request request, request_payload
-        stream.with_stream! do | stream |
-        _write request_payload, stream
+        stream.with_stream! do | io |
+          _write request_payload, io
         end
       end
 
@@ -72,8 +75,8 @@ module ASIR
       # !SLIDE
       # Receives the encoded Response payload String.
       def _receive_response opaque
-        stream.with_stream! do | stream |
-        _read stream
+        stream.with_stream! do | io |
+          _read io
         end
       end
 

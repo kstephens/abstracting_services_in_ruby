@@ -8,25 +8,24 @@ module ASIR
       include Composite
 
       def _send_request request, request_payload
-        result = sent = exceptions = nil
+        result = sent = first_exception = nil
         transports.each do | transport |
           begin
-            result = transport.send_request request
+            result = transport.send_request(request)
             sent = true
             break
           rescue ::Exception => exc
-            _log { [ :send_request, :transport_failed, exc ] }
-            (exceptions ||= [ ]) << [ transport, exc ]
-            (request[:transport_exceptions] ||= [ ]) << "#{exc.inspect}\n#{exc.backtrace * "\n"}"
+            first_exception ||= exc
+            _handle_send_request_exception! transport, request, exc
           end
         end
         unless sent
-          _log { [ :send_request, :fallback_failed, exceptions ] }
+          _log { [ :send_request, :fallback_failed, first_exception ] }
+          if first_exception && @reraise_first_exception
+            $! = first_exception
+            raise
+          end
           raise FallbackError, "fallback failed"
-        end
-        if exceptions && @reraise_first_exception
-          $! = exceptions.first[1]
-          raise
         end
         result
       end

@@ -1,12 +1,13 @@
 require 'asir'
+require 'asir/retry_behavior'
 
 module ASIR
   # Generic I/O Channel abstraction.
   # Handles stream per Thread and forked child processes.
   class Channel
-    include Initialization
+    include Initialization, RetryBehavior
 
-    attr_accessor :on_connect, :on_close, :on_error
+    attr_accessor :on_connect, :on_close, :on_retry, :on_error
     
     ON_ERROR = lambda do | channel, exc, action, stream |
       channel.close rescue nil if stream
@@ -15,10 +16,17 @@ module ASIR
     ON_CLOSE = lambda do | channel, stream |
       stream.close
     end
+    ON_RETRY = lambda do | channel, exc, action |
+    end
 
     def initialize opts = nil
       @on_close = ON_CLOSE
       @on_error = ON_ERROR
+      # @on_retry = ON_RETRY
+      self.try_max = 10
+      self.try_sleep = 0.1
+      self.try_sleep_increment = 0.1
+      self.try_sleep_max = 10
       super
     end
 
@@ -32,9 +40,21 @@ module ASIR
     # Invokes @on_connect.call(self).
     # On Exception, invokes @on_error.call(self, exc, :connect, nil).
     def connect!
-      @on_connect.call(self)
-    rescue ::Exception => exc
-      handle_error!(exc, :connect, nil)
+      n_try = nil
+      with_retry do | action, data |
+        case action
+        when :try
+          n_try = data
+          @on_connect.call(self)
+        when :retry #, exc
+          $stderr.puts "RETRY: #{n_try}: ERROR : #{data.inspect}  \n#{data.backtrace * "\n  "}"
+          @on_retry.call(self, exc, :connect) if @on_retry
+        when :failed
+          exc = data
+          $stderr.puts "FAILED: #{n_try}: ERROR : #{exc.inspect}  \n#{exc.backtrace * "\n  "}"
+          handle_error!(exc, :connect, nil)
+        end
+      end
     end
     
     # Invokes @on_close.call(self, stream).
@@ -42,7 +62,7 @@ module ASIR
     def close
       if stream = _stream
         self.stream = nil
-        @on_close.call(self, stream)
+        @on_close.call(self, stream) if @on_close
       end
     rescue ::Exception => exc
       handle_error!(exc, :close, stream)

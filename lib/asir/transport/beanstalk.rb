@@ -143,7 +143,10 @@ module ASIR
 
       def prepare_beanstalk_server!
         _log { "prepare_beanstalk_server! #{address}:#{port}" }
-        @server = connect_tcp_socket do | stream |
+        @server = connect_tcp_socket(:try_max => nil,
+                                     :try_sleep => 1,
+                                     :try_sleep_increment => 0.1,
+                                     :try_sleep_max => 10) do | stream |
           if @tube
             _beanstalk(stream, 
                        "watch #{@tube}\r\n",

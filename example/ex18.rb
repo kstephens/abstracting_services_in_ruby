@@ -23,9 +23,9 @@ begin
 
   Email.client.transport = t =
     ASIR::Transport::Retry.new(:transport => tcp,
-                               :sleep_between_try => 1,
-                               :sleep_increment => 2,
-                               :max_try => 3,
+                               :try_sleep => 1,
+                               :try_sleep_increment => 2,
+                               :try_max => 3,
                                :before_retry => start_server_proc
                                )
 
