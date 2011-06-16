@@ -9,6 +9,8 @@ module ASIR
     # Buffers Requests until #flush!
     # Assumes One-way Requests.
     class Buffer < self
+      include Delegation
+
       # Transport to send_request.
       attr_accessor :transport
 
@@ -20,8 +22,9 @@ module ASIR
         @paused_mutex = Mutex.new
       end
 
-      # Returns Response object.
-      def send_request request
+      # If paused, queue requests,
+      # Otherwise delegate immediately to #transport.
+      def _send_request request, request_payload
         if paused?
           @requests_mutex.synchronize do
             relative_request_delay! request
@@ -31,11 +34,6 @@ module ASIR
         else
           @transport.send_request(request)
         end
-      end
-
-      # Returns Response object from #_send_request.
-      def _receive_response opaque_response
-        opaque_response
       end
 
       # Returns true if currently paused.
