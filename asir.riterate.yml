@@ -35,8 +35,6 @@ riterate:
   - Transport
   - Transport#send_request
   - Null Transport
-  - Transport Support
-  - Request Identifier
   - Call service directly
   - "Call service directly - Output"
   - In-core, in-process service
@@ -73,7 +71,7 @@ riterate:
   - Socket service
   - TCP Socket Transport
   - TCP Socket Server
-  - "Returns a connected TCP socket."
+  - "Returns a connected TCP socket Channel."
   - "Transport#send_response"
   - "Transport#receive_response"
   - "Sends the encoded Request payload String."
@@ -88,12 +86,15 @@ riterate:
   - "Socket service with local fallback."
   - Fallback Transport
   - "Socket service with local fallback. - Output"
+  - Buffer Transport
   - Synopsis
   - Object Initialization
   - Diagnostic Logging
   - Null Coder
   - Broadcast Transport
   - HTTP Transport
+  - Transport Support
+  - Request Identifier
 
   unknown_slides: []
 

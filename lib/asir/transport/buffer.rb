@@ -4,7 +4,7 @@ require 'thread'
 module ASIR
   class Transport
     # !SLIDE
-    # Local Transport
+    # Buffer Transport
     #
     # Buffers Requests until #flush!
     # Assumes One-way Requests.

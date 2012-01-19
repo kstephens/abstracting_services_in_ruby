@@ -3,7 +3,7 @@
 #
 # * Kurt Stephens
 # * Enova Financial
-# * 2010/12/03
+# * 2012/01/18
 # * Slides -- "":http://kurtstephens.com/pub/ruby/abstracting_services_in_ruby/asir.slides/
 # * Code -- "":http://kurtstephens.com/pub/ruby/abstracting_services_in_ruby/
 # * Git -- "":http://github.com/kstephens/abstracting_services_in_ruby
@@ -35,7 +35,7 @@
 # Service Middleware Semantics
 #
 # * Directionality: One-way, Two-way
-# * Synchronicity: Synchronous, Asynchronous
+# * Synchronicity: Synchronous, Asynchronous, Delayed, Buffered
 # * Distribution: Local Process, Local Thread, Distributed
 # * Robustness: Retry, Replay, Fallback
 #
