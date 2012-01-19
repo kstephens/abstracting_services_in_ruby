@@ -39,6 +39,7 @@ task :default => :test
 
 task :test => [ :spec, :hack_night ]
 
+desc "Run examples."
 task :example do
   ENV["ASIR_EXAMPLE_SILENT"]="1"
   Dir["example/ex[0-9]*.rb"].each do | rb |
@@ -47,6 +48,7 @@ task :example do
   ENV.delete("ASIR_EXAMPLE_SILENT")
 end
 
+desc "Run hack_night solutions."
 task :hack_night do
   Dir["hack_night/solution/prob-*.rb"].each do | rb |
     sh "ruby -I hack_night/solution #{rb}"
@@ -54,6 +56,7 @@ task :hack_night do
 end
 
 
+desc "Create slides."
 task :slides => 
   [
    'asir.slides/index.html',
@@ -75,10 +78,12 @@ file 'asir.slides/index.html' =>
   sh "$RITERATE --slides_basename=asir --ruby_opts='-I lib -I example' #{SLIDE_RB * " "}"
 end
 
+desc "Publish slides."
 task :publish => [ :slides ] do
   sh "rsync $RSYNC_OPTS -aruzv --delete-excluded --delete --exclude='.git' --exclude='.riterate' ./ kscom:kurtstephens.com/pub/ruby/#{File.basename(File.dirname(__FILE__))}/"
 end
 
+desc "Clean garbage."
 task :clean do
   sh "rm -rf *.slides* .riterate"
 end
