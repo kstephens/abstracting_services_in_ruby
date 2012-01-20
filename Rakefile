@@ -55,6 +55,10 @@ task :hack_night do
   end
 end
 
+desc "Start IRB with ASIR loaded."
+task :irb do
+  sh "irb -Ilib -rasir"
+end
 
 desc "Create slides."
 task :slides => 
