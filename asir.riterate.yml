@@ -28,7 +28,6 @@ riterate:
   - Client Proxy
   - Request
   - Example Request
-  - Help encode/decode receiver
   - Response
   - Coder
   - Identity Coder
@@ -94,7 +93,8 @@ riterate:
   - Broadcast Transport
   - HTTP Transport
   - Transport Support
-  - Request Identifier
+  - Request Identity
+  - Code More
 
   unknown_slides: []
 
