@@ -1,5 +1,4 @@
-$: << File.expand_path('../../../lib', __FILE__)
-$: << File.expand_path('../../lib', __FILE__)
+require File.expand_path('../spec_helper', __FILE__)
 require 'asir/coder/xml'
 
 describe "ASIR::Coder::XML" do

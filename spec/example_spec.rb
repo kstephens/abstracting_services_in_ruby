@@ -1,3 +1,5 @@
+require File.expand_path('../spec_helper', __FILE__)
+
 describe "ASIR Example" do
   attr_accessor :file, :expects
 
