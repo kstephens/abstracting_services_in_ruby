@@ -18,7 +18,7 @@ module ASIR
           "#{@@counter += 1}-#{@@uuid ||= ::ASIR::UUID.generate}".freeze
         end
     end
-    @@counter ||= 0; @@uuid ||= nil; @@uuid_pid = nil; @@identifier_mutex = Mutex.new
+    @@counter ||= 0; @@uuid ||= nil; @@uuid_pid = nil; @@identifier_mutex ||= Mutex.new
 
     # Creates a timestamp.
     def create_timestamp!
