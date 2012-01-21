@@ -25,5 +25,3 @@ module ASIR
   end
   # !SLIDE END
 end
-
-require 'asir/uuid'
