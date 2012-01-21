@@ -56,7 +56,8 @@
 #
 # * Simplify service/client definitions and interfaces.
 # * Anticipate new encoding, delivery and security requirements.
-# * Compose encoding and transport concerns.
+# * Separate encoding and transport concerns.
+# * Composition over Configuration.
 # * Elide deployment decisions.
 # * Integrate diagnostics and logging.
 # * Simplify testing.
@@ -80,8 +81,8 @@
 # * Service -> Module
 # * Client -> Just a Ruby caller
 # * Proxy
-# * Request
-# * Response, Exception (two-way)
+# * Request -> Just a method call.
+# * Response, Exception (two-way) -> Return value or else.
 # * Transport -> (file, pipe, http, queue, ActiveResource)
 # * Encoder, Decoder -> Coder (Marshal, XML, JSON, ActiveResource)
 # * Logging

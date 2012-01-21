@@ -8,7 +8,8 @@ module ASIR
     include AdditionalData, RequestIdentity, CodeMore
     attr_accessor :receiver, :receiver_class, :selector, :arguments
     attr_accessor :response
-
+    # Optional: Opaque data about the Client that created the Request.
+    attr_accessor :client
     # Optional: Specifies the Numeric seconds or absolute Time to delay the Request until actual processing.
     attr_accessor :delay 
 
@@ -19,6 +20,8 @@ module ASIR
 
     def invoke!
       @response = Response.new(self, @result = @receiver.__send__(@selector, *@arguments))
+    rescue *Error::Unforwardable.unforwardable => exc
+      @response = Response.new(self, nil, Error::Unforwardable.new(exc))
     rescue ::Exception => exc
       @response = Response.new(self, nil, exc)
     end

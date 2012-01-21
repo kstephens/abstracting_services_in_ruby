@@ -6,7 +6,7 @@ module ASIR
   # Request Identity
   #
   module RequestIdentity
-    attr_accessor :identifier, :timestamp, :client # optional
+    attr_accessor :identifier, :timestamp
 
     # Creates a thread-safe unique identifier.
     def create_identifier!

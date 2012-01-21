@@ -16,6 +16,7 @@ require 'asir/coder/chain'
 ASIR::Log.enabled = true unless ENV['ASIR_EXAMPLE_SILENT']
 require 'sample_service'
 require 'delayed_service'
+require 'unsafe_service'
 
 require 'pp'
 

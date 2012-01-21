@@ -137,7 +137,8 @@ module ASIR
     # !SLIDE
     # Serve a Request.
     def serve_request! in_stream, out_stream
-      request = request_state = request_ok = response = response_ok = exception = nil
+      request = request_state = request_ok = response = response_ok = nil
+      exception = original_exception = unforwardable_exception = nil
       request, request_state = receive_request(in_stream)
       if request
         request_ok = true
@@ -148,13 +149,17 @@ module ASIR
         nil
       end
     rescue ::Exception => exc
-      exception = exc
+      exception = original_exception = exc
       _log [ :request_error, exc ]
       @on_exception.call(self, exc, :request, request) if @on_exception
     ensure
       begin
-        if request_ok 
+        if request_ok
           if exception && ! response_ok
+            case exception
+            when *Error::Unforwardable.unforwardable
+              unforwardable_exception = exception = Error::Unforwardable.new(exception)
+            end
             response = Response.new(request, nil, exception)
           end
           if out_stream
@@ -165,6 +170,7 @@ module ASIR
         _log [ :response_error, exc ]
         @on_exception.call(self, exc, :response, response) if @on_exception
       end
+      raise original_exception if unforwardable_exception
     end
 
     # !SLIDE pause
