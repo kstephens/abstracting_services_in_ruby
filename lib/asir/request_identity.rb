@@ -1,3 +1,4 @@
+require 'asir/uuid'
 require 'thread' # Mutex
 
 module ASIR
