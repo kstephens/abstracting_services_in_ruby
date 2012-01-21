@@ -30,11 +30,11 @@ begin
                                )
 
   pr Email.client.send_email(:pdf_invoice, 
-                             :to => "user@email.com", :customer => @customer)
+                             :to => "user@email.com", :customer => 123)
   sleep 1
 
   pr Email.client.send_email(:pdf_invoice, 
-                             :to => "user2@email.com", :customer => @customer)
+                             :to => "user2@email.com", :customer => 456)
   
   sleep 1
 rescue ::Exception => err
@@ -51,8 +51,8 @@ end
 # !SLIDE END
 # EXPECT: : client process
 # EXPECT: : server process
-# EXPECT: : Email.send_mail :pdf_invoice {:to=>"user@email.com", :customer=>123}
-# EXPECT: : Email.send_mail :pdf_invoice {:to=>"user2@email.com", :customer=>123}
+# EXPECT/: : Email.send_mail :pdf_invoice .*:to=>"user@email.com"
+# EXPECT/: : Email.send_mail :pdf_invoice .*:to=>"user2@email.com"
 # EXPECT: : pr: :ok
 # EXPECT: "service.log" contents:
 # EXPECT: --- !ruby/object:ASIR::Request 
@@ -60,8 +60,10 @@ end
 # EXPECT: ASIR::Error: Cannot connect to 127.0.0.1:
 # EXPECT: arguments: 
 # EXPECT: - :pdf_invoice
-# EXPECT: - :to: user@email.com
-# EXPECT:   :customer: 123
+# EXPECT/:  :to: user@email.com
+# EXPECT/:  :customer: 123
+# EXPECT!/:  :to: user2@email.com
+# EXPECT!/:  :customer: 456
 # EXPECT: receiver: Email
 # EXPECT: receiver_class: Module
 # EXPECT: selector: :send_email

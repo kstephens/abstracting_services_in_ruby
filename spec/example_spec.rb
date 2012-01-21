@@ -14,10 +14,14 @@ describe "ASIR Example" do
       until fh.eof?
         line = fh.readline
         line.chomp!
-        if line.sub!(/^\s*#\s*EXPECT:\s*/, '')
+        case
+        when line.sub!(/^\s*#\s*EXPECT\/:\s*/, '')
+          expect Regexp.new(line)
+        when line.sub!(/^\s*#\s*EXPECT!\/:\s*/, '')
+          expect Regexp.new(line), :'!~'
+        when line.sub!(/^\s*#\s*EXPECT:\s*/, '')
           expect Regexp.new(Regexp.escape(line))
-        end
-        if line.sub!(/^\s*#\s*EXPECT!:\s*/, '')
+        when line.sub!(/^\s*#\s*EXPECT!:\s*/, '')
           expect Regexp.new(Regexp.escape(line)), :'!~'
         end
       end
