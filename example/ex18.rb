@@ -16,8 +16,8 @@ begin
     $stderr.puts "request = #{request.inspect}"
     file.send_request(request)
     server_process do
-      tcp.prepare_socket_server!
-      tcp.run_socket_server!
+      tcp.prepare_server!
+      tcp.run_server!
     end; sleep 2
   end
 
@@ -57,7 +57,7 @@ end
 # EXPECT: "service.log" contents:
 # EXPECT: --- !ruby/object:ASIR::Request 
 # EXPECT:   :transport_exceptions:
-# EXPECT: ASIR::Error: Cannot connect to 127.0.0.1:
+# EXPECT: ASIR::Error: Cannot connect to ASIR::Transport::TcpSocket tcp://127.0.0.1:
 # EXPECT: arguments: 
 # EXPECT: - :pdf_invoice
 # EXPECT/:  :to: user@email.com

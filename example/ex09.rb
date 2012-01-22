@@ -8,9 +8,9 @@ begin
   t.encoder = 
     ASIR::Coder::Marshal.new
   
-  t.prepare_socket_server!
+  t.prepare_server!
   server_process do
-    t.run_socket_server!
+    t.run_server!
   end
   
   pr Email.client.send_email(:pdf_invoice, 

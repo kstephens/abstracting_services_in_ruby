@@ -142,11 +142,11 @@ module ASIR
       # Beanstalk Server
 
       def prepare_beanstalk_server!
-        _log { "prepare_beanstalk_server! #{address}:#{port}" }
-        @server = connect_tcp_socket(:try_max => nil,
-                                     :try_sleep => 1,
-                                     :try_sleep_increment => 0.1,
-                                     :try_sleep_max => 10) do | stream |
+        _log { "prepare_beanstalk_server! #{uri}" }
+        @server = connect!(:try_max => nil,
+                           :try_sleep => 1,
+                           :try_sleep_increment => 0.1,
+                           :try_sleep_max => 10) do | stream |
           if @tube
             _beanstalk(stream, 
                        "watch #{@tube}\r\n",
@@ -169,7 +169,7 @@ module ASIR
         end
         self
       ensure
-        close_server!
+        _server_close!
       end
       alias :run_server! :run_beanstalk_server!
  
@@ -184,19 +184,11 @@ module ASIR
         end
         self
       ensure
-        close_server!
-      end
-
-      def close_server!
-        if @server
-          @server.close
-        end
-      ensure
-        @server = nil
+        _server_close!
       end
 
       def start_beanstalkd!
-        _log { "run_beanstalkd! #{address}:#{port}" }
+        _log { "run_beanstalkd! #{uri}" }
         raise "already running #{@beanstalkd_pid}" if @beanstalkd_pid
         addr = address ? "-l #{address} " : ""
         cmd = "beanstalkd #{addr}-p #{port}"
@@ -210,7 +202,7 @@ module ASIR
       end
 
       def stop_beanstalkd!
-        _log { "stop_beanstalkd! #{address}:#{port} pid=#{@beanstalkd_pid.inspect}" }
+        _log { "stop_beanstalkd! #{uri} pid=#{@beanstalkd_pid.inspect}" }
         Process.kill 'TERM', @beanstalkd_pid
         Process.waitpid @beanstalkd_pid
         self

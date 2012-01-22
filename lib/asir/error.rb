@@ -1,6 +1,9 @@
 module ASIR
   # Generic API error.
   class Error < ::Exception
+    # Subclass should override method.
+    class SubclassResponsibility < self; end
+
     # Unsupported Feature.
     class Unsupported < self; end
 

@@ -8,8 +8,8 @@ begin
                                        :encoder => ASIR::Coder::Marshal.new)
 
   server_process do
-    tcp.prepare_socket_server!
-    tcp.run_socket_server!
+    tcp.prepare_server!
+    tcp.run_server!
   end; sleep 2
 
   UnsafeService.client.transport = t = tcp
