@@ -7,7 +7,7 @@ module ASIR
     # TCP Socket Transport
     class TcpSocket < ConnectionOriented
       # !SLIDE
-      # TCP Socket Client.
+      # TCP Socket Client
       def _client_connect!
         sock = TCPSocket.open(addr, port)
       end

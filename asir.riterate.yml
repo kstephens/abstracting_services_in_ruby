@@ -70,7 +70,7 @@ riterate:
   - Socket service
   - TCP Socket Transport
   - TCP Socket Server
-  - "Returns a connected TCP socket Channel."
+  - TCP Socket Client
   - "Transport#send_response"
   - "Transport#receive_response"
   - "Sends the encoded Request payload String."
