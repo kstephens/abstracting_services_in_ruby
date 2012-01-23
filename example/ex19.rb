@@ -2,7 +2,6 @@
 # Socket service with unsafe Exception.
 
 require 'example_helper'
-require 'asir/transport/retry'
 begin
   tcp = ASIR::Transport::TcpSocket.new(:port => 31919,
                                        :encoder => ASIR::Coder::Marshal.new)

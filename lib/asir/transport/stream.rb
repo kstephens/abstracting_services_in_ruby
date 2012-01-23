@@ -14,6 +14,8 @@ module ASIR
           while @running && ! in_stream.eof?
             begin
               serve_stream_request! in_stream, out_stream
+            rescue Error::Terminate => err
+              _log [ :serve_stream_terminate, err ]
             rescue ::Exception => err
               _log [ :serve_stream_error, err ]
             end

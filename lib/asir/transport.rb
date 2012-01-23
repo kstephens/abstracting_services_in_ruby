@@ -12,7 +12,7 @@ module ASIR
   class Transport
     include Log, Initialization, AdditionalData
 
-    attr_accessor :encoder, :decoder
+    attr_accessor :encoder, :decoder, :one_way
 
     # Incremented for each request sent or received.
     attr_accessor :request_count
@@ -252,6 +252,12 @@ module ASIR
 
     # !SLIDE END
     # !SLIDE resume
+
+    def stop! force = false
+      @running = false
+      raise Error::Terminate if force
+      self
+    end
 
   end
   # !SLIDE END

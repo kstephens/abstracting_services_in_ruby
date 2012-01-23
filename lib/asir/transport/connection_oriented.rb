@@ -85,7 +85,7 @@ module ASIR
         _server!
       rescue ::Exception => err
         _log [ "prepare_server! #{uri}", :exception, err ]
-        raise Error, "Cannot bind to #{uri}: #{err.inspect}", err.backtrace
+        raise Error, "Cannot prepare server on #{self.class} #{uri}: #{err.inspect}", err.backtrace
       end
 
       def run_server!
@@ -107,6 +107,10 @@ module ASIR
         self
       ensure
         _server_close!
+      end
+
+      def _server!
+        raise Error::SubclassResponsibility, "_server!"
       end
 
       def _server_close!
