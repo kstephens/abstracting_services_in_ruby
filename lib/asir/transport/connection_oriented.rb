@@ -40,7 +40,6 @@ module ASIR
 
       # Returns raw client stream.
       def _connect!
-        addr = address || '127.0.0.1'
         _log { "_connect! #{uri}" }
         sock = _client_connect!
         _log { "_connect! socket=#{sock}" }
