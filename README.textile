@@ -19,7 +19,7 @@ h3. Features
 
 * One-way and two-way requests as Module or instance methods.
 * Support for multiple transports:
-** File archive.
+** File.
 ** Named Pipe.
 ** TCP.
 ** HTTP.
@@ -32,6 +32,9 @@ h3. Features
 ** Marshal.
 ** XML.
 ** JSON.
+** YAML.
+** Base64.
+** ZLib.
 ** Chained encodings.
 ** Signed payloads.
 
