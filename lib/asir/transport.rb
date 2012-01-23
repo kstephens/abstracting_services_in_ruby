@@ -60,7 +60,7 @@ module ASIR
       relative_request_delay! request
       request_payload = encoder.dup.encode(request)
       opaque_response = _send_request(request, request_payload)
-      receive_response opaque_response
+      receive_response(request, opaque_response)
     end
 
     # !SLIDE
@@ -110,8 +110,8 @@ module ASIR
     # * Receive Response payload
     # * Decode Response.
     # * Extract Response result or exception.
-    def receive_response opaque_response
-      response_payload = _receive_response opaque_response
+    def receive_response request, opaque_response
+      response_payload = _receive_response(request, opaque_response)
       response = decoder.dup.decode(response_payload)
       if response
         if exc = response.exception
@@ -119,15 +119,12 @@ module ASIR
         else
           response.result
         end
-      else
-        response
       end
     end
     # !SLIDE END
 
-
     def _subclass_responsibility *args
-      raise "subclass responsibility"
+      raise Error::SubclassResponsibility "subclass responsibility"
     end
     alias :_send_request :_subclass_responsibility
     alias :_receive_request :_subclass_responsibility

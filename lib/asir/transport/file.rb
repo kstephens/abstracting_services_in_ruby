@@ -31,7 +31,7 @@ module ASIR
       end
 
       # one-way; no Response.
-      def _receive_response opaque
+      def _receive_response request, opaque_response
         nil
       end
 

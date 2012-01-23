@@ -41,7 +41,7 @@ module ASIR
 
       # Recieve the Response payload String from the opaque
       # HTTPClient::Message response object returned from #_send_request.
-      def _receive_response http_response_message
+      def _receive_response request, http_response_message
         http_response_message.content.to_s
       end
 

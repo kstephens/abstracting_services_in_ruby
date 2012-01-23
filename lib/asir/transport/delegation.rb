@@ -15,12 +15,12 @@ module ASIR
       attr_accessor :on_failed_request
 
       # Return the subTransports#send_request result unmodified from #_send_request.
-      def _receive_response opaque_response
+      def _receive_response request, opaque_response
         opaque_response
       end
 
       # Return the subTransports#send_request result unmodified from #_send_request.
-      def receive_response opaque_response
+      def receive_response request, opaque_response
         opaque_response
       end
 

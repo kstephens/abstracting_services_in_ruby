@@ -11,11 +11,11 @@ module ASIR
         Process.fork do 
           super
         end
-        nil # opaque
+        nil # opaque_response
       end
 
       # one-way; no Response
-      def _receive_response opaque
+      def _receive_response request, opaque_response
         nil
       end
     end

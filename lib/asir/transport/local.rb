@@ -12,7 +12,7 @@ module ASIR
       end
 
       # Returns Response object from #_send_request.
-      def _receive_response opaque_response
+      def _receive_response request, opaque_response
         opaque_response
       end
     end

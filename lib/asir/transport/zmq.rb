@@ -34,7 +34,7 @@ module ASIR
         @server = sock
       end
 
-      def _receive_response opaque_response
+      def _receive_response request, opaque_response
         return nil if @one_way
         super
       end

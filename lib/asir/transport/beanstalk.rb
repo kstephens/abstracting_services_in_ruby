@@ -98,7 +98,7 @@ module ASIR
 
       # !SLIDE
       # Receives the encoded Response payload String.
-      def _receive_response opaque
+      def _receive_response request, opaque_response
         nil
       end
 
