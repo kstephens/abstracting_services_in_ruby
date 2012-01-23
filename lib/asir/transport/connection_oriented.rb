@@ -8,6 +8,16 @@ module ASIR
     class ConnectionOriented < Stream
       include PayloadIO
 
+      attr_accessor :uri, :port, :address
+
+      def uri
+        @uri ||= "tcp://#{addr}:#{port}"
+      end
+
+      def addr
+        address || '127.0.0.1'
+      end
+
       # !SLIDE
       # Returns a connected Channel.
       def stream
@@ -28,15 +38,16 @@ module ASIR
         Channel.new(base_opts)
       end
 
+      # Returns raw client stream.
       def _connect!
         addr = address || '127.0.0.1'
-        _log { "connect_tcp_socket #{addr}:#{port}" }
-        sock = TCPSocket.open(addr, port)
-        _log { "connect_tcp_socket: socket=#{sock}" }
+        _log { "_connect! #{uri}" }
+        sock = _client_connect!
+        _log { "_connect! socket=#{sock}" }
         _after_connect! sock
         sock
       rescue ::Exception => err
-        raise Error, "Cannot connect to #{addr}:#{port}: #{err.inspect}", err.backtrace
+        raise Error, "Cannot connect to #{self.class} #{uri}: #{err.inspect}", err.backtrace
       end
 
       # Subclasses can override.
@@ -78,7 +89,7 @@ module ASIR
       end
 
       # !SLIDE
-      # TCP Socket Server
+      # Server
 
       def prepare_server!
         _log { "prepare_server! #{uri}" }
@@ -123,16 +134,15 @@ module ASIR
 
       # Accept a client connection.
       def _server_accept_connection! server
-        raise Error::SubclassResponsibility, "_server_accept!"
+        raise Error::SubclassResponsibility, "_server_accept_connection!"
       end
 
       # Close a client connection.
       def _server_close_connection! stream
-        raise Error::SubclassResponsibility, "_server_close!"
+        raise Error::SubclassResponsibility, "_server_close_connection!"
       end
     end
     # !SLIDE END
   end # class
 end # module
-
 

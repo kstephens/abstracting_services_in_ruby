@@ -7,7 +7,7 @@ module ASIR
     # !SLIDE
     # ZeroMQ Transport
     class Zmq < ConnectionOriented
-      attr_accessor :uri, :port, :address, :queue
+      attr_accessor :queue
 
       def uri
         @uri || "tcp://#{addr}:#{port}"
@@ -18,25 +18,18 @@ module ASIR
       end
 
       # !SLIDE
-      # One-way 0MQ server.
-      def _connect!
-        _log { "_connect! #{uri}" }
-        # sock = zmq_context.socket(ZMQ::UPSTREAM)
-        sock = zmq_context.socket(ZMQ::PUB)
+      # 0MQ client.
+      def _client_connect!
+        sock = zmq_context.socket(one_way ? ZMQ::PUB : ZMQ::REQ)
         sock.connect(uri)
-        _log { "_connect!: connection=#{sock}" }
-        _after_connect! sock
         sock
-      rescue ::Exception => err
-        raise Error, "Cannot connect to #{self.class} #{uri}: #{err.inspect}", err.backtrace
       end
 
       # !SLIDE
-      # One-way 0MQ server.
+      # 0MQ server.
       def _server!
-        # @server = zmq_context.socket(ZMQ::DOWNSTREAM)
-        sock = zmq_context.socket(ZMQ::SUB)
-        sock.setsockopt(ZMQ::SUBSCRIBE, @queue || "");
+        sock = zmq_context.socket(@one_way ? ZMQ::SUB : ZMQ::REP)
+        sock.setsockopt(ZMQ::SUBSCRIBE, @queue || "") if @one_way
         sock.bind(uri)
         @server = sock
       end
@@ -52,11 +45,13 @@ module ASIR
       end
 
       def _write payload, stream
+        # $stderr.puts "  #{$$} #{self} _write"
         stream.send payload, 0
         stream
       end
 
       def _read stream
+        # $stderr.puts "  #{$$} #{self} _read"
         stream.recv 0
       end
 
@@ -67,8 +62,9 @@ module ASIR
           while @running
             begin
               # Inbound only.
-              serve_stream_request! @server, nil
+              serve_stream_request!(@server, @one_way ? nil : @server)
             rescue Error::Terminate => err
+              @running = false
               _log [ :run_server_terminate, err ]
             end
           end

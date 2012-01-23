@@ -15,6 +15,7 @@ module ASIR
             begin
               serve_stream_request! in_stream, out_stream
             rescue Error::Terminate => err
+              @running = false
               _log [ :serve_stream_terminate, err ]
             rescue ::Exception => err
               _log [ :serve_stream_error, err ]
