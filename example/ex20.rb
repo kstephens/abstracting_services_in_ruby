@@ -1,5 +1,5 @@
 # !SLIDE :capture_code_output true
-# one-way ZMQ service.
+# One-way ZMQ service.
 
 require 'example_helper'
 require 'asir/transport/zmq'
