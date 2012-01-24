@@ -10,8 +10,9 @@ module ASIR
     # Can be used as a log or named pipe service.
     class File < Stream
       include PayloadIO # _write, _read
-
       attr_accessor :file, :mode, :perms, :stream
+
+      def initialize opts = nil; @one_way = true; super; end
 
       # Writes a Request payload String.
       def _send_request request, request_payload
