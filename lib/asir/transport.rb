@@ -98,9 +98,13 @@ module ASIR
           _log { [ :send_response, :response, response, :on_response_exception, exc ] }
         end
       end
-      response.request = nil # avoid sending back entire Request.
-      response_payload = decoder.dup.encode(response)
-      _send_response(request, response, response_payload, stream, request_state)
+      if @one_way && request.block
+        request.block.call(response)
+      else
+        response.request = nil # avoid sending back entire Request.
+        response_payload = decoder.dup.encode(response)
+        _send_response(request, response, response_payload, stream, request_state)
+      end
     end
     # !SLIDE END
 

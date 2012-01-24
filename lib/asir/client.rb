@@ -9,7 +9,7 @@ module ASIR
       target.extend ModuleMethods if Module === target
       target.send(:include, InstanceMethods) if Class === target
     end
-    
+
     module CommonMethods
       def client_options &blk
         client._configure(&blk)
@@ -40,9 +40,28 @@ module ASIR
     #
     # Provide client interface proxy to a service.
     class Proxy
-      include Log
-      
       attr_accessor :receiver, :transport
+
+      def transport
+        @transport ||=
+          Transport::Local.new
+      end
+
+      # Accept messages as a proxy for thje receiver.
+      # Blocks are used represent a "continuation" for the Response.
+      def send selector, *arguments, &block
+        request = Request.new(receiver, selector, arguments, &block)
+        request = @before_send_request.call(request) if @before_send_request
+        @__configure.call(request) if @__configure
+        result = transport.send_request(request)
+        result
+      end
+      # Accept all other messages to be encoded and transported to a service.
+      alias :method_missing :send
+
+
+      # !SLIDE
+      # Proxy Configuration.
 
       # A Proc to call with the Request object before sending to transport#send_request(request).
       # Must return a Request object.
@@ -52,13 +71,8 @@ module ASIR
       # See #_configure.
       attr_accessor :__configure
 
-      def transport
-        @transport ||=
-          Transport::Local.new
-      end
-      
       # Returns a new Client proxy with a block to be called with the Request.
-      # This block can configure additional options to the Request before
+      # This block can configure additional options of the Request before
       # it is sent to the Transport.
       def _configure &blk
         client = self.dup
@@ -66,15 +80,6 @@ module ASIR
         client
       end
       alias :_options :_configure
-
-      # Accept all other messages to be encoded and transported to a service.
-      def method_missing selector, *arguments
-        request = Request.new(receiver, selector, arguments)
-        request = @before_send_request.call(request) if @before_send_request
-        @__configure.call(request) if @__configure
-        result = transport.send_request(request)
-        result
-      end
 
       # !SLIDE
       # Configuration Callbacks
