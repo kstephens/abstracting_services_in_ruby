@@ -9,14 +9,6 @@ module ASIR
     class Zmq < ConnectionOriented
       attr_accessor :queue
 
-      def uri
-        @uri || "tcp://#{addr}:#{port}"
-      end
-
-      def addr
-        address || '127.0.0.1'
-      end
-
       # !SLIDE
       # 0MQ client.
       def _client_connect!

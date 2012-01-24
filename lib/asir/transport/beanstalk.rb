@@ -190,7 +190,7 @@ module ASIR
       def start_beanstalkd!
         _log { "run_beanstalkd! #{uri}" }
         raise "already running #{@beanstalkd_pid}" if @beanstalkd_pid
-        addr = address ? "-l #{address} " : ""
+        addr = @address ? "-l #{@address} " : ""
         cmd = "beanstalkd #{addr}-p #{port}"
         @beanstalkd_pid = Process.fork do 
           $stderr.puts "Start beanstalkd: #{cmd} ..."

@@ -11,11 +11,11 @@ module ASIR
       attr_accessor :uri, :port, :address
 
       def uri
-        @uri ||= "tcp://#{addr}:#{port}"
+        @uri ||= "tcp://#{address}:#{port}"
       end
 
-      def addr
-        address || '127.0.0.1'
+      def address
+        @address ||= '127.0.0.1'.freeze
       end
 
       # !SLIDE

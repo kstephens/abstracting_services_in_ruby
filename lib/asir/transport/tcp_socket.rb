@@ -9,7 +9,7 @@ module ASIR
       # !SLIDE
       # TCP Socket Client
       def _client_connect!
-        sock = TCPSocket.open(addr, port)
+        sock = TCPSocket.open(address, port)
       end
 
       # !SLIDE
