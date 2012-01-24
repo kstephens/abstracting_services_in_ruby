@@ -3,7 +3,7 @@
 #
 # * Kurt Stephens
 # * Enova Financial
-# * 2012/01/18
+# * 2012/01/23
 # * Slides -- "":http://kurtstephens.com/pub/ruby/abstracting_services_in_ruby/asir.slides/
 # * Code -- "":http://kurtstephens.com/pub/ruby/abstracting_services_in_ruby/
 # * Git -- "":http://github.com/kstephens/abstracting_services_in_ruby
@@ -36,8 +36,10 @@
 #
 # * Directionality: One-way, Two-way
 # * Synchronicity: Synchronous, Asynchronous, Delayed, Buffered
-# * Distribution: Local Process, Local Thread, Distributed
+# * Distribution: Local Thread, Local Process, Distributed
+# * Transport: File, IPC, Pipe, Network
 # * Robustness: Retry, Replay, Fallback
+# * Encoding: XML, JSON, YAML, Base64, Compression
 #
 # !SLIDE END
 
@@ -61,6 +63,16 @@
 # * Elide deployment decisions.
 # * Integrate diagnostics and logging.
 # * Simplify testing.
+#
+# !SLIDE END
+
+# !SLIDE
+# REST
+#
+# "Roy Fielding - Architectural Styles and the Design of Network-based Software Architectures":http://www.ics.uci.edu/~fielding/pubs/dissertation/top.htm
+#
+# * Imperative Action .vs. Behavorial Resource
+# * REST Connector .vs. REST Component
 #
 # !SLIDE END
 

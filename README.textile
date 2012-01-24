@@ -18,13 +18,17 @@ h2. Objectives
 h3. Features
 
 * One-way and two-way requests as Module or instance methods.
-* Support for multiple transports:
+* Request support:
+** Delayed requests.
+** Request meta-data: UUID, Timestamp.
+* Support for multiple request/response transports:
 ** File.
 ** Named Pipe.
 ** TCP.
 ** HTTP.
 ** Beanstalkd.
 ** ZeroMQ.
+** Buffered transports.
 ** Broadcast transports.
 ** Fallback transports.
 ** Time-decaying retry logic.
