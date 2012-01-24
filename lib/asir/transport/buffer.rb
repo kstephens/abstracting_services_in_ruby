@@ -16,7 +16,7 @@ module ASIR
 
       def initialize *args
         super
-        @requests = [ ]
+        @requests = Queue.new
         @requests_mutex = Mutex.new
         @paused = 0
         @paused_mutex = Mutex.new
@@ -25,6 +25,7 @@ module ASIR
       # If paused, queue requests,
       # Otherwise delegate immediately to #transport.
       def _send_request request, request_payload
+        return nil if @ignore
         if paused?
           @requests_mutex.synchronize do
             @requests << request
@@ -75,14 +76,38 @@ module ASIR
       end
 
       # Clear all pending Requests without sending them.
-      # Returns requests that would have been sent.
+      # Returns Array of Requests that would have been sent.
       def clear!
-        requests = nil
+        requests = [ ]
         @requests_mutex.synchronize do
-          requests = @requests
-          @requests = [ ]
+          @requests.size.times do
+            requests << @requests.shift(true)
+          end
         end
         requests
+      end
+
+      # Take Request from head of Queue.
+      def shift non_block=false
+        @requests.shift(non_block)
+      end
+
+      # Processes queue.
+      # Usually used in worker Thread.
+      def process! non_block=false
+        @running = true
+        while @running && request = shift(non_block)
+          @transport.send_request(request)
+        end
+        request
+      end
+
+      # Stop processing queue.
+      def stop!
+        @requests_mutex.synchronize do
+          @ignore = true; @running = false
+        end
+        self
       end
     end
     # !SLIDE END
