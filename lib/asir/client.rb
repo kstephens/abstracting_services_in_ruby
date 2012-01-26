@@ -1,9 +1,11 @@
 module ASIR
   # !SLIDE
-  # Mixin Client support to any Module
+  # Client support for any Module
   #
   # Extend Module with #client proxy support.
   module Client
+    # !SLIDE
+    # Client Mixin
     def self.included target
       super
       target.extend ModuleMethods if Module === target
@@ -21,15 +23,14 @@ module ASIR
       # Proxies are cached for Module/Class methods because serialization will not include
       # Transport.
       def client
-        @_asir_client ||=
-          ASIR::Client::Proxy.new(self)
+        @_asir_client ||= ASIR::Client::Proxy.new(self)
       end
     end
 
     module InstanceMethods
       include CommonMethods
       # Proxies are not cached in instances because receiver is to be serialized by
-      # its Transport's coder.
+      # its Transport's Coder.
       def client
         ASIR::Client::Proxy.new(self)
       end
@@ -43,14 +44,13 @@ module ASIR
       attr_accessor :receiver, :transport
 
       def transport
-        @transport ||=
-          Transport::Local.new
+        @transport ||= Transport::Local.new
       end
 
       # Accept messages as a proxy for thje receiver.
       # Blocks are used represent a "continuation" for the Response.
       def send selector, *arguments, &block
-        request = Request.new(receiver, selector, arguments, &block)
+        request = Request.new(receiver, selector, arguments, block)
         request = @before_send_request.call(request) if @before_send_request
         @__configure.call(request) if @__configure
         result = transport.send_request(request)
@@ -59,9 +59,8 @@ module ASIR
       # Accept all other messages to be encoded and transported to a service.
       alias :method_missing :send
 
-
       # !SLIDE
-      # Proxy Configuration.
+      # Proxy Configuration
 
       # A Proc to call with the Request object before sending to transport#send_request(request).
       # Must return a Request object.

@@ -13,6 +13,7 @@ module ASIR
 
       # Returns Response object from #_send_request.
       def _receive_response request, opaque_response
+        pp [ :request=, request ]
         opaque_response
       end
     end

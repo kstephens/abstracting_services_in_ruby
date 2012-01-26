@@ -3,11 +3,11 @@
 #
 # * Kurt Stephens
 # * Enova Financial
-# * 2012/01/23
+# * 2012/01/25
 # * Slides -- "":http://kurtstephens.com/pub/ruby/abstracting_services_in_ruby/asir.slides/
 # * Code -- "":http://kurtstephens.com/pub/ruby/abstracting_services_in_ruby/
 # * Git -- "":http://github.com/kstephens/abstracting_services_in_ruby
-# * Tools 
+# * Tools
 # ** Riterate -- "":http://github.com/kstephens/riterate
 # ** Scarlet -- "":http://github.com/kstephens/scarlet
 #
@@ -206,8 +206,12 @@ require 'asir/transport/local'
 #
 # * Services are easy to abstract away.
 # * Separation of transport, encoding.
-# * 
 #
 # !SLIDE END
-
+#
+# !SLIDE
+# Appendix
+#
+#
+# !SLIDE END
 

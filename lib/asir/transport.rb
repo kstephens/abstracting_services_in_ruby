@@ -121,6 +121,9 @@ module ASIR
         if exc = response.exception
           exc.invoke!
         else
+          if ! @one_way && request.block
+            request.block.call(response)
+          end
           response.result
         end
       end
