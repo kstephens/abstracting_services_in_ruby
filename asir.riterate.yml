@@ -24,7 +24,6 @@ riterate:
   - "Client-Side Request"
   - "Server-Side"
   - "Client-Side Response"
-  - Modules and Classes
   - Sample Service
   - Using a Client Proxy
   - Example Request
@@ -92,6 +91,7 @@ riterate:
   - Buffer Transport
   - Synopsis
   - Appendix
+  - Modules and Classes
   - Object Initialization
   - Diagnostic Logging
   - Null Coder
