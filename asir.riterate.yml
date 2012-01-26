@@ -14,6 +14,8 @@ riterate:
   - "Service Middleware Semantics"
   - "Testing, Debugging, Diagnostics"
   - Objectives
+  - Foundations of Objects
+  - Messaging
   - REST
   - "Design"
   - "Design: Nouns"
@@ -25,38 +27,39 @@ riterate:
   - Modules and Classes
   - Sample Service
   - Using a Client Proxy
+  - Example Request
   - Client support for any Module
   - Client Proxy
   - Request
-  - Example Request
   - Response
   - Coder
   - Identity Coder
   - Transport
   - Transport#send_request
-  - Null Transport
   - Call service directly
   - "Call service directly - Output"
   - In-core, in-process service
   - Sample Service with Client Support
   - Local Transport
+  - Null Transport
   - "In-core, in-process service - Output"
   - One-way, asynchronous subprocess service
   - Subprocess Transport
   - "One-way, asynchronous subprocess service - Output"
+  - "Subprocess service with continuation"
   - One-way, file log service
+  - "One-way, file log service - Output"
   - YAML Coder
   - File Transport
   - File Transport Support
   - Payload IO for Transport
-  - "One-way, file log service - Output"
   - Replay file log
+  - "Replay file log - Output"
   - Transport#receive_request
   - Process (receive) requests from a file.
   - Stream Transport
   - Serve all Requests from a stream.
   - Serve a Request from a stream.
-  - "Replay file log - Output"
   - One-way, named pipe service
   - Named Pipe Server
   - "One-way, named pipe service - Output"
