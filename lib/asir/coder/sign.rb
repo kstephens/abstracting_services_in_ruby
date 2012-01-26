@@ -17,12 +17,10 @@ module ASIR
 
       def _encode obj
         payload = obj.to_s
-        { 
-          :function => function,
+        { :function  => function,
           :signature => ::Digest.const_get(function).
                           new.hexdigest(secret + payload),
-          :payload => payload,
-        }
+          :payload   => payload }
       end
 
       def _decode obj
