@@ -3,6 +3,8 @@
 .riterate
 service.fifo
 service.log
+example/*service.log
+example/*.out
 coverage
 tmp.*
 cabar.yml

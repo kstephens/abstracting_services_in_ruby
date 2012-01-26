@@ -4,7 +4,7 @@
 require 'example_helper'
 require 'asir/transport/retry'
 begin
-  File.unlink(service_log = "service.log") rescue nil
+  File.unlink(service_log = "#{__FILE__}.service.log") rescue nil
 
   file = ASIR::Transport::File.new(:file => service_log,
                                    :encoder => ASIR::Coder::Yaml.new)
@@ -54,7 +54,7 @@ end
 # EXPECT/: : Email.send_mail :pdf_invoice .*:to=>"user@email.com"
 # EXPECT/: : Email.send_mail :pdf_invoice .*:to=>"user2@email.com"
 # EXPECT: : pr: :ok
-# EXPECT: "service.log" contents:
+# EXPECT: service.log" contents:
 # EXPECT: --- !ruby/object:ASIR::Request 
 # EXPECT:   :transport_exceptions:
 # EXPECT: ASIR::Error: Cannot connect to ASIR::Transport::TcpSocket tcp://127.0.0.1:

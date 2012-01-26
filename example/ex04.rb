@@ -3,7 +3,7 @@
 
 require 'example_helper'
 begin
-  File.unlink(service_log = "service.log") rescue nil
+  File.unlink(service_log = "#{__FILE__}.service.log") rescue nil
 
   Email.client.transport = t =
     ASIR::Transport::File.new(:file => service_log)
@@ -21,7 +21,7 @@ end
 
 # !SLIDE END
 # EXPECT: : client process
-# EXPECT: "service.log" contents:
+# EXPECT: service.log" contents:
 # EXPECT: pr: nil
 # EXPECT: --- !ruby/object:ASIR::Request
 # EXPECT: 159

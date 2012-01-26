@@ -1,5 +1,7 @@
 require File.expand_path('../spec_helper', __FILE__)
 
+$:.unshift File.expand_path('../../example', __FILE__)
+
 describe "ASIR Example" do
   attr_accessor :file, :expects
 
@@ -9,7 +11,6 @@ describe "ASIR Example" do
 
   after(:each) do
     @file.should_not == nil
-    cmd = "ASIR_EXAMPLE_SILENT=1 ruby -I example -I lib #{@file}"
     File.open(@file) do | fh |
       until fh.eof?
         line = fh.readline
@@ -26,10 +27,8 @@ describe "ASIR Example" do
         end
       end
     end
-
-    $stderr.puts "\n   Running #{cmd}:" if ENV['SPEC_VERBOSE']
-    @output = `#{cmd} 2>&1`
-    $stderr.write @output  if ENV['SPEC_VERBOSE']
+    @output, @exit_code = run_file!(@file)
+    @exit_code.should == 0
     @expects.empty?.should_not == true
     @expects.each do | rx, mode |
       $stderr.puts "    Checking #{mode} #{rx.inspect}" if ENV['SPEC_VERBOSE']
@@ -41,6 +40,37 @@ describe "ASIR Example" do
       else
         raise ArgumentError
       end
+    end
+  end
+
+  def run_file! file, output = StringIO.new('')
+    progname_save, stdout_save, stderr_save = $0, $stdout, $stderr
+    exc = system_exit = nil; exit_code = 0
+    begin
+      if true
+        cmd = "ASIR_EXAMPLE_SILENT=1 ruby -I example -I lib #{file}"
+        $stderr.puts "\n   Running #{cmd}:" if ENV['SPEC_VERBOSE']
+        output = `#{cmd} 2>&1 | tee #{file}.out`
+      else
+        $stderr.puts "\n   Loading #{file}:" if ENV['SPEC_VERBOSE']
+        $stdout.puts "*** #{$$}: client process"; $stdout.flush
+        $stdout = $stderr = output
+        $0 = file
+        Kernel.load(file, true)
+        output = output.string if StringIO === output
+      end
+    rescue ::SystemExit => system_exit
+      exit_code = 1 # ???
+    rescue ::Exception => exc
+      exit_code = -1
+    end
+    [ output, exit_code ]
+  ensure
+    $0, $stdout, $stderr = progname_save, stdout_save, stderr_save
+    $stderr.write output  if ENV['SPEC_VERBOSE']
+    if exc
+      stderr_save.puts "ERROR: #{file}: #{exc.inspect}\n#{exc.backtrace * "\n"}"
+      raise exc
     end
   end
 

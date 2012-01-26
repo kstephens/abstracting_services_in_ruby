@@ -4,7 +4,7 @@
 require 'example_helper'
 begin
   Email.client.transport = t = 
-    ASIR::Transport::TcpSocket.new(:port => 30901)
+    ASIR::Transport::TcpSocket.new(:port => 30909)
   t.encoder = 
     ASIR::Coder::Marshal.new
   

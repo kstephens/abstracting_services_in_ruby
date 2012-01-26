@@ -6,14 +6,13 @@ module ASIR
     # Send Request to same process.
     # Requires a Identity Coder.
     class Local < self
-      # Returns Response object.
+      # Returns Response object after invoking Request.
       def _send_request request, request_payload
         invoke_request!(request)
       end
 
-      # Returns Response object from #_send_request.
+      # Returns Response object from #send_request.
       def _receive_response request, opaque_response
-        pp [ :request=, request ]
         opaque_response
       end
     end

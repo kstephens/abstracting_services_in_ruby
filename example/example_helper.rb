@@ -26,8 +26,10 @@ require 'ruby-debug'
 
 @customer = 123
 
+class ::Object
+
 def pr result
-  puts "*** #{$$}: pr: #{PP.pp(result, '')}"
+  $stdout.puts "*** #{$$}: pr: #{PP.pp(result, '')}"
 end
 
 def server_process &blk
@@ -39,8 +41,13 @@ def server_process &blk
 end
 
 def server_kill
-  Process.kill 9, $server_pid if $server_pid
+  if $server_pid
+    Process.kill 9, $server_pid
+    Process.waitpid($server_pid)
+  end
   $server_pid = nil
+end
+
 end
 
 puts "*** #{$$}: client process"; $stdout.flush

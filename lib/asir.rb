@@ -67,6 +67,23 @@
 # !SLIDE END
 
 # !SLIDE
+# Foundations of Objects
+#
+# * Message
+# * State
+# * Behavior
+
+# !SLIDE
+# Messaging
+#
+# * "Call a Method", "Call a Function" are all the same, in *all* languages.
+# ** Decomposed lookup() and apply().
+# * "Send Message", not "Call a Method".
+# * Messaging abstracts:
+# ** Object use from its implemenation.
+# ** Transfer of control (method, function invocation).
+
+# !SLIDE
 # REST
 #
 # "Roy Fielding - Architectural Styles and the Design of Network-based Software Architectures":http://www.ics.uci.edu/~fielding/pubs/dissertation/top.htm

@@ -17,5 +17,5 @@ end
 # EXPECT: : client process
 # EXPECT: : Email.send_mail :pdf_invoice
 # EXPECT: : pr: nil
-# EXPECT: : pr: [ :in_block, :ok ]
+# EXPECT: : pr: [:in_block, :ok]
 
