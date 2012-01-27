@@ -8,6 +8,12 @@ module ASIR
   module RequestIdentity
     attr_accessor :identifier, :timestamp
 
+    # Optional: Opaque data about the Client that created the Request.
+    attr_accessor :client
+
+    # Optional: Opaque data about the Service that handled the Response.
+    attr_accessor :server
+
     # Creates a thread-safe unique identifier.
     def create_identifier!
       @identifier ||= 

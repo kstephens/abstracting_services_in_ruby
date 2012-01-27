@@ -1,6 +1,5 @@
 require 'asir'
 require 'asir/object_resolving'
-
 gem 'libxml-ruby'
 require 'xml'
 
