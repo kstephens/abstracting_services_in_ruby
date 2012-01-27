@@ -25,7 +25,7 @@ module ASIR
 
       def _decode obj
         @stream = obj
-        @decoder ||= DECODER
+        @decoder ||= DECODER; @decoder_object = nil
         @dom_id_map = { }
         @dom_id = 0
         @cls_tag_map = { }
@@ -141,7 +141,8 @@ module ASIR
 
       def _decode_dom dom
         cls_name = dom.name
-        decoder = @decoder[cls_name] || @decoder['Object']
+        decoder = @decoder[cls_name] || 
+          (@decoder_object ||= @decoder['Object'])
         raise Error, "BUG: " unless decoder
         decoder.call(self, dom)
       end
