@@ -77,11 +77,11 @@
 # Messaging
 #
 # * "Call a Method", "Call a Function" are all the same, in *all* languages.
-# ** Decomposed lookup() and apply().
+# ** Decomposed into lookup() and apply().
 # * "Send Message", not "Call a Method".
 # * Messaging abstracts:
 # ** Object use from its implemenation.
-# ** Transfer of control (method, function invocation).
+# ** Transfer of control (method, function invocation, RPC, etc).
 
 # !SLIDE
 # REST
@@ -107,14 +107,13 @@
 # !SLIDE
 # Design: Nouns
 #
-# * Service -> Module
+# * Service -> Module, Object
 # * Client -> Just a Ruby caller
 # * Proxy
-# * Request -> Just a method call.
+# * Request -> Just a Ruby message
 # * Response, Exception (two-way) -> Return value or else.
 # * Transport -> (file, pipe, http, queue, ActiveResource)
 # * Encoder, Decoder -> Coder (Marshal, XML, JSON, ActiveResource)
-# * Logging
 #
 # !SLIDE END
 
@@ -190,6 +189,15 @@
 # ellipse "Proxy"; arrow; 
 # box "Client";
 # !PIC END
+#
+# !SLIDE END
+
+# !SLIDE
+# Implementation
+#
+# * Primary Base classes: Transport, Coder
+# * Primary API: Proxy via Client mixix
+# * Handful of mixins.
 #
 # !SLIDE END
 

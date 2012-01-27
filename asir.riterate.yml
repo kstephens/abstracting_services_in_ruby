@@ -34,13 +34,10 @@ riterate:
   - Coder
   - Identity Coder
   - Transport
-  - Transport#send_request
   - Call service directly
   - "Call service directly - Output"
   - In-core, in-process service
   - Sample Service with Client Support
-  - Local Transport
-  - Null Transport
   - "In-core, in-process service - Output"
   - One-way, asynchronous subprocess service
   - Subprocess Transport
@@ -48,28 +45,40 @@ riterate:
   - "Subprocess service with continuation"
   - One-way, file log service
   - "One-way, file log service - Output"
+  - Replay file log
+  - "Replay file log - Output"
+  - One-way, named pipe service
+  - Named Pipe Server
+  - "One-way, named pipe service - Output"
+  - One-way, named pipe service with signature
+  - "One-way, named pipe service with signature - Output"
+  - One-way, named pipe service with invalid signature
+  - "One-way, named pipe service with invalid signature - Output"
+  - Socket service
+  - "Socket service - Output"
+  - Socket service with forwarded exception.
+  - "Socket service with forwarded exception. - Output"
+  - Example Exception
+  - Encapsulated Exception
+  - "Socket service with local fallback."
+  - "Socket service with local fallback. - Output"
+  - Implementation
+  - Transport
+  - Transport#send_request
+  - Local Transport
+  - Null Transport
   - YAML Coder
   - File Transport
   - File Transport Support
   - Payload IO for Transport
-  - Replay file log
-  - "Replay file log - Output"
   - Transport#receive_request
   - Process (receive) requests from a file.
   - Stream Transport
   - Serve all Requests from a stream.
   - Serve a Request from a stream.
-  - One-way, named pipe service
-  - Named Pipe Server
-  - "One-way, named pipe service - Output"
-  - One-way, named pipe service with signature
   - Chain Coder
   - Marshal Coder
   - Sign Coder
-  - "One-way, named pipe service with signature - Output"
-  - One-way, named pipe service with invalid signature
-  - "One-way, named pipe service with invalid signature - Output"
-  - Socket service
   - TCP Socket Transport
   - TCP Socket Server
   - TCP Socket Client
@@ -79,14 +88,7 @@ riterate:
   - "Receives the encoded Request payload String."
   - "Sends the encoded Response payload String."
   - "Receives the encoded Response payload String."
-  - "Socket service - Output"
-  - Socket service with forwarded exception.
-  - Example Exception
-  - Encapsulated Exception
-  - "Socket service with forwarded exception. - Output"
-  - "Socket service with local fallback."
   - Fallback Transport
-  - "Socket service with local fallback. - Output"
   - Buffer Transport
   - Synopsis
   - Appendix
@@ -102,7 +104,6 @@ riterate:
   - Code More
   - Client Mixin
   - Proxy Configuration
-
 
   unknown_slides: []
 
