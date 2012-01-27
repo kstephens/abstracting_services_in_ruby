@@ -107,10 +107,10 @@
 # !SLIDE
 # Design: Nouns
 #
-# * Service -> Module, Object
-# * Client -> Just a Ruby caller
+# * Service -> Object
+# * Client -> Just a Ruby caller.
 # * Proxy
-# * Request -> Just a Ruby message
+# * Request -> Just a Ruby message.
 # * Response, Exception (two-way) -> Return value or else.
 # * Transport -> (file, pipe, http, queue, ActiveResource)
 # * Encoder, Decoder -> Coder (Marshal, XML, JSON, ActiveResource)
