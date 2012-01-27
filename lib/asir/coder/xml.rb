@@ -19,7 +19,7 @@ module ASIR
         @dom_id_map = { }
         @dom_id = 0
         @cls_tag_map = { }
-        _encode_dom obj
+        encode_dom obj
         @stream
       end
 
