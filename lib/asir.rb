@@ -90,6 +90,7 @@
 #
 # * Imperative Action .vs. Behavorial Resource
 # * REST Connector .vs. REST Component
+# * "Generality of connectors leads to middleware..."
 #
 # !SLIDE END
 
