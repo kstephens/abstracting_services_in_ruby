@@ -40,7 +40,7 @@ module ASIR
       unless done
         unless yield :failed, last_exception
           exc = last_exception
-          raise RetryError, "Retry failed: #{exc.inspect}  \n#{exc.backtrace * "\n   "}"
+          raise RetryError, "Retry failed: #{exc.inspect}  \n#{exc.backtrace * "\n   "}", exc.backtrace
         end
       end
       result
