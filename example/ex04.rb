@@ -24,9 +24,8 @@ end
 # EXPECT: service.log" contents:
 # EXPECT: pr: nil
 # EXPECT: --- !ruby/object:ASIR::Request
-# EXPECT: 159
-# EXPECT: --- !ruby/object:ASIR::Request 
-# EXPECT: arguments: 
+# EXPECT: --- !ruby/object:ASIR::Request
+# EXPECT: arguments:
 # EXPECT: - :pdf_invoice
 # EXPECT:   :to: user@email.com
 # EXPECT:   :customer: 123
