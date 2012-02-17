@@ -7,9 +7,6 @@
 # * Slides -- "":http://kurtstephens.com/pub/ruby/abstracting_services_in_ruby/asir.slides/
 # * Code -- "":http://kurtstephens.com/pub/ruby/abstracting_services_in_ruby/
 # * Git -- "":http://github.com/kstephens/abstracting_services_in_ruby
-# * Tools
-# ** Riterate -- "":http://github.com/kstephens/riterate
-# ** Scarlet -- "":http://github.com/kstephens/scarlet
 #
 # !SLIDE END
 
@@ -91,6 +88,7 @@
 # * Imperative Action .vs. Behavorial Resource
 # * REST Connector .vs. REST Component
 # * "Generality of connectors leads to middleware..."
+# * "Modifiability is about the ease with which a change can be made to an application architecture... broken down into evolvability, extensibility, customizability, configurability, and reusability..."
 #
 # !SLIDE END
 
@@ -234,7 +232,15 @@ require 'asir/transport/local'
 # * Separation of transport, encoding.
 #
 # !SLIDE END
+
+# !SLIDES
+# Slide Tools
 #
+# * Riterate -- "":http://github.com/kstephens/riterate
+# * Scarlet -- "":http://github.com/kstephens/scarlet
+#
+# !SLIDE END
+
 # !SLIDE
 # Appendix
 #
