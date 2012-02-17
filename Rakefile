@@ -1,4 +1,7 @@
 
+# YUCK! http://stackoverflow.com/questions/4755900/how-to-make-jruby-1-6-default-to-ruby-1-9
+ENV['JRUBY_OPTS'] ||= '--1.9' 
+
 begin
   require 'rubygems'
   gem 'jeweler'
