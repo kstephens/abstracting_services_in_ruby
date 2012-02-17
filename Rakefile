@@ -18,25 +18,28 @@ rescue LoadError
   puts "Jeweler, or one of its dependencies, is not available. Install it with: sudo gem install jeweler -s http://gems.github.com"
 end
 
-require 'rake'
-require 'spec/rake/spectask'
+gem 'rspec'
+require 'rspec/core/rake_task'
 
-desc "Run all tests with RCov"
-Spec::Rake::SpecTask.new('spec') do |t|
-  t.spec_opts = [ '-b', '-f', 's' ]
-  t.spec_files = FileList[ENV['file'] || 'spec/**/*_spec.rb']
-  t.rcov = ! ENV['SPEC_NO_RCOV']
-  t.rcov_opts = [
-                 # '--exclude', 'spec', 
-                 '--exclude', '/var/lib',
-                 '--exclude', '/opt/local/lib/ruby',
-                ]
+desc "Run specs"
+RSpec::Core::RakeTask.new(:spec) do |t|
+  t.pattern = "./spec/**/*_spec.rb" # don't need this, it's default.
+  # Put spec opts in a file named .rspec in root
+end
+
+desc "Generate code coverage"
+RSpec::Core::RakeTask.new(:coverage) do |t|
+  t.pattern = "./spec/**/*_spec.rb" # don't need this, it's default.
+  t.rcov = true
+  t.rcov_opts = ['--exclude', 'spec']
 end
 
 ######################################################################
 
+desc "Default => :test"
 task :default => :test
 
+desc "Run all tests"
 task :test => [ :spec, :hack_night ]
 
 desc "Run examples."
