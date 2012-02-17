@@ -19,10 +19,7 @@ require 'delayed_service'
 require 'unsafe_service'
 
 require 'pp'
-
-require 'rubygems'
-gem 'ruby-debug'
-require 'ruby-debug'
+require File.expand_path('../../spec/debug_helper', __FILE__)
 
 @customer = 123
 

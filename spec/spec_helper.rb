@@ -1,5 +1,3 @@
 require 'rubygems'
-gem 'ruby-debug'
-require 'ruby-debug'
-
+require 'debug_helper'
 $: << File.expand_path('../../lib', __FILE__)
