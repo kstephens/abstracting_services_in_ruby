@@ -5,16 +5,12 @@ module ASIR
   # Help encode/decode and resolve receiver class.
   module CodeMore
     include ObjectResolving # resolve_object()
+    include CodeBlock # encode_block!, decode_block!
 
     def encode_more!
-      obj = nil
-      if @block && ! ::String === @block_code
-        obj ||= self.dup
-        obj.block_code = obj.block.to_ruby if obj.block.respond_to(:to_ruby) # ruby2ruby
-        obj.block = nil
-      end
+      obj = encode_block! # may self.dup
       unless ::String === @receiver_class
-        obj ||= self.dup
+        obj ||= self.dup # dont dup twice.
         obj.receiver = @receiver.name if ::Module === @receiver
         obj.receiver_class = @receiver_class.name
         if resp = obj.result and resp.message == self
@@ -25,9 +21,7 @@ module ASIR
     end
 
     def decode_more!
-      if ::String === @block_code
-        @block ||= eval(@block_code); @block_code = nil
-      end
+      decode_block!
       if ::String === @receiver_class
         @receiver_class = resolve_object(@receiver_class)
         @receiver = resolve_object(@receiver) if ::Module === @receiver_class
