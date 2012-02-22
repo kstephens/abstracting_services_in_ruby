@@ -181,18 +181,26 @@ module ASIR
     # !SLIDE 
     # Transport Server Support
 
+    def stop! force = false
+      @running = false
+      raise Error::Terminate if force
+      self
+    end
+
     def with_server_signals!
       old_trap = { }
       [ "TERM", "HUP" ].each do | sig |
         trap = proc do | *args |
           @running = false
-          unless @processing_message
-            raise ::ASIR::Error::Terminate, "#{self} by SIG#{sig} #{args.inspect} in #{__FILE__}:#{__LINE__}"
-          end
+          @signal_exception = ::ASIR::Error::Terminate.new("#{self} by SIG#{sig} #{args.inspect} in #{__FILE__}:#{__LINE__}")
         end
         old_trap[sig] = Signal.trap(sig, trap)
       end
       yield
+      if exc = @signal_exception
+        @signal_exception = nil
+        raise exc
+      end
     ensure
       # $stderr.puts "old_trap = #{old_trap.inspect}"
       old_trap.each do | sig, trap |
@@ -226,12 +234,6 @@ module ASIR
 
     # !SLIDE END
     # !SLIDE resume
-
-    def stop! force = false
-      @running = false
-      raise Error::Terminate if force
-      self
-    end
 
   end
   # !SLIDE END
