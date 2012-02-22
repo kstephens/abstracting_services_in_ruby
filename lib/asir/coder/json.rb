@@ -1,7 +1,9 @@
 require 'asir'
 
+unless RUBY_PLATFORM =~ /java/
 gem 'json'
 require 'json/ext'
+end
 
 module ASIR
   class Coder

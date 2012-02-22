@@ -1,7 +1,7 @@
 # -*- ruby -*-
 source "http://rubygems.org"
   gem 'uuid', '~> 2.3.5'
-  gem 'json', '~> 1.6.5'
+  # gem 'json', '~> 1.6.5' # Fails to load under jruby 1.6.6
   gem 'libxml-ruby', '~> 2.2.2'
   gem 'httpclient', '~> 2.2.4'
   gem 'zmq', '~> 2.1.4'
