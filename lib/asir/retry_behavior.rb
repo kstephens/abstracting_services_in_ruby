@@ -10,7 +10,7 @@ module ASIR
     attr_accessor :try_sleep_increment
     # Maxinum amount of seconds to sleep between each try.
     attr_accessor :try_sleep_max
-    
+
     # Yields:
     #   :try, n_try
     #   :rescue, exc

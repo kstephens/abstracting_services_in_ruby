@@ -4,7 +4,7 @@ module ASIR
   #
   # Encapsulate the result returned to the Client.
   class Result
-    include AdditionalData, Identity
+    include AdditionalData, Identity, CodeMore::Result
     attr_accessor :message, :result, :exception
     # Optional: Opaque data about the server that processed the Message.
     attr_accessor :server
@@ -13,16 +13,6 @@ module ASIR
       @message = msg; @result = res
       @exception = exc && EncapsulatedException.new(exc)
       @identifier = @message.identifier
-    end
-
-    def encode_more!
-      @message = @message.encode_more! if @message
-      self
-    end
-
-    def decode_more!
-      @message = @message.decode_more! if @message
-      self
     end
   end
   # !SLIDE END

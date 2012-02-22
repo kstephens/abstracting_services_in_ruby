@@ -41,11 +41,7 @@ module ASIR
     #
     # Provide client interface proxy to a service.
     class Proxy
-      attr_accessor :receiver, :transport
-
-      def transport
-        @transport ||= Transport::Local.new
-      end
+      attr_accessor :receiver
 
       # Accept messages as a proxy for the receiver.
       # Blocks are used represent a "continuation" for the Result.
@@ -58,6 +54,14 @@ module ASIR
       end
       # Accept all other messages to be encoded and transported to a service.
       alias :method_missing :send
+
+      # !SLIDE
+      # Client Transport
+      attr_accessor :transport
+
+      def transport
+        @transport ||= Transport::Local.new
+      end
 
       # !SLIDE
       # Proxy Configuration

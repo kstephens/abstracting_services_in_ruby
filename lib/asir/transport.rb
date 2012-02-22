@@ -70,9 +70,7 @@ module ASIR
       @message_count ||= 0; @message_count += 1
       additional_data = { }
       if req_and_state = _receive_message(stream, additional_data)
-        # $stderr.puts "req_and_state = #{req_and_state.inspect}"
         message = req_and_state[0] = encoder.dup.decode(req_and_state.first)
-        # $stderr.puts "req_and_state AFTER DECODE = #{req_and_state.inspect}"
         message.additional_data!.update(additional_data) if message
         if @after_receive_message
           begin

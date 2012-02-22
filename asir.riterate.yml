@@ -34,6 +34,7 @@ riterate:
   - Coder
   - Identity Coder
   - Transport
+  - Client Transport
   - Call service directly
   - "Call service directly - Output"
   - In-core, in-process service
@@ -50,6 +51,7 @@ riterate:
   - One-way, named pipe service
   - Named Pipe Server
   - "One-way, named pipe service - Output"
+  - Chain Coder
   - One-way, named pipe service with signature
   - "One-way, named pipe service with signature - Output"
   - One-way, named pipe service with invalid signature
@@ -76,7 +78,6 @@ riterate:
   - Stream Transport
   - Serve all Messages from a stream.
   - Serve a Message from a stream.
-  - Chain Coder
   - Marshal Coder
   - Sign Coder
   - TCP Socket Transport

@@ -3,7 +3,7 @@
 #
 # * Kurt Stephens
 # * Enova Financial
-# * 2012/01/25
+# * 2012/02/21
 # * Slides -- "":http://kurtstephens.com/pub/ruby/abstracting_services_in_ruby/asir.slides/
 # * Code -- "":http://kurtstephens.com/pub/ruby/abstracting_services_in_ruby/
 # * Git -- "":http://github.com/kstephens/abstracting_services_in_ruby
@@ -121,7 +121,7 @@
 #
 # * Intercept Message -> Proxy
 # * Invoke Message    -> Message
-# * Invoke Exception
+# * Return Result, Invoke Exception  -> Result
 # * Send Message, Recieve Message -> Transport
 # * Encode Object, Decode Object -> Coder
 #
@@ -130,64 +130,64 @@
 # !SLIDE
 # Simple
 #
-# !PIC BEGIN
-# 
-# box "Client" "(CustomersController" "#send_invoice)"; arrow; 
-# ellipse "Send" "Message" "(Ruby message)"; arrow; 
-# box "Service" "(Email.send_email)";
+# !IMAGE BEGIN PIC width:800 height:300
 #
-# !PIC END
+# box "Client" "(CustomersController" "#send_invoice)" wid 4.0 ht 2.5; arrow;
+# ellipse "Send" "Message" "(Ruby message)" wid 4.0 ht 2.5; arrow;
+# box "Service" "(Email.send_email)" wid 4.0 ht 2.5;
+#
+# !IMAGE END
 #
 # !SLIDE END
 
 # !SLIDE
 # Client-Side Message
 #
-# !PIC BEGIN
-# box "Client"; arrow; 
-# ellipse "Proxy"; arrow; 
-# ellipse "Create" "Message"; arrow; 
-# ellipse "Encode" "Message"; arrow; 
-# ellipse "Send" "Message";
+# !IMAGE BEGIN PIC width:800 height:300
+# box "Client" wid 2.5 ht 2.5; arrow;
+# ellipse "Proxy" wid 2.5 ht 2.5; arrow;
+# ellipse "Create" "Message" wid 2.5 ht 2.5; arrow;
+# ellipse "Encode" "Message" wid 2.5 ht 2.5; arrow;
+# ellipse "Send" "Message" wid 2.5 ht 2.5;
 # line; down; arrow;
-# !PIC END
+# !IMAGE END
 #
 # !SLIDE END
 
 # !SLIDE
 # Server-Side
 #
-# !PIC BEGIN
-# down; line; right; arrow; 
-# ellipse "Receive" "Message"; arrow; 
-# ellipse "Decode" "Message"; arrow; 
-# ellipse "Message"; 
-# line; down; arrow; 
-# IR: ellipse "Invoke" "Message";
+# !IMAGE BEGIN PIC width:800 height:300
+# down; line; right; arrow;
+# ellipse "Receive" "Message" wid 2.5 ht 2.5; arrow;
+# ellipse "Decode" "Message" wid 2.5 ht 2.5; arrow;
+# ellipse "Message" wid 2.5 ht 2.5;
+# line; down; arrow;
+# IR: ellipse "Invoke" "Message" wid 2.5 ht 2.5;
 # right; move; move;
-# Service: box "Service" with .w at IR.e + (movewid, 0); 
+# Service: box "Service" wid 2.5 ht 2.5 with .w at IR.e + (movewid, 0);
 # arrow <-> from IR.e to Service.w;
 # move to IR.s; down; line;
-# left; arrow; 
-# ellipse "Create" "Result"; arrow; 
-# ellipse "Encode" "Result"; arrow;
-# ellipse "Send" "Result"; 
+# left; arrow;
+# ellipse "Create" "Result" wid 2.5 ht 2.5; arrow;
+# ellipse "Encode" "Result" wid 2.5 ht 2.5; arrow;
+# ellipse "Send" "Result" wid 2.5 ht 2.5;
 # line; down; arrow
-# !PIC END
+# !IMAGE END
 #
 # !SLIDE END
 
 # !SLIDE
 # Client-Side Result
 #
-# !PIC BEGIN
+# !IMAGE BEGIN PIC width:800 height:300
 # down; line; left; arrow;
-# ellipse "Receive" "Result"; arrow; 
-# ellipse "Decode" "Result"; arrow; 
-# ellipse "Result"; arrow; 
-# ellipse "Proxy"; arrow; 
-# box "Client";
-# !PIC END
+# ellipse "Receive" "Result" wid 2.5 ht 2.5; arrow;
+# ellipse "Decode" "Result" wid 2.5 ht 2.5; arrow;
+# ellipse "Result" wid 2.5 ht 2.5; arrow;
+# ellipse "Proxy" wid 2.5 ht 2.5; arrow;
+# box "Client" wid 2.5 ht 2.5;
+# !IMAGE END
 #
 # !SLIDE END
 

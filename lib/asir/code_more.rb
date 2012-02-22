@@ -37,5 +37,18 @@ module ASIR
       end
       self
     end
+
+    # Mixin for Result.
+    module Result
+      def encode_more!
+        @message = @message.encode_more! if @message
+        self
+      end
+
+      def decode_more!
+        @message = @message.decode_more! if @message
+        self
+      end
+    end
   end
 end

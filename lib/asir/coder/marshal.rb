@@ -12,5 +12,6 @@ module ASIR
         ::Marshal.load(obj)
       end
     end # class
+    # !SLIDE END
   end # class
 end # module
