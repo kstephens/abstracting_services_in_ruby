@@ -4,7 +4,7 @@ module ASIR
     # Local Transport
     #
     # Send Message to same process.
-    # Requires a Identity Coder.
+    # Requires Identity Coder.
     class Local < self
       # Returns Result object after invoking Message.
       def _send_message message, message_payload
