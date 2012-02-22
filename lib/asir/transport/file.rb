@@ -55,7 +55,7 @@ module ASIR
       def serve_file!
         ::File.open(file, "r") do | stream |
           @running = true
-          serve_stream! stream, nil
+          serve_stream! stream, nil # One-way: no result stream.
         end
       end
 
