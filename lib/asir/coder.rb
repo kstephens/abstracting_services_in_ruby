@@ -23,41 +23,6 @@ module ASIR
 
     # Coder subclasses.
     # ...
-    # !SLIDE pause
-
-    # !SLIDE 
-    # Null Coder
-    # Always encode/decode as nil.
-    class Null < self
-      def _encode obj
-        nil
-      end
-
-      def _decode obj
-        nil
-      end
-
-      # Completely stateless.
-      def dup; self; end
-    end
-
-
-    # !SLIDE
-    # Identity Coder
-    # Perform no encode/decode.
-    class Identity < self
-      def _encode obj
-        obj
-      end
-
-      def _decode obj
-        obj
-      end
-
-      # Completely stateless.
-      def dup; self; end
-    end
-    # !SLIDE resume
   end
   # !SLIDE END
 end
