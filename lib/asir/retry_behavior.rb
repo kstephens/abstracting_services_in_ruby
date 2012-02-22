@@ -49,5 +49,6 @@ module ASIR
     end
     class RetryError < Error; end
   end # module
+  # !SLIDE END
 end # module ASIR
 
