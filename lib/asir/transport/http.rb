@@ -31,32 +31,32 @@ module ASIR
         @client = nil unless Channel === @client
       end
 
-      # Send the Request payload String using HTTP POST.
-      # Returns the HTTPClient::Message response object.
-      def _send_request request, request_payload
+      # Send the Message payload String using HTTP POST.
+      # Returns the HTTPClient::Request response object.
+      def _send_message message, message_payload
         client.with_stream! do | client |
-        client.post(uri, request_payload)
+          client.post(uri, message_payload)
         end
       end
 
-      # Recieve the Response payload String from the opaque
-      # HTTPClient::Message response object returned from #_send_request.
-      def _receive_response request, http_response_message
-        http_response_message.content.to_s
+      # Recieve the Result payload String from the opaque
+      # HTTPClient::Request response object returned from #_send_message.
+      def _receive_result message, http_result_message
+        http_result_message.content.to_s
       end
 
       # Server-side: WEBrick
- 
-      # Receive the Request payload String from the HTTP Request object.
-      # Returns the original http_request as the request_state.
-      def _receive_request http_request, additional_data
-        [ http_request.body, http_request ]
+
+      # Receive the Message payload String from the HTTP Message object.
+      # Returns the original http_message as the message_state.
+      def _receive_message http_message, additional_data
+        [ http_message.body, http_message ]
       end
-      
-      # Send the Response payload String in the HTTP Response object as application/binary.
-      def _send_response request, response, response_payload, http_response, request_state
-        http_response[CONTENT_TYPE] = APPLICATION_BINARY
-        http_response.body = response_payload
+
+      # Send the Result payload String in the HTTP Response object as application/binary.
+      def _send_result message, result, result_payload, http_result, message_state
+        http_result[CONTENT_TYPE] = APPLICATION_BINARY
+        http_result.body = result_payload
       end
 
       # TODO: rename prepare_webrick_server!
@@ -68,7 +68,7 @@ module ASIR
         opts[:Port] ||= port
         @server = ::WEBrick::HTTPServer.new(opts)
         @server.mount_proc path, lambda { | rq, rs |
-          serve_request! rq, rs
+          serve_message! rq, rs
         }
         self
       rescue ::Exception => exc

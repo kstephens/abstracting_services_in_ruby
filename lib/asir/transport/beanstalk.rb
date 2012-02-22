@@ -19,19 +19,19 @@ module ASIR
       end
 
       # !SLIDE
-      # Sends the encoded Request payload String.
-      def _send_request request, request_payload
+      # Sends the encoded Message payload String.
+      def _send_message message, message_payload
         stream.with_stream! do | s |
           begin
             match = 
               _beanstalk(s, 
-                         "put #{request[:beanstalk_priority] || @priority} #{request[:beanstalk_delay] || @delay} #{request[:beanstalk_ttr] || @ttr} #{request_payload.size}\r\n",
+                         "put #{message[:beanstalk_priority] || @priority} #{message[:beanstalk_delay] || @delay} #{message[:beanstalk_ttr] || @ttr} #{message_payload.size}\r\n",
                          /\AINSERTED (\d+)\r\n\Z/,
-                         request_payload)
-            job_id = request[:beanstalk_job_id] = match[1].to_i
+                         message_payload)
+            job_id = message[:beanstalk_job_id] = match[1].to_i
             _log { "beanstalk_job_id = #{job_id.inspect}" } if @verbose >= 2
           rescue ::Exception => exc
-            request[:beanstalk_error] = exc
+            message[:beanstalk_error] = exc
             close
             raise exc
           end
@@ -41,8 +41,8 @@ module ASIR
       RESERVE = "reserve\r\n".freeze
 
       # !SLIDE
-      # Receives the encoded Request payload String.
-      def _receive_request channel, additional_data
+      # Receives the encoded Message payload String.
+      def _receive_message channel, additional_data
         channel.with_stream! do | stream |
           begin
             match = 
@@ -50,14 +50,14 @@ module ASIR
                          RESERVE,
                          /\ARESERVED (\d+) (\d+)\r\n\Z/)
             additional_data[:beanstalk_job_id] = match[1].to_i
-            additional_data[:beanstalk_request_size] = 
+            additional_data[:beanstalk_message_size] = 
               size = match[2].to_i
-            request_payload = stream.read(size)
+            message_payload = stream.read(size)
             _read_line_and_expect! stream, /\A\r\n\Z/
-            # Pass the original stream used to #_send_response below.
-            [ request_payload, stream ]
+            # Pass the original stream used to #_send_result below.
+            [ message_payload, stream ]
           rescue ::Exception => exc
-            _log { [ :_receive_request, :exception, exc ] }
+            _log { [ :_receive_message, :exception, exc ] }
             additional_data[:beanstalk_error] = exc
             channel.close
           end
@@ -65,12 +65,12 @@ module ASIR
       end
 
       # !SLIDE
-      # Sends the encoded Response payload String.
-      def _send_response request, response, response_payload, channel, stream
+      # Sends the encoded Result payload String.
+      def _send_result message, result, result_payload, channel, stream
         #
         # There is a possibility here the following could happen:
         #
-        #   _receive_request
+        #   _receive_message
         #     channel == #<Channel:1>   
         #     channel.stream == #<TCPSocket:1234>
         #   end
@@ -79,17 +79,17 @@ module ASIR
         #      channel.stream.close
         #      channel.stream = nil
         #   ...
-        #   _send_response 
+        #   _send_result 
         #     channel == #<Channel:1>
         #     channel.stream == #<TCPSocket:5678> # NEW CONNECTION
         #     stream.write "delete #{job_id}"
         #   ...
         #
-        # Therefore: _receiver_request passes the original request stream to us.
+        # Therefore: _receiver_message passes the original message stream to us.
         # We insure that the same stream is still the active one and use it.
         channel.with_stream! do | maybe_other_stream |
-          _log [ :_send_response, "stream lost" ] if maybe_other_stream != stream
-          job_id = request[:beanstalk_job_id] or raise "no beanstalk_job_id"
+          _log [ :_send_result, "stream lost" ] if maybe_other_stream != stream
+          job_id = message[:beanstalk_job_id] or raise "no beanstalk_job_id"
           _beanstalk(stream,
                      "delete #{job_id}\r\n",
                      /\ADELETED\r\n\Z/)
@@ -97,16 +97,16 @@ module ASIR
       end
 
       # !SLIDE
-      # Receives the encoded Response payload String.
-      def _receive_response request, opaque_response
+      # Receives the encoded Result payload String.
+      def _receive_result message, opaque_result
         nil
       end
 
       # !SLIDE
-      # Sets beanstalk_delay if request.delay was specified.
-      def relative_request_delay! request, now = nil
+      # Sets beanstalk_delay if message.delay was specified.
+      def relative_message_delay! message, now = nil
         if delay = super
-          request[:beanstalk_delay] = delay.to_i
+          message[:beanstalk_delay] = delay.to_i
         end
         delay
       end
@@ -116,16 +116,16 @@ module ASIR
 
       # Send "something ...\r\n".
       # Expect /\ASOMETHING (\d+)...\r\n".
-      def _beanstalk stream, request, expect, payload = nil
-        _log { [ :_beanstalk, :request, request ] } if @verbose >= 3
-        stream.write request
+      def _beanstalk stream, message, expect, payload = nil
+        _log { [ :_beanstalk, :message, message ] } if @verbose >= 3
+        stream.write message
         if payload
           stream.write payload
           stream.write LINE_TERMINATOR
         end
         stream.flush
         if match = _read_line_and_expect!(stream, expect)
-          _log { [ :_beanstalk, :response, match[0] ] } if @verbose >= 3
+          _log { [ :_beanstalk, :result, match[0] ] } if @verbose >= 3
         end
         match
       end
@@ -176,7 +176,7 @@ module ASIR
       def serve_stream! in_stream, out_stream
         while @running
           begin
-            serve_stream_request! in_stream, out_stream
+            serve_stream_message! in_stream, out_stream
           rescue ::Exception => exc
             _log [ :serve_stream_error, exc ]
             @running = false

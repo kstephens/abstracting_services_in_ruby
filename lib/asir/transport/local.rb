@@ -3,17 +3,17 @@ module ASIR
     # !SLIDE
     # Local Transport
     #
-    # Send Request to same process.
+    # Send Message to same process.
     # Requires a Identity Coder.
     class Local < self
-      # Returns Response object after invoking Request.
-      def _send_request request, request_payload
-        invoke_request!(request)
+      # Returns Result object after invoking Message.
+      def _send_message message, message_payload
+        invoke_message!(message)
       end
 
-      # Returns Response object from #send_request.
-      def _receive_response request, opaque_response
-        opaque_response
+      # Returns Result object from #send_message.
+      def _receive_result message, opaque_result
+        opaque_result
       end
     end
     # !SLIDE END

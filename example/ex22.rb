@@ -5,7 +5,7 @@ require 'example_helper'
 pr(Email.client.send_email(:pdf_invoice,
                            :to => "user@email.com",
                            :customer => @customer,
-                           &proc { | response | pr [ :in_block, response.result ] })
+                           &proc { | res | pr [ :in_block, res.result ] })
 )
 
 # !SLIDE END

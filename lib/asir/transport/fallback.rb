@@ -7,20 +7,20 @@ module ASIR
     class Fallback < self
       include Composite
 
-      def _send_request request, request_payload
+      def _send_message message, message_payload
         result = sent = first_exception = nil
         transports.each do | transport |
           begin
-            result = transport.send_request(request)
+            result = transport.send_message(message)
             sent = true
             break
           rescue ::Exception => exc
             first_exception ||= exc
-            _handle_send_request_exception! transport, request, exc
+            _handle_send_message_exception! transport, message, exc
           end
         end
         unless sent
-          _log { [ :send_request, :fallback_failed, first_exception ] }
+          _log { [ :send_message, :fallback_failed, first_exception ] }
           if first_exception && @reraise_first_exception
             $! = first_exception
             raise

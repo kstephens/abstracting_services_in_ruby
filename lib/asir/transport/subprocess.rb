@@ -5,24 +5,24 @@ module ASIR
     # !SLIDE
     # Subprocess Transport
     #
-    # Send one-way Request to a forked subprocess.
+    # Send one-way Message to a forked subprocess.
     class Subprocess < Local
       def initialize *args
         @one_way = true; super
       end
 
-      def _send_request request, request_payload
+      def _send_message message, message_payload
         Process.fork do
-          send_response(super, nil, nil)
+          send_result(super, nil, nil)
         end
       end
 
-      # one-way; no Response
-      def _receive_response request, opaque_response
+      # one-way; no Result
+      def _receive_result message, opaque_result
       end
 
-      # one-way; no Response
-      def _send_response request, response, response_payload, stream, request_state
+      # one-way; no Result
+      def _send_result message, result, result_payload, stream, message_state
       end
     end
     # !SLIDE END

@@ -8,7 +8,7 @@ module ASIR
     class Yaml < self
       def _encode obj
         case obj
-        when Request, Response
+        when Message, Result
           obj = obj.encode_more!
         end
         ::YAML::dump(obj)
@@ -21,7 +21,7 @@ module ASIR
 
       def _decode obj
         case obj = ::YAML::load(obj)
-        when Request, Response
+        when Message, Result
           obj.decode_more!
         else
           obj

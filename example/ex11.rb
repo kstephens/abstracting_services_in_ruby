@@ -42,7 +42,7 @@ end
 # EXPECT/: : Email.send_mail :pdf_invoice .*:to=>"user2@email.com"
 # EXPECT: : pr: :ok
 # EXPECT: service.log" contents:
-# EXPECT: --- !ruby/object:ASIR::Request
+# EXPECT: --- !ruby/object:ASIR::Message
 # EXPECT:   :transport_exceptions:
 # EXPECT: ASIR::Error: Cannot connect to ASIR::Transport::TcpSocket tcp://127.0.0.1:
 # EXPECT: arguments:

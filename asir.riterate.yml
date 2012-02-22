@@ -21,16 +21,16 @@ riterate:
   - "Design: Nouns"
   - "Design: Verbs"
   - "Simple"
-  - "Client-Side Request"
+  - "Client-Side Message"
   - "Server-Side"
-  - "Client-Side Response"
+  - "Client-Side Result"
   - Sample Service
   - Using a Client Proxy
-  - Example Request
+  - Example Message
   - Client support for any Module
   - Client Proxy
-  - Request
-  - Response
+  - Message
+  - Result
   - Coder
   - Identity Coder
   - Transport
@@ -64,30 +64,30 @@ riterate:
   - "Socket service with local fallback. - Output"
   - Implementation
   - Transport
-  - Transport#send_request
+  - Transport#send_message
   - Local Transport
   - Null Transport
   - YAML Coder
   - File Transport
   - File Transport Support
   - Payload IO for Transport
-  - Transport#receive_request
-  - Process (receive) requests from a file.
+  - Transport#receive_message
+  - Process (receive) messages from a file.
   - Stream Transport
-  - Serve all Requests from a stream.
-  - Serve a Request from a stream.
+  - Serve all Messages from a stream.
+  - Serve a Message from a stream.
   - Chain Coder
   - Marshal Coder
   - Sign Coder
   - TCP Socket Transport
   - TCP Socket Server
   - TCP Socket Client
-  - "Transport#send_response"
-  - "Transport#receive_response"
-  - "Sends the encoded Request payload String."
-  - "Receives the encoded Request payload String."
-  - "Sends the encoded Response payload String."
-  - "Receives the encoded Response payload String."
+  - "Transport#send_result"
+  - "Transport#receive_result"
+  - "Sends the encoded Message payload String."
+  - "Receives the encoded Message payload String."
+  - "Sends the encoded Result payload String."
+  - "Receives the encoded Result payload String."
   - Fallback Transport
   - Buffer Transport
   - Synopsis
@@ -101,7 +101,7 @@ riterate:
   - Broadcast Transport
   - HTTP Transport
   - Transport Support
-  - Request Identity
+  - Message Identity
   - Code More
   - Client Mixin
   - Proxy Configuration

@@ -60,28 +60,28 @@ module ASIR
       end
 
       # !SLIDE
-      # Sends the encoded Request payload String.
-      def _send_request request, request_payload
+      # Sends the encoded Message payload String.
+      def _send_message message, message_payload
         stream.with_stream! do | io |
-          _write request_payload, io
+          _write message_payload, io
         end
       end
 
       # !SLIDE
-      # Receives the encoded Request payload String.
-      def _receive_request stream, additional_data
+      # Receives the encoded Message payload String.
+      def _receive_message stream, additional_data
         [ _read(stream), nil ]
       end
 
       # !SLIDE
-      # Sends the encoded Response payload String.
-      def _send_response request, response, response_payload, stream, request_state
-        _write response_payload, stream
+      # Sends the encoded Result payload String.
+      def _send_result message, result, result_payload, stream, message_state
+        _write result_payload, stream
       end
 
       # !SLIDE
-      # Receives the encoded Response payload String.
-      def _receive_response request, opaque_response
+      # Receives the encoded Result payload String.
+      def _receive_result message, opaque_result
         stream.with_stream! do | io |
           _read io
         end

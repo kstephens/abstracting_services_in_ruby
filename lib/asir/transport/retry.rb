@@ -10,23 +10,23 @@ module ASIR
 
       # The transport to delegate to.
       attr_accessor :transport
-      # Proc to call(transport, request) before retry.
+      # Proc to call(transport, message) before retry.
       attr_accessor :before_retry
 
-      def _send_request request, request_payload
+      def _send_message message, message_payload
         first_exception = nil
         with_retry do | action, data |
           case action
           when :try
-            transport.send_request(request)
+            transport.send_message(message)
           when :rescue #, exc
             first_exception ||= data
-            _handle_send_request_exception! transport, request, data
+            _handle_send_message_exception! transport, message, data
           when :retry #, exc
-            before_retry.call(self, request) if before_retry
+            before_retry.call(self, message) if before_retry
           when :failed
-            _log { [ :send_request, :retry_failed, first_exception ] }
-            @on_failed_request.call(self, request) if @on_failed_request
+            _log { [ :send_message, :retry_failed, first_exception ] }
+            @on_failed_message.call(self, message) if @on_failed_message
             if first_exception && @reraise_first_exception
               $! = first_exception
               raise

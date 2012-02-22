@@ -6,43 +6,43 @@ module ASIR
     # !SLIDE
     # Buffer Transport
     #
-    # Buffers Requests until #flush!
-    # Assumes One-way Requests.
+    # Buffers Messages until #flush!
+    # Assumes One-way Messages.
     class Buffer < self
       include Delegation
 
-      # Transport to send_request.
+      # Transport to send_message.
       attr_accessor :transport
 
       def initialize *args
         super
-        @requests = Queue.new
-        @requests_mutex = Mutex.new
+        @messages = Queue.new
+        @messages_mutex = Mutex.new
         @paused = 0
         @paused_mutex = Mutex.new
       end
 
-      # If paused, queue requests,
+      # If paused, queue messages,
       # Otherwise delegate immediately to #transport.
-      def _send_request request, request_payload
+      def _send_message message, message_payload
         return nil if @ignore
         if paused?
-          @requests_mutex.synchronize do
-            @requests << request
+          @messages_mutex.synchronize do
+            @messages << message
           end
           nil
         else
-          @transport.send_request(request)
+          @transport.send_message(message)
         end
       end
 
       # Returns true if currently paused.
-      # Requests are queued until #resume!.
+      # Messages are queued until #resume!.
       def paused?
         @paused > 0
       end
 
-      # Pauses all requests until resume!.
+      # Pauses all messages until resume!.
       # May be called multiple times.
       def pause!
         @paused_mutex.synchronize do
@@ -62,49 +62,49 @@ module ASIR
       end
 
       def size
-        @requests_mutex.synchronize do
-          @requests.size
+        @messages_mutex.synchronize do
+          @messages.size
         end
       end
 
-      # Will flush pending Requests even if ! #paused?.
+      # Will flush pending Messages even if ! #paused?.
       def flush!
-        clear!.each do | request |
-          @transport.send_request(request)
+        clear!.each do | message |
+          @transport.send_message(message)
         end
         self
       end
 
-      # Clear all pending Requests without sending them.
-      # Returns Array of Requests that would have been sent.
+      # Clear all pending Messages without sending them.
+      # Returns Array of Messages that would have been sent.
       def clear!
-        requests = [ ]
-        @requests_mutex.synchronize do
-          @requests.size.times do
-            requests << @requests.shift(true)
+        messages = [ ]
+        @messages_mutex.synchronize do
+          @messages.size.times do
+            messages << @messages.shift(true)
           end
         end
-        requests
+        messages
       end
 
-      # Take Request from head of Queue.
+      # Take Message from head of Queue.
       def shift non_block=false
-        @requests.shift(non_block)
+        @messages.shift(non_block)
       end
 
       # Processes queue.
       # Usually used in worker Thread.
       def process! non_block=false
         @running = true
-        while @running && request = shift(non_block)
-          @transport.send_request(request)
+        while @running && message = shift(non_block)
+          @transport.send_message(message)
         end
-        request
+        message
       end
 
       # Stop processing queue.
       def stop!
-        @requests_mutex.synchronize do
+        @messages_mutex.synchronize do
           @ignore = true; @running = false
         end
         self

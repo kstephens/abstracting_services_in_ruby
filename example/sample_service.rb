@@ -91,7 +91,7 @@ end
 
 
 # !SLIDE
-# Example Request
+# Example Message
 #
 # @@@ ruby
 # Email.client.send_email(:pdf_invoice, 
@@ -100,11 +100,11 @@ end
 # @@@
 # ->
 # @@@ ruby  
-# request = Request.new(...)
-# request.receiver_class == ::Module
-# request.receiver == ::Email
-# request.selector == :send_email
-# request.arguments == [ :pdf_invoice,
+# message = Message.new(...)
+# message.receiver_class == ::Module
+# message.receiver == ::Email
+# message.selector == :send_email
+# message.arguments == [ :pdf_invoice,
 #                        { :to => "user@email.com", :customer => ... } ]
 # @@@
 #
@@ -135,7 +135,7 @@ end
 # @@@
 # ->
 # @@@ ruby
-# response.exception = ee = EncapsulatedException.new(...)
+# result.exception = ee = EncapsulatedException.new(...)
 # ee.exception_class = "::RuntimeError"
 # ee.exception_message = "DOH!"
 # ee.exception_backtrace = [ ... ]

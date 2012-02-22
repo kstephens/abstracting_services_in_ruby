@@ -42,7 +42,7 @@ class Main
   def run!
     unless verb && adjective && object
       @exit_code = 1
-      return usage! 
+      return usage!
     end
     config(:config)
     case verb
@@ -67,6 +67,8 @@ class Main
 
   def method_missing sel, *args
     case sel.to_s
+    when /^start_([^_]+)_worker!$/
+      _start_worker!
     when /^status_([^_]+)_([^_]+)!$/
       pid = server_pid
       puts "#{log_str} pid #{pid}"
@@ -89,8 +91,8 @@ class Main
 SYNOPSIS:
   asir <<verb>> <<adjective>> <<object>> [ <<identifier>> ]
 
-VERBS: 
-  start 
+VERBS:
+  start
   stop
   restart
   status
@@ -98,37 +100,37 @@ VERBS:
   pid
 
 ADJECTIVE-OBJECTs:
-  beanstalk conduit 
+  beanstalk conduit
   beanstalk worker
+  zmq worker
   webrick worker
 
 EXAMPLES:
 
-  export ASIR_CONFIG_RB="cnuapp/etc/config/asir_config.rb"
+  export ASIR_CONFIG_RB="some_system/asir_config.rb"
   asir start beanstalk conduit
   asir status beanstalk conduit
-  asir start webrick worker 
+
+  asir start webrick worker
+
   asir start beanstalk worker 1
   asir start beanstalk worker 2
+
+  asir start zmq worker
+  asir start zmq worker 1
+  asir start zmq worker 2
 END
   end
 
   def start_beanstalk_conduit!
-    fork_server "beanstalkd"
+    fork_server! "beanstalkd"
   end
 
-  def start_beanstalk_worker!
-    fork_server do
-      require 'asir/transport/beanstalk'
-      _create_transport ASIR::Transport::Beanstalk
-      _run_workers!
-    end
-  end
-
-  def start_webrick_worker!
-    fork_server do
-      require 'asir/transport/http'
-      _create_transport ASIR::Transport::Webrick
+  def _start_worker! type = adjective
+    type = type.to_s
+    fork_server! do
+      require "asir/transport/#{type}"
+      _create_transport ASIR::Transport.const_get(type[0..0].upcase + type[1..-1])
       _run_workers!
     end
   end
@@ -136,7 +138,7 @@ END
   ################################################################
 
   def config_rb
-    @config_rb ||= 
+    @config_rb ||=
       File.expand_path(ENV['ASIR_CONFIG_RB'] || 'config/asir_config.rb')
   end
 
@@ -164,22 +166,26 @@ END
         cfg = config_lambda.call(self)
         $stderr.puts "#{log_str} calling #{config_rb} asir.verb=#{@verb.inspect} DONE" if @verbose >= 1
         cfg
-      ensure 
+      ensure
         @verb = save_verb
       end
   end
 
   def pid_file
-    "#{pid_dir}/asir-#{adjective}-#{object}-#{identifier}.pid"
+    "#{pid_dir}/#{asir_basename}.pid"
   end
 
   def log_file
-    "#{log_dir}/asir-#{adjective}-#{object}-#{identifier}.log"
+    "#{log_dir}/#{asir_basename}.log"
   end
 
-  def fork_server cmd = nil, &blk
+  def asir_basename
+    "asir-#{adjective}-#{object}-#{identifier}"
+  end
+
+  def fork_server! cmd = nil, &blk
     pid = Process.fork do
-      run_server cmd, &blk
+      run_server! cmd, &blk
     end
     Process.detach(pid) # Forks a Thread?  We are gonna exit anyway.
     File.open(pid_file, "w+") { | o | o.puts pid }
@@ -187,7 +193,7 @@ END
     self
   end
 
-  def run_server cmd = nil
+  def run_server! cmd = nil
     log = File.open(log_file, "a+")
     File.chmod(0666, log_file) rescue nil
     log.puts "#{log_str} starting pid #{$$}"
@@ -283,10 +289,10 @@ END
   def _run_transport_server! wid = 0
     $0 += " #{wid}"
     old_arg0 = $0.dup
-    after_receive_request = @transport.after_receive_request || lambda { | transport, request | nil }
-    @transport.after_receive_request = lambda do | transport, request | 
-      $0 = "#{old_arg0} #{transport.request_count} #{request.identifier}"
-      after_receive_request.call(transport, request)
+    after_receive_message = @transport.after_receive_message || lambda { | transport, message | nil }
+    @transport.after_receive_message = lambda do | transport, message |
+      $0 = "#{old_arg0} #{transport.message_count} #{message.identifier}"
+      after_receive_message.call(transport, message)
     end
     @transport.run_server!
     self

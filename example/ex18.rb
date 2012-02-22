@@ -12,9 +12,9 @@ begin
   tcp = ASIR::Transport::TcpSocket.new(:port => 31918,
                                        :encoder => ASIR::Coder::Marshal.new)
 
-  start_server_proc = lambda do | transport, request |
-    $stderr.puts "request = #{request.inspect}"
-    file.send_request(request)
+  start_server_proc = lambda do | transport, message |
+    $stderr.puts "message = #{message.inspect}"
+    file.send_message(message)
     server_process do
       tcp.prepare_server!
       tcp.run_server!
@@ -55,7 +55,7 @@ end
 # EXPECT/: : Email.send_mail :pdf_invoice .*:to=>"user2@email.com"
 # EXPECT: : pr: :ok
 # EXPECT: service.log" contents:
-# EXPECT: --- !ruby/object:ASIR::Request
+# EXPECT: --- !ruby/object:ASIR::Message
 # EXPECT:   :transport_exceptions:
 # EXPECT: ASIR::Error: Cannot connect to ASIR::Transport::TcpSocket tcp://127.0.0.1:
 # EXPECT: arguments:

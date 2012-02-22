@@ -109,8 +109,8 @@
 # * Service -> Object
 # * Client -> Just a Ruby caller.
 # * Proxy
-# * Request -> Just a Ruby message.
-# * Response, Exception (two-way) -> Return value or else.
+# * Message -> Just a Ruby message.
+# * Result, Exception (two-way) -> Return value or else.
 # * Transport -> (file, pipe, http, queue, ActiveResource)
 # * Encoder, Decoder -> Coder (Marshal, XML, JSON, ActiveResource)
 #
@@ -119,10 +119,10 @@
 # !SLIDE
 # Design: Verbs
 #
-# * Intercept Request -> Proxy
-# * Invoke Request    -> Request
+# * Intercept Message -> Proxy
+# * Invoke Message    -> Message
 # * Invoke Exception
-# * Send Request, Recieve Request -> Transport
+# * Send Message, Recieve Message -> Transport
 # * Encode Object, Decode Object -> Coder
 #
 # !SLIDE END
@@ -133,7 +133,7 @@
 # !PIC BEGIN
 # 
 # box "Client" "(CustomersController" "#send_invoice)"; arrow; 
-# ellipse "Send" "Request" "(Ruby message)"; arrow; 
+# ellipse "Send" "Message" "(Ruby message)"; arrow; 
 # box "Service" "(Email.send_email)";
 #
 # !PIC END
@@ -141,14 +141,14 @@
 # !SLIDE END
 
 # !SLIDE
-# Client-Side Request
+# Client-Side Message
 #
 # !PIC BEGIN
 # box "Client"; arrow; 
 # ellipse "Proxy"; arrow; 
-# ellipse "Create" "Request"; arrow; 
-# ellipse "Encode" "Request"; arrow; 
-# ellipse "Send" "Request";
+# ellipse "Create" "Message"; arrow; 
+# ellipse "Encode" "Message"; arrow; 
+# ellipse "Send" "Message";
 # line; down; arrow;
 # !PIC END
 #
@@ -159,32 +159,32 @@
 #
 # !PIC BEGIN
 # down; line; right; arrow; 
-# ellipse "Receive" "Request"; arrow; 
-# ellipse "Decode" "Request"; arrow; 
-# ellipse "Request"; 
+# ellipse "Receive" "Message"; arrow; 
+# ellipse "Decode" "Message"; arrow; 
+# ellipse "Message"; 
 # line; down; arrow; 
-# IR: ellipse "Invoke" "Request";
+# IR: ellipse "Invoke" "Message";
 # right; move; move;
 # Service: box "Service" with .w at IR.e + (movewid, 0); 
 # arrow <-> from IR.e to Service.w;
 # move to IR.s; down; line;
 # left; arrow; 
-# ellipse "Create" "Response"; arrow; 
-# ellipse "Encode" "Response"; arrow;
-# ellipse "Send" "Response"; 
+# ellipse "Create" "Result"; arrow; 
+# ellipse "Encode" "Result"; arrow;
+# ellipse "Send" "Result"; 
 # line; down; arrow
 # !PIC END
 #
 # !SLIDE END
 
 # !SLIDE
-# Client-Side Response
+# Client-Side Result
 #
 # !PIC BEGIN
 # down; line; left; arrow;
-# ellipse "Receive" "Response"; arrow; 
-# ellipse "Decode" "Response"; arrow; 
-# ellipse "Response"; arrow; 
+# ellipse "Receive" "Result"; arrow; 
+# ellipse "Decode" "Result"; arrow; 
+# ellipse "Result"; arrow; 
 # ellipse "Proxy"; arrow; 
 # box "Client";
 # !PIC END
@@ -215,10 +215,10 @@ require 'asir/log'
 require 'asir/initialization'
 require 'asir/additional_data'
 require 'asir/object_resolving'
-require 'asir/request_identity'
+require 'asir/identity'
 require 'asir/code_more'
-require 'asir/request'
-require 'asir/response'
+require 'asir/message'
+require 'asir/result'
 require 'asir/client'
 require 'asir/coder'
 require 'asir/transport'
@@ -233,7 +233,7 @@ require 'asir/transport/local'
 #
 # !SLIDE END
 
-# !SLIDES
+# !SLIDE
 # Slide Tools
 #
 # * Riterate -- "":http://github.com/kstephens/riterate

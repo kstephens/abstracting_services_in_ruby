@@ -3,15 +3,15 @@ require 'thread' # Mutex
 
 module ASIR
   # !SLIDE
-  # Request Identity
+  # Message Identity
   #
-  module RequestIdentity
+  module Identity
     attr_accessor :identifier, :timestamp
 
-    # Optional: Opaque data about the Client that created the Request.
+    # Optional: Opaque data about the Client that created the Message.
     attr_accessor :client
 
-    # Optional: Opaque data about the Service that handled the Response.
+    # Optional: Opaque data about the Service that handled the Result.
     attr_accessor :server
 
     # Creates a thread-safe unique identifier.

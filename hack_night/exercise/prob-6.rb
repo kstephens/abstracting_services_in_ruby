@@ -1,6 +1,6 @@
 # Write a ASIR::Transport::HTTP class.
-# Using HTTP::Client for transport send_request and receive_response.
-# Using WEBrick for transport on the receive_request and send_response.
+# Using HTTP::Client for transport send_message and receive_result.
+# Using WEBrick for transport on the receive_message and send_result.
 # Use the Marshal Coder for the Transport.
 
 require 'rubygems'
@@ -22,28 +22,28 @@ module ASIR
       # Client-side: HTTPClient
 
       # Should HTTP put the request payload String to the uri.
-      # Return the HTTPClient response Message object.
-      def _send_request request_payload
+      # Return the HTTPClient result Message object.
+      def _send_message message, message_payload
         client = ::HTTPClient.new
         # ???
       end
 
-      # Should extract the content from the HTTPClient::Message
-      def _receive_response httpclient_response_message
-        # ??? 
+      # Should extract the content from the HTTPClient::Respone
+      def _receive_result httpclient_response_message
+        # ???
       end
 
       # Server-side: WEBrick
-      
+
       # Extract the body from the WEBrick request.
-      def _receive_request webrick_request
+      def _receive_message webrick_request
         # ???
       end
 
       # Set the WEBrick response Content-Type.
-      # Set the WEBrick response body with the response_payload String.
-      def _send_response respone_payload, webrick_response
-        # ??? 
+      # Set the WEBrick response body with the result_payload String.
+      def _send_result result_payload, webrick_result
+        # ???
       end
 
       # Parse the port and path of the #uri.
@@ -56,7 +56,7 @@ module ASIR
 
       # Start the WEBbrick @server.
       def start_webrick_server!
-        # ??? 
+        # ???
         self
       end
     end
@@ -66,7 +66,7 @@ end
 
 port = 3001
 begin
-  t = # ??? 
+  t = # ???
   t._log_enabled = true
 
   c = t.encoder = ASIR::Coder::Marshal.new
@@ -74,8 +74,8 @@ begin
 
   # Setup and start the WEBrick server in a child process.
   server_pid = Process.fork do
-    # ??? 
-    # ??? 
+    # ???
+    # ???
   end
   sleep 1 # wait for server to start
 

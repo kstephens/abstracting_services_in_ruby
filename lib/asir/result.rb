@@ -1,27 +1,27 @@
 module ASIR
   # !SLIDE
-  # Response
+  # Result
   #
-  # Encapsulate the response returned to the Client.
-  class Response
-    include AdditionalData, RequestIdentity
-    attr_accessor :request, :result, :exception
-    # Optional: Opaque data about the server that processed the Request.
+  # Encapsulate the result returned to the Client.
+  class Result
+    include AdditionalData, Identity
+    attr_accessor :message, :result, :exception
+    # Optional: Opaque data about the server that processed the Message.
     attr_accessor :server
 
-    def initialize req, res = nil, exc = nil
-      @request = req; @result = res
+    def initialize msg, res = nil, exc = nil
+      @message = msg; @result = res
       @exception = exc && EncapsulatedException.new(exc)
-      @identifier = @request.identifier
+      @identifier = @message.identifier
     end
 
     def encode_more!
-      @request = @request.encode_more! if @request
+      @message = @message.encode_more! if @message
       self
     end
 
     def decode_more!
-      @request = @request.decode_more! if @request
+      @message = @message.decode_more! if @message
       self
     end
   end

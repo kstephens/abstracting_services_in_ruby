@@ -23,8 +23,8 @@ end
 # EXPECT: : client process
 # EXPECT: service.log" contents:
 # EXPECT: pr: nil
-# EXPECT: --- !ruby/object:ASIR::Request
-# EXPECT: --- !ruby/object:ASIR::Request
+# EXPECT: --- !ruby/object:ASIR::Message
+# EXPECT: --- !ruby/object:ASIR::Message
 # EXPECT: arguments:
 # EXPECT: - :pdf_invoice
 # EXPECT:   :to: user@email.com

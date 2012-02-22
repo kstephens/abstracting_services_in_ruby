@@ -47,13 +47,13 @@ module ASIR
         @transport ||= Transport::Local.new
       end
 
-      # Accept messages as a proxy for thje receiver.
-      # Blocks are used represent a "continuation" for the Response.
+      # Accept messages as a proxy for the receiver.
+      # Blocks are used represent a "continuation" for the Result.
       def send selector, *arguments, &block
-        request = Request.new(receiver, selector, arguments, block)
-        request = @before_send_request.call(request) if @before_send_request
-        @__configure.call(request) if @__configure
-        result = transport.send_request(request)
+        message = Message.new(receiver, selector, arguments, block)
+        message = @before_send_message.call(message) if @before_send_message
+        @__configure.call(message) if @__configure
+        result = transport.send_message(message)
         result
       end
       # Accept all other messages to be encoded and transported to a service.
@@ -62,16 +62,16 @@ module ASIR
       # !SLIDE
       # Proxy Configuration
 
-      # A Proc to call with the Request object before sending to transport#send_request(request).
-      # Must return a Request object.
-      attr_accessor :before_send_request
+      # A Proc to call with the Message object before sending to transport#send_message(message).
+      # Must return a Message object.
+      attr_accessor :before_send_message
 
-      # A Proc to call with the Request object before sending to transport#send_request(request).
+      # A Proc to call with the Message object before sending to transport#send_message(message).
       # See #_configure.
       attr_accessor :__configure
 
-      # Returns a new Client proxy with a block to be called with the Request.
-      # This block can configure additional options of the Request before
+      # Returns a new Client proxy with a block to be called with the Message.
+      # This block can configure additional options of the Message before
       # it is sent to the Transport.
       def _configure &blk
         client = self.dup

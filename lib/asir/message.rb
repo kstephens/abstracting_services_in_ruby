@@ -1,13 +1,13 @@
 
 module ASIR
   # !SLIDE
-  # Request
+  # Message
   #
-  # Encapsulate the request message from the Client to be handled by the Service.
-  class Request
-    include AdditionalData, RequestIdentity, CodeMore
+  # Encapsulate the Ruby message from the Client to be handled by the Service.
+  class Message
+    include AdditionalData, Identity, CodeMore
     attr_accessor :receiver, :receiver_class, :selector, :arguments, :block
-    attr_accessor :response
+    attr_accessor :result
 
     def initialize r, s, a, b
       @receiver, @selector, @arguments = r, s, a
@@ -16,15 +16,15 @@ module ASIR
     end
 
     def invoke!
-      @response = Response.new(self, @result = @receiver.__send__(@selector, *@arguments))
+      @result = Result.new(self, @result = @receiver.__send__(@selector, *@arguments))
     rescue *Error::Unforwardable.unforwardable => exc
-      @response = Response.new(self, nil, Error::Unforwardable.new(exc))
+      @result = Result.new(self, nil, Error::Unforwardable.new(exc))
     rescue ::Exception => exc
-      @response = Response.new(self, nil, exc)
+      @result = Result.new(self, nil, exc)
     end
 
-    # Optional: Specifies the Numeric seconds or absolute Time to delay the Request until actual processing.
-    attr_accessor :delay 
+    # Optional: Specifies the Numeric seconds or absolute Time to delay the Message until actual processing.
+    attr_accessor :delay
   end
   # !SLIDE END
 end

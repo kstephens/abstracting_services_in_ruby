@@ -1,4 +1,4 @@
-# Write a ASIR::Transport::HTTP class that uses HTTP::Client for transport send_response and receive_response.
+# Write a ASIR::Transport::HTTP class that uses HTTP::Client for transport send_result and receive_result.
 
 $: << File.expand_path("../../../lib", __FILE__)
 require 'asir/transport/http'

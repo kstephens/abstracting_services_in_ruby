@@ -26,12 +26,12 @@ module ASIR
         @server = sock
       end
 
-      def _receive_response request, opaque_response
+      def _receive_result message, opaque_result
         return nil if @one_way
         super
       end
 
-      def _send_response request, response, response_payload, stream, request_state
+      def _send_result message, result, result_payload, stream, message_state
         return nil if @one_way
         super
       end
@@ -54,7 +54,7 @@ module ASIR
           while @running
             begin
               # Inbound only.
-              serve_stream_request!(@server, @one_way ? nil : @server)
+              serve_stream_message!(@server, @one_way ? nil : @server)
             rescue Error::Terminate => err
               @running = false
               _log [ :run_server_terminate, err ]

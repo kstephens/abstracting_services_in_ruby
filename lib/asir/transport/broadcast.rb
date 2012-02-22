@@ -9,14 +9,14 @@ module ASIR
     class Broadcast < self
       include Composite
 
-      def _send_request request, request_payload
+      def _send_message message, message_payload
         result = first_exception = nil
         transports.each do | transport |
           begin
-            result = transport.send_request(request)
+            result = transport.send_message(message)
           rescue ::Exception => exc
             first_exception ||= exc
-            _handle_send_request_exception! transport, request, exc
+            _handle_send_message_exception! transport, message, exc
             raise unless @continue_on_exception
           end
         end

@@ -2,7 +2,7 @@ module ASIR
   # !SLIDE
   # Coder 
   #
-  # Define encoding and decoding for Requests and Responses along a Transport.
+  # Define encoding and decoding for Messages and Results along a Transport.
   class Coder
     include Log, Initialization
 

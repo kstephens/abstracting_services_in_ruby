@@ -17,8 +17,8 @@ module ASIR
         obj ||= self.dup
         obj.receiver = @receiver.name if ::Module === @receiver
         obj.receiver_class = @receiver_class.name
-        if resp = obj.response and resp.request == self
-          resp.request = obj
+        if resp = obj.result and resp.message == self
+          resp.message = obj
         end
       end
       obj || self

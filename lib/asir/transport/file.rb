@@ -6,7 +6,7 @@ module ASIR
     # !SLIDE
     # File Transport
     #
-    # Send Request one-way to a file.
+    # Send Message one-way to a file.
     # Can be used as a log or named pipe service.
     class File < Stream
       include PayloadIO # _write, _read
@@ -14,43 +14,43 @@ module ASIR
 
       def initialize opts = nil; @one_way = true; super; end
 
-      # Writes a Request payload String.
-      def _send_request request, request_payload
-        _write request_payload, stream
+      # Writes a Message payload String.
+      def _send_message message, message_payload
+        _write message_payload, stream
       ensure
         close if ::File.pipe?(file)
       end
 
-      # Returns a Request payload String.
-      def _receive_request stream, additional_data
+      # Returns a Message payload String.
+      def _receive_message stream, additional_data
         [ _read(stream), nil ]
       end
 
-      # one-way; no Response.
-      def _send_response request, response, response_payload, stream, request_state
+      # one-way; no Result.
+      def _send_result message, result, result_payload, stream, message_state
         nil
       end
 
-      # one-way; no Response.
-      def _receive_response request, opaque_response
+      # one-way; no Result.
+      def _receive_result message, opaque_result
         nil
       end
 
       # !SLIDE
       # File Transport Support
-    
+
       def stream
         @stream ||=
           begin
             stream = ::File.open(file, mode || "w+")
-            ::File.chmod(perms, file) rescue nil if @perms 
+            ::File.chmod(perms, file) rescue nil if @perms
             after_connect!(stream) if respond_to?(:after_connect!)
             stream
           end
       end
 
       # !SLIDE
-      # Process (receive) requests from a file.
+      # Process (receive) messages from a file.
 
       def serve_file!
         ::File.open(file, "r") do | stream |
