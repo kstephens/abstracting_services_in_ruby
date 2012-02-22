@@ -24,6 +24,8 @@ module ASIR
         n_try += 1
         result = yield :try, n_try
         done = true
+      rescue *Error::Unforwardable.unforwardable => exc
+        raise
       rescue ::Exception => exc
         last_exception = exc
         yield :rescue, exc
@@ -40,7 +42,7 @@ module ASIR
       unless done
         unless yield :failed, last_exception
           exc = last_exception
-          raise RetryError, "Retry failed: #{exc.inspect}  \n#{exc.backtrace * "\n   "}", exc.backtrace
+          raise RetryError, "Retry failed: #{exc.inspect}", exc.backtrace
         end
       end
       result
