@@ -103,6 +103,7 @@ riterate:
   - HTTP Transport
   - Transport Support
   - Message Identity
+  - Message Delay Support
   - Code More
   - Client Mixin
   - Proxy Configuration
