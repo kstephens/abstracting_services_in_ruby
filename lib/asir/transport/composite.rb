@@ -10,7 +10,7 @@ module ASIR
 
       # Enumerable of Transport objects.
       attr_accessor :transports
-      # If true, continue with other Transports when Transport#send_message throws an Exception.
+      # If true, continue with other Transports when Transport#send_message raises an Exception.
       attr_accessor :continue_on_exception
     end
     # !SLIDE END

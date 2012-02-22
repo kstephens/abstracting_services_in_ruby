@@ -2,6 +2,8 @@ require 'asir'
 
 module ASIR
   class Coder
+    # !SLIDE
+    # Proc Coder
     # Generic Proc-based coder.
     class Proc < self
       # Procs that take one argument.
