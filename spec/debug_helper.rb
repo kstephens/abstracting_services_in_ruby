@@ -1,4 +1,4 @@
-
+require 'rubygems'
 case (RUBY_PLATFORM rescue 'UNKNOWN')
 when /java/
   # NOTHING!
