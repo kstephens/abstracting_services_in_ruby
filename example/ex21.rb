@@ -7,12 +7,10 @@ begin
   zmq = ASIR::Transport::Zmq.new(:port => 31920,
                                  :encoder => ASIR::Coder::Marshal.new,
                                  :one_way => false)
-
   server_process do
     zmq.prepare_server!
     zmq.run_server!
   end; sleep 1
-
   UnsafeService.client.transport = t = zmq
   pr UnsafeService.client.do_it(":ok")
   sleep 1

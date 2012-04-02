@@ -3,21 +3,18 @@
 
 require 'example_helper'
 begin
-  Email.client.transport = t = 
+  Email.client.transport = t =
     ASIR::Transport::TcpSocket.new(:port => 30909)
-  t.encoder = 
+  t.encoder =
     ASIR::Coder::Marshal.new
-  
   t.prepare_server!
   server_process do
     t.run_server!
   end
-  
-  pr Email.client.send_email(:pdf_invoice, 
+  pr Email.client.send_email(:pdf_invoice,
                              :to => "user@email.com", :customer => @customer)
 ensure
-  t.close; sleep 1
-  server_kill
+  t.close; sleep 1; server_kill
 end
 
 # !SLIDE END

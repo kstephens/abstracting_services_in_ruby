@@ -5,17 +5,15 @@ require 'example_helper'
 begin
   tcp = ASIR::Transport::TcpSocket.new(:port => 31919,
                                        :encoder => ASIR::Coder::Marshal.new)
-
   server_process do
     tcp.prepare_server!
     tcp.run_server!
   end; sleep 2
-
   UnsafeService.client.transport = t = tcp
   pr UnsafeService.client.do_it("exit 999; :ok")
   sleep 1
 rescue ::ASIR::Error::Unforwardable => err
-  $stderr.puts "### #{$$}: Unforwardable ERROR: #{err.inspect}\n  #{err.backtrace * "\n  "}"
+  $stderr.puts "### #{$$}: Unforwardable ERROR: #{err.inspect}}"
 rescue ::Exception => err
   $stderr.puts "### #{$$}: ERROR: #{err.inspect}\n  #{err.backtrace * "\n  "}"
   raise

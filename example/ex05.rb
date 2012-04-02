@@ -6,9 +6,8 @@ begin
   service_log = "#{__FILE__.sub('ex05', 'ex04')}.service.log"
   Email.client.transport = t =
     ASIR::Transport::File.new(:file => service_log)
-  t.encoder = 
+  t.encoder =
     ASIR::Coder::Yaml.new
-
   t.serve_file!
 end
 

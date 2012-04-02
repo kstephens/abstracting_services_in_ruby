@@ -19,11 +19,9 @@ module Email
     $stderr.puts "*** #{$$}: Email.send_mail #{template_name.inspect} #{options.inspect}"
     :ok
   end
-
   def do_raise msg
     raise msg
   end
-
   extend self
 end
 # !SLIDE END
@@ -47,7 +45,7 @@ end
 class CustomersController < ApplicationController
   def send_invoice
     @customer = Customer.find(params[:id])
-    Process.fork do 
+    Process.fork do
       Email.send_email(:pdf_invoice,
                        :to = @customer.email,
                        :customer => @customer)
@@ -62,8 +60,8 @@ end
 class CustomersController < ApplicationController
   def send_invoice
     @customer = Customer.find(params[:id])
-    EmailWork.create(:template_name => :pdf_invoice, 
-                     :options => { 
+    EmailWork.create(:template_name => :pdf_invoice,
+                     :options => {
                        :to => @customer.email,
                        :customer => @customer,
                      })
@@ -77,92 +75,88 @@ end
 class CustomersController < ApplicationController
   def send_invoice
     @customer = Customer.find(params[:id])
-    queue_service.put(:queue => :Email, 
+    queue_service.put(:queue => :Email,
                       :action => :send_email,
-                      :template_name => :pdf_invoice, 
-                      :options => { 
+                      :template_name => :pdf_invoice,
+                      :options => {
                         :to => @customer.email,
                         :customer => @customer,
                       })
   end
 end
 # !SLIDE END
-=end
-
 
 # !SLIDE
 # Example Message
 #
-# @@@ ruby
-# Email.client.send_email(:pdf_invoice, 
-#                         :to => "user@email.com",
-#                         :customer => @customer)
-# @@@
+Email.client.send_email(:pdf_invoice,
+                        :to => "user@email.com",
+                        :customer => @customer)
 # ->
-# @@@ ruby  
-# message = Message.new(...)
-# message.receiver_class == ::Module
-# message.receiver == ::Email
-# message.selector == :send_email
-# message.arguments == [ :pdf_invoice,
-#                        { :to => "user@email.com", :customer => ... } ]
-# @@@
-#
+message = Message.new(...)
+message.receiver_class == ::Module
+message.receiver == ::Email
+message.selector == :send_email
+message.arguments == [ :pdf_invoice,
+                       { :to => "user@email.com",
+                         :customer => ... } ]
 # !SLIDE END
 
 # !SLIDE
 # Using a Client Proxy
 #
-# @@@ ruby
-# Email.send_email(:pdf_invoice, 
-#                  :to => "user@email.com",
-#                  :customer => @customer)
-# @@@
+Email.send_email(:pdf_invoice,
+                 :to => "user@email.com",
+                 :customer => @customer)
 # ->
-# @@@ ruby   
-# Email.client.send_email(:pdf_invoice, 
-#                         :to => "user@email.com",
-#                         :customer => @customer)
-#
-# @@@
+Email.client.
+      send_email(:pdf_invoice,
+                 :to => "user@email.com",
+                 :customer => @customer)
 # !SLIDE END
 
 # !SLIDE
 # Example Exception
 #
-# @@@ ruby
-# Email.do_raise("DOH!")
-# @@@
-# ->
-# @@@ ruby
-# result.exception = ee = EncapsulatedException.new(...)
-# ee.exception_class = "::RuntimeError"
-# ee.exception_message = "DOH!"
-# ee.exception_backtrace = [ ... ]
-# @@@ ruby
+Email.do_raise("DOH!")
 #
+# ->
+result.exception = ee = EncapsulatedException.new(...)
+ee.exception_class = "::RuntimeError"
+ee.exception_message = "DOH!"
+ee.exception_backtrace = [ ... ]
 # !SLIDE END
+=end
 
 # !SLIDE
 # Sample Service with Client Support
-# 
+#
 
 require 'asir'
-
 # Added .client support.
 module Email
   include ASIR::Client # Email.client
-
   def send_email template_name, options
     $stderr.puts "*** #{$$}: Email.send_mail #{template_name.inspect} #{options.inspect}"
     :ok
   end
-
   def do_raise msg
     raise msg
   end
-
   extend self
 end
 # !SLIDE END
 
+# !SLIDE
+# Sample Object Instance Client
+#
+class MyClass
+  include ASIR::Client
+  def initialize x
+    @x = x
+  end
+  def method_missing sel, *args
+    @x.send(sel, *args)
+  end
+end
+# !SLIDE END

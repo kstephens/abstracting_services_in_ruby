@@ -4,34 +4,25 @@
 require 'example_helper'
 require 'asir/transport/beanstalk'
 require 'asir/coder/zlib'
-
 begin
-  Email.client.transport = t = 
+  Email.client.transport = t =
     ASIR::Transport::Beanstalk.new(:address => '127.0.0.1', :port => 30904)
   t.encoder =
-    ASIR::Coder::Chain.new(:encoders => 
-                           [
-                            ASIR::Coder::Marshal.new,
-                            # ASIR::Coder::Zlib.new,
-                           ])
-  
+    ASIR::Coder::Chain.new(:encoders =>
+                           [ ASIR::Coder::Marshal.new,
+                            ASIR::Coder::Zlib.new, ])
   t.start_beanstalkd!; sleep 1
-
-  pr Email.client.send_email(:pdf_invoice, 
+  pr Email.client.send_email(:pdf_invoice,
                              :to => "user@email.com", :customer => @customer)
-
   sleep 2
-
   server_process do
     t.prepare_beanstalk_server!
     t.run_beanstalk_server!
   end
-  
 rescue Object => err
   $stderr.puts "#{err.inspect}\n#{err.backtrace * "\n"}"
 ensure
-  t.close; sleep 3
-  server_kill; sleep 2
+  t.close; sleep 3; server_kill; sleep 2
   t.stop_beanstalkd!
 end
 

@@ -5,13 +5,10 @@ require 'example_helper'
 require 'asir/transport/retry'
 begin
   File.unlink(service_log = "#{__FILE__}.service.log") rescue nil
-
   file = ASIR::Transport::File.new(:file => service_log,
                                    :encoder => ASIR::Coder::Yaml.new)
-
   tcp = ASIR::Transport::TcpSocket.new(:port => 31918,
                                        :encoder => ASIR::Coder::Marshal.new)
-
   start_server_proc = lambda do | transport, message |
     $stderr.puts "message = #{message.inspect}"
     file.send_message(message)
@@ -20,7 +17,6 @@ begin
       tcp.run_server!
     end; sleep 2
   end
-
   Email.client.transport = t =
     ASIR::Transport::Retry.new(:transport => tcp,
                                :try_sleep => 1,
@@ -28,14 +24,11 @@ begin
                                :try_max => 3,
                                :before_retry => start_server_proc
                                )
-
-  pr Email.client.send_email(:pdf_invoice, 
+  pr Email.client.send_email(:pdf_invoice,
                              :to => "user@email.com", :customer => 123)
   sleep 1
-
-  pr Email.client.send_email(:pdf_invoice, 
+  pr Email.client.send_email(:pdf_invoice,
                              :to => "user2@email.com", :customer => 456)
-  
   sleep 1
 rescue ::Exception => err
   $stderr.puts "ERROR: #{err.inspect}\n  #{err.backtrace * "\n  "}"

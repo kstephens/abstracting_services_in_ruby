@@ -4,24 +4,18 @@
 require 'example_helper'
 begin
   File.unlink(service_pipe = "service.pipe") rescue nil
-
   Email.client.transport = t =
     ASIR::Transport::File.new(:file => service_pipe)
-  t.encoder = 
+  t.encoder =
     ASIR::Coder::Yaml.new
-
   t.prepare_pipe_server!
   server_process do
     t.run_pipe_server!
   end
   sleep 1
-
   pr Email.client.send_email(:pdf_invoice, :to => "user@email.com", :customer => @customer)
 ensure
-  t.close
-  sleep 1
-  server_kill
-  File.unlink(service_pipe) rescue nil
+  t.close; sleep 1; server_kill
 end
 
 # !SLIDE END

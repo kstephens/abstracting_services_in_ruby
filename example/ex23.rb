@@ -6,7 +6,6 @@ require 'example_helper'
 begin
   Email.client.transport = t =
     ASIR::Transport::Subprocess.new(:one_way => true)
-
   pr(Email.client.send_email(:pdf_invoice,
                              :to => "user@email.com",
                              :customer => @customer) { | resp |
