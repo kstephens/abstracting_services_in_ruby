@@ -77,7 +77,7 @@
 # ** Decomposed into lookup() and apply().
 # * "Send Message", not "Call a Method".
 # * Messaging abstracts:
-# ** Object use from its implemenation.
+# ** Object use from its implementation.
 # ** Transfer of control (method, function invocation, RPC, etc).
 
 # !SLIDE
@@ -194,8 +194,8 @@
 # !SLIDE
 # Implementation
 #
-# * Primary Base classes: Transport, Coder
-# * Primary API: Proxy via Client mixix
+# * Primary Base classes: Transport, Coder.
+# * Primary API: Proxy via Client mixin.
 # * Handful of mixins.
 #
 # !SLIDE END
