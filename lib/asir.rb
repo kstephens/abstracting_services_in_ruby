@@ -3,7 +3,7 @@
 #
 # * Kurt Stephens
 # * Enova Financial
-# * 2012/02/21
+# * 2012/04/02
 # * Slides -- "":http://kurtstephens.com/pub/ruby/abstracting_services_in_ruby/asir.slides/
 # * Code -- "":http://kurtstephens.com/pub/ruby/abstracting_services_in_ruby/
 # * Git -- "":http://github.com/kstephens/abstracting_services_in_ruby
