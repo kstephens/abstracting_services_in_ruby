@@ -107,7 +107,7 @@
 # Design: Nouns
 #
 # * Service -> Object
-# * Client -> Just a Ruby caller.
+# * Client -> Just a Ruby message sender.
 # * Proxy
 # * Message -> Just a Ruby message.
 # * Result, Exception (two-way) -> Return value or else.
