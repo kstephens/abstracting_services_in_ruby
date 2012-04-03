@@ -25,7 +25,6 @@ module ASIR
           when :retry #, exc
             before_retry.call(self, message) if before_retry
           when :failed
-            _log { [ :send_message, :retry_failed, first_exception ] }
             @on_failed_message.call(self, message) if @on_failed_message
             if first_exception && @reraise_first_exception
               $! = first_exception

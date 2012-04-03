@@ -66,7 +66,9 @@ module ASIR
     def _log_format obj
       case obj
       when Exception
-        "#{obj.inspect}\n    #{obj.backtrace * "\n    "}"
+        msg = "#{obj.inspect}"
+        msg << "\n    #{obj.backtrace * "\n    "}" if false
+        msg
       when Array
         obj.map { | x | _log_format x } * ", "
       else

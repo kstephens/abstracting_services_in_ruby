@@ -4,9 +4,9 @@ module ASIR
     # Chain Coder
     # Chain multiple Coders as one.
     #
-    # @@@
-    #   message  --> | e1 | --> | e2 | --> | eN | -->
-    #   result   <-- | d1 | <-- | d2 | <-- | dN | <--
+    # @@@ text
+    # message  --> | e1 | --> | e2 | --> | eN | -->
+    # result   <-- | d1 | <-- | d2 | <-- | dN | <--
     # @@@
     class Chain < self
       attr_accessor :encoders

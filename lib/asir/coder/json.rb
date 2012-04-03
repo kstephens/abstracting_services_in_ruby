@@ -1,12 +1,10 @@
 require 'asir'
 
-unless RUBY_PLATFORM =~ /java/
-gem 'json'
-require 'json/ext'
-end
-
 module ASIR
   class Coder
+    # !SLIDE
+    # JSON Coder
+    #
     # Note: Symbols are not handled.
     # The actual JSON expression is wrapped with an Array.
     class JSON < self
@@ -19,8 +17,13 @@ module ASIR
         ary = parser.parse
         ary.first
       end
-    end # class
-  end # class
-end # module
+    end
+    # !SLIDE END
+  end
+end
 
+unless RUBY_PLATFORM =~ /java/
+gem 'json'
+require 'json/ext'
+end
 

@@ -142,7 +142,7 @@ module ASIR
       # Beanstalk Server
 
       def prepare_beanstalk_server!
-        _log { "prepare_beanstalk_server! #{uri}" }
+        _log { "prepare_beanstalk_server! #{uri}" } if @verbose >= 1
         @server = connect!(:try_max => nil,
                            :try_sleep => 1,
                            :try_sleep_increment => 0.1,
@@ -158,7 +158,7 @@ module ASIR
       alias :prepare_server! :prepare_beanstalk_server!
 
       def run_beanstalk_server!
-        _log :run_beanstalk_server!
+        _log :run_beanstalk_server! if @verbose >= 1
         with_server_signals! do
           @running = true
           while @running
@@ -188,21 +188,21 @@ module ASIR
       end
 
       def start_beanstalkd!
-        _log { "run_beanstalkd! #{uri}" }
+        _log { "run_beanstalkd! #{uri}" } if @verbose >= 1
         raise "already running #{@beanstalkd_pid}" if @beanstalkd_pid
         addr = @address ? "-l #{@address} " : ""
         cmd = "beanstalkd #{addr}-p #{port}"
         @beanstalkd_pid = Process.fork do 
-          $stderr.puts "Start beanstalkd: #{cmd} ..."
+          _log { "Start beanstalkd: #{cmd} ..." } if @verbose >= 1
           exec(cmd)
           raise "exec #{cmd.inspect} failed"
         end
-        $stderr.puts "Start beanstalkd: #{cmd} pid=#{@beanstalkd_pid.inspect}"
+        _log { "Start beanstalkd: #{cmd} pid=#{@beanstalkd_pid.inspect}" } if @verbose >= 2
         self
       end
 
       def stop_beanstalkd!
-        _log { "stop_beanstalkd! #{uri} pid=#{@beanstalkd_pid.inspect}" }
+        _log { "stop_beanstalkd! #{uri} pid=#{@beanstalkd_pid.inspect}" } if @verbose >= 1
         Process.kill 'TERM', @beanstalkd_pid
         Process.waitpid @beanstalkd_pid
         self

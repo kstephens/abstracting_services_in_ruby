@@ -37,18 +37,16 @@ module ASIR
       end
 
       def _write payload, stream
-        # $stderr.puts "  #{$$} #{self} _write"
         stream.send payload, 0
         stream
       end
 
       def _read stream
-        # $stderr.puts "  #{$$} #{self} _read"
         stream.recv 0
       end
 
       def run_server!
-        _log { "run_server! #{uri}" }
+        _log { "run_server! #{uri}" } if @verbose >= 1
         with_server_signals! do
           @running = true
           while @running

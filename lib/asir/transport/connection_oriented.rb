@@ -40,9 +40,9 @@ module ASIR
 
       # Returns raw client stream.
       def _connect!
-        _log { "_connect! #{uri}" }
+        _log { "_connect! #{uri}" } if @verbose >= 1
         sock = _client_connect!
-        _log { "_connect! socket=#{sock}" }
+        _log { "_connect! socket=#{sock}" } if @verbose >= 1
         _after_connect! sock
         sock
       rescue ::Exception => err
@@ -91,7 +91,7 @@ module ASIR
       # Server
 
       def prepare_server!
-        _log { "prepare_server! #{uri}" }
+        _log { "prepare_server! #{uri}" } if @verbose >= 1
         _server!
       rescue ::Exception => err
         _log [ "prepare_server! #{uri}", :exception, err ]
@@ -99,7 +99,7 @@ module ASIR
       end
 
       def run_server!
-        _log { "run_server! #{uri}" }
+        _log { "run_server! #{uri}" } if @verbose >= 1
         with_server_signals! do
           @running = true
           while @running

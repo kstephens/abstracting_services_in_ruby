@@ -47,11 +47,12 @@ module ASIR
           n_try = data
           @on_connect.call(self)
         when :retry #, exc
-          $stderr.puts "RETRY: #{n_try}: ERROR : #{data.inspect}  \n#{data.backtrace * "\n  "}"
+          exc = data
+          $stderr.puts "RETRY: #{n_try}: ERROR : #{data.inspect}"
           @on_retry.call(self, exc, :connect) if @on_retry
         when :failed
           exc = data
-          $stderr.puts "FAILED: #{n_try}: ERROR : #{exc.inspect}  \n#{exc.backtrace * "\n  "}"
+          $stderr.puts "FAILED: #{n_try}: ERROR : #{data.inspect}"
           handle_error!(exc, :connect, nil)
         end
       end
@@ -100,7 +101,7 @@ module ASIR
     # Maps from Channel objects to actual stream.
     def _streams
       streams = Thread.current[:'ASIR::Channel._streams'] ||= { }
-      if ! @owning_process || 
+      if ! @owning_process ||
           @owning_process != $$ || # child process?
           @owning_process > $$ # PIDs wrapped around?
         @owning_process = $$

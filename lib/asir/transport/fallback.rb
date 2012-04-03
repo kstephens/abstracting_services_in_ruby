@@ -20,7 +20,6 @@ module ASIR
           end
         end
         unless sent
-          _log { [ :send_message, :fallback_failed, first_exception ] }
           if first_exception && @reraise_first_exception
             $! = first_exception
             raise

@@ -17,6 +17,7 @@ module ASIR
       # Completely stateless.
       def dup; self; end
     end
+    # !SLIDE END
   end
 end
 

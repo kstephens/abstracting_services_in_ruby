@@ -34,7 +34,7 @@ module ASIR
           transports.any? { | t | t.needs_message_timestamp? }
       end
 
-      # Subclasses with multiple transport should override this method. 
+      # Subclasses with multiple transport should override this method.
       def transports
         @transports ||= [ transport ]
       end
@@ -42,7 +42,7 @@ module ASIR
       # Called from within _send_message rescue.
       def _handle_send_message_exception! transport, message, exc
         _log { [ :send_message, :transport_failed, exc ] }
-        (message[:transport_exceptions] ||= [ ]) << "#{exc.inspect}\n#{exc.backtrace * "\n"}"
+        (message[:transport_exceptions] ||= [ ]) << "#{exc.inspect}"
         @on_send_message_exception.call(self, message, exc) if @on_send_message_exception
         self
       end

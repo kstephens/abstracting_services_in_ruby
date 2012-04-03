@@ -16,6 +16,7 @@ module ASIR
         @decoder.call(obj)
       end
     end
+    # !SLIDE END
   end
 end
 

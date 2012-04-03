@@ -15,39 +15,6 @@ module ASIR
 
     attr_accessor :encoder, :decoder, :one_way
 
-    # Incremented for each message sent or received.
-    attr_accessor :message_count
-
-    # A Proc to call within #receive_message, after #_receive_message.
-    # trans.after_receiver_message(trans, message)
-    attr_accessor :after_receive_message
-
-    # A Proc to call within #send_message, before #_send_message.
-    # trans.before_send_message(trans, message)
-    attr_accessor :before_send_message
-
-    # Proc to call after #_send_result if result.exception.
-    # trans.on_result_exception.call(trans, result)
-    attr_accessor :on_result_exception
-
-    # Proc to call with exception, if exception occurs within #serve_message!, but outside
-    # Message#invoke!.
-    #
-    # trans.on_exception.call(trans, exception, :message, Message_instance)
-    # trans.on_exception.call(trans, exception, :result, Result_instance)
-    attr_accessor :on_exception
-
-    attr_accessor :needs_message_identifier, :needs_message_timestamp
-    alias :needs_message_identifier? :needs_message_identifier
-    alias :needs_message_timestamp? :needs_message_timestamp
-
-    attr_accessor :verbose
-
-    def initialize *args
-      @verbose = 0
-      super
-    end
-
     # !SLIDE
     # Transport#send_message 
     # * Encode Message.
@@ -128,6 +95,39 @@ module ASIR
       end
     end
     # !SLIDE END
+
+    def initialize *args
+      @verbose = 0
+      super
+    end
+
+    # Incremented for each message sent or received.
+    attr_accessor :message_count
+
+    # A Proc to call within #receive_message, after #_receive_message.
+    # trans.after_receiver_message(trans, message)
+    attr_accessor :after_receive_message
+
+    # A Proc to call within #send_message, before #_send_message.
+    # trans.before_send_message(trans, message)
+    attr_accessor :before_send_message
+
+    # Proc to call after #_send_result if result.exception.
+    # trans.on_result_exception.call(trans, result)
+    attr_accessor :on_result_exception
+
+    # Proc to call with exception, if exception occurs within #serve_message!, but outside
+    # Message#invoke!.
+    #
+    # trans.on_exception.call(trans, exception, :message, Message_instance)
+    # trans.on_exception.call(trans, exception, :result, Result_instance)
+    attr_accessor :on_exception
+
+    attr_accessor :needs_message_identifier, :needs_message_timestamp
+    alias :needs_message_identifier? :needs_message_identifier
+    alias :needs_message_timestamp? :needs_message_timestamp
+
+    attr_accessor :verbose
 
     def _subclass_responsibility *args
       raise Error::SubclassResponsibility "subclass responsibility"
