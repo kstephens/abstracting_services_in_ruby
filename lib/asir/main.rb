@@ -1,10 +1,5 @@
-#!/usr/bin/env ruby
-# -*- ruby -*-
-
-require 'time'
-
-$: << File.expand_path('../../lib', __FILE__)
 require 'asir'
+require 'time'
 
 module ASIR
 class Main
@@ -320,5 +315,4 @@ END
 end # class
 end # module
 
-exit ASIR::Main.new.parse_args!.run!.exit_code
 
