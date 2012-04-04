@@ -16,7 +16,7 @@ module ASIR
     attr_accessor :encoder, :decoder, :one_way
 
     # !SLIDE
-    # Transport#send_message 
+    # Transport#send_message
     # * Encode Message.
     # * Send encoded Message.
     # * Receive decoded Result.
@@ -83,7 +83,7 @@ module ASIR
     def receive_result message, opaque_result
       result_payload = _receive_result(message, opaque_result)
       result = decoder.dup.decode(result_payload)
-      if result
+      if result && ! message.one_way
         if exc = result.exception
           exc.invoke!
         else

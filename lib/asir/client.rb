@@ -46,7 +46,7 @@ module ASIR
       # Accept messages as a proxy for the receiver.
       # Blocks are used represent a "continuation" for the Result.
       def send selector, *arguments, &block
-        message = Message.new(receiver, selector, arguments, block)
+        message = Message.new(@receiver, selector, arguments, block, self)
         message = @before_send_message.call(message) if @before_send_message
         @__configure.call(message) if @__configure
         result = transport.send_message(message)
@@ -70,17 +70,20 @@ module ASIR
       # Must return a Message object.
       attr_accessor :before_send_message
 
+      # If true, this Message is one-way, even if the Transport is bi-directional.
+      attr_accessor :_one_way
+
       # A Proc to call with the Message object before sending to transport#send_message(message).
       # See #_configure.
       attr_accessor :__configure
 
-      # Returns a new Client proxy with a block to be called with the Message.
+      # Returns a new Client Proxy with a block to be called with the Message.
       # This block can configure additional options of the Message before
       # it is sent to the Transport.
       def _configure &blk
-        client = self.dup
-        client.__configure = blk
-        client
+        proxy = self.dup
+        proxy.__configure = blk
+        proxy
       end
       alias :_options :_configure
 

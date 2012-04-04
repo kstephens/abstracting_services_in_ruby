@@ -27,12 +27,12 @@ module ASIR
       end
 
       def _receive_result message, opaque_result
-        return nil if @one_way
+        return nil if one_way || message.one_way
         super
       end
 
       def _send_result message, result, result_payload, stream, message_state
-        return nil if @one_way
+        return nil if one_way || message.one_way
         super
       end
 
