@@ -112,7 +112,14 @@ class Main
     when /^taillog_([^_]+)_([^_]+)!$/
       exec "tail -f #{log_file.inspect}"
     when /^pid_([^_]+)_([^_]+)!$/
-      puts "#{pid_file} #{File.read(pid_file) rescue nil}"
+      pid = File.read(pid_file) rescue nil
+      alive = process_running? pid
+      puts "#{pid_file} #{pid || :NA} #{alive}"
+    when /^alive_([^_]+)_([^_]+)!$/
+      pid = File.read(pid_file) rescue nil
+      alive = process_running? pid
+      puts "#{pid_file} #{pid || :NA} #{alive}" if @verbose
+      self.exit_code += 1 unless alive
     when /^stop_([^_]+)_([^_]+)!$/
       kill_server!
     else
@@ -138,6 +145,7 @@ VERBS:
   status
   log
   pid
+  alive
 
 ADJECTIVE-OBJECTs:
   beanstalk conduit
@@ -152,6 +160,7 @@ EXAMPLES:
   asir status beanstalk conduit
 
   asir start webrick worker
+  asir pid   webrick worker
 
   asir start beanstalk worker 1
   asir start beanstalk worker 2
@@ -332,7 +341,14 @@ END
   end
 
   def process_running? pid
-    Process.kill(0, pid)
+    case pid
+    when false, nil
+      pid
+    when Integer
+      Process.kill(0, pid)
+    else
+      raise TypeError
+    end
     true
   rescue ::Errno::ESRCH
     false

@@ -2,7 +2,7 @@
 # Configures asir worker transport and error logging.
 # asir object is bound to ASIR::Environment instance.
 
-$stderr.puts "asir.phase = #{asir.phase.inspect}"
+$stderr.puts "asir.phase = #{asir.phase.inspect}" if asir.verbose >= 1
 case asir.phase
 when :configure
   # NOTHING
