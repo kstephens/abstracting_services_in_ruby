@@ -39,8 +39,8 @@ module ASIR
       # Recieve the Result payload String from the opaque
       # HTTPClient::Request response object returned from #_send_message.
       def _receive_result message, http_result_message
-        $stderr.puts " ### http_result_message.content.encoding = #{http_result_message.content.encoding.inspect}" rescue nil
-        $stderr.puts " ### http_result_message.content = #{http_result_message.content.inspect}" rescue nil
+        # $stderr.puts " ### http_result_message.content.encoding = #{http_result_message.content.encoding.inspect}" rescue nil
+        # $stderr.puts " ### http_result_message.content = #{http_result_message.content.inspect}" rescue nil
         http_result_message.content.to_s
       end
 
