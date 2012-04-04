@@ -183,6 +183,7 @@ module ASIR
 
     def stop! force = false
       @running = false
+      stop_server! if respond_to?(:stop_server!)
       raise Error::Terminate if force
       self
     end
@@ -191,7 +192,7 @@ module ASIR
       old_trap = { }
       [ "TERM", "HUP" ].each do | sig |
         trap = proc do | *args |
-          @running = false
+          stop!
           @signal_exception = ::ASIR::Error::Terminate.new("#{self} by SIG#{sig} #{args.inspect} in #{__FILE__}:#{__LINE__}")
         end
         old_trap[sig] = Signal.trap(sig, trap)
