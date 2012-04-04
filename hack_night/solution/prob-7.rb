@@ -1,7 +1,7 @@
 # Use the Marshal and Base64 coders in prob-4.rb
 
 $: << File.expand_path("../../../lib", __FILE__)
-require 'asir/transport/http'
+require 'asir/transport/webrick'
 require 'asir/coder/marshal'
 require 'asir/coder/base64'
 require 'asir/coder/chain'
@@ -11,7 +11,7 @@ MathService.send(:include, ASIR::Client)
 
 port = 3001
 begin
-  t = ASIR::Transport::HTTP.new(:uri => "http://localhost:#{port}/")
+  t = ASIR::Transport::Webrick.new(:uri => "http://localhost:#{port}/")
   t._log_enabled = true
   c = t.encoder = ASIR::Coder::Chain.new(:encoders =>
                                          [ 
@@ -21,8 +21,8 @@ begin
   c._log_enabled = true
 
   server_pid = Process.fork do
-    t.setup_webrick_server!
-    t.start_webrick_server!
+    t.prepare_server!
+    t.run_server!
   end
   sleep 1 # wait for server to start
 
