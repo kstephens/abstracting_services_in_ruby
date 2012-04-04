@@ -1,10 +1,10 @@
 # Used by asir/bin/asir.
 # Configures asir worker transport and error logging.
-# asir object is bound to ASIR::Main instance.
+# asir object is bound to ASIR::Environment instance.
 
-$stderr.puts "asir.verb = #{asir.verb.inspect}"
-case asir.verb
-when :config
+$stderr.puts "asir.phase = #{asir.phase.inspect}"
+case asir.phase
+when :configure
   # NOTHING
   true
 when :environment
@@ -59,5 +59,5 @@ when :transport
 
   transport
 else
-  $stderr.puts "Warning: unhandled asir.verb: #{asir.verb.inspect}"
+  $stderr.puts "Warning: unhandled asir.phase: #{asir.phase.inspect}"
 end

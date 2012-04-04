@@ -1,41 +1,36 @@
 require 'asir'
+require 'asir/environment'
 require 'time'
-
 
 module ASIR
 class Main
-  attr_accessor :verb, :adjective, :object, :identifier
-  attr_accessor :config_rb, :config
-  attr_accessor :log_dir, :pid_dir
-  attr_accessor :verbose
-  attr_accessor :exit_code
+  attr_accessor :env, :args, :exit_code
+  # Delegate getter/setters to @env.
+  [ :verb, :adjective, :object, :identifier,
+    :config_rb,
+    :verbose,
+    :log_dir, :log_file,
+    :pid_dir, :pid_file,
+  ].
+    map{|g| [ g, :"#{g}=" ]}.
+    flatten.each do | m |
+      define_method(m) { | *args | @env.send(m, *args) }
+    end
+  attr_accessor :progname
+  # Options:
+  attr_accessor :force
+
+  # Transport selected from asir.phase = :transport.
+  attr_accessor :transport
 
   def initialize
-    @verbose = 0
-    @progname = File.basename($0)
-    @log_dir = find_writable_directory :log_dir,
-      ENV['ASIR_LOG_DIR'],
-      '/var/log/asir',
-      '~/asir/log',
-      '/tmp'
-    @pid_dir = find_writable_directory :pid_dir,
-      ENV['ASIR_PID_DIR'],
-      '/var/run/asir',
-      '~/asir/run',
-      '/tmp'
-    @exit_code = 0
-  end
-
-  def find_writable_directory kind, *list
-    list.
-      reject { | p | ! p }.
-      map { | p |  File.expand_path(p) }.
-      find { | p | File.writable?(p) } or
-      raise "Cannot find writable directory for #{kind}"
+    self.env = ASIR::Environment.new
+    self.progname = File.basename($0)
+    self.exit_code = 0
   end
 
   def parse_args! args = ARGV.dup
-    @args = args
+    self.args = args
     until args.empty?
       case args.first
       when /^([a-z0-9_]+=)(.*)/i
@@ -47,9 +42,13 @@ class Main
         break
       end
     end
-    @verb, @adjective, @object, @identifier = args.map{|x| x.to_sym}
-    @identifier ||= :'0'
+    self.verb, self.adjective, self.object, self.identifier = args.map{|x| x.to_sym}
+    self.identifier ||= :'0'
     self
+  end
+
+  def config! *args
+    @env.config! *args
   end
 
   def log_str
@@ -57,15 +56,15 @@ class Main
   end
 
   def log_str_no_time
-    "#{@progname} #{@verb} #{@adjective} #{@object} #{@identifier}"
+    "#{progname} #{verb} #{adjective} #{object} #{identifier}"
   end
 
   def run!
     unless verb && adjective && object
-      @exit_code = 1
+      self.exit_code = 1
       return usage!
     end
-    config!(:config)
+    config!(:configure)
     # $stderr.puts "log_file = #{log_file.inspect}"
     case self.verb
     when :restart
@@ -79,28 +78,28 @@ class Main
     self
   rescue ::Exception => exc
     $stderr.puts "#{log_str} ERROR\n#{exc.inspect}\n  #{exc.backtrace * "\n  "}"
-    @exit_code += 1
+    self.exit_code += 1
     self
   end
 
   def _run_verb!
     sel = :"#{verb}_#{adjective}_#{object}!"
-    if @verbose >= 3
-      $stderr.puts "verb      = #{verb.inspect}"
-      $stderr.puts "adjective = #{adjective.inspect}"
-      $stderr.puts "object    = #{object.inspect}"
-      $stderr.puts "sel       = #{sel.inspect}"
+    if verbose >= 3
+      $stderr.puts "  verb      = #{verb.inspect}"
+      $stderr.puts "  adjective = #{adjective.inspect}"
+      $stderr.puts "  object    = #{object.inspect}"
+      $stderr.puts "  sel       = #{sel.inspect}"
     end
     send(sel)
   rescue ::Exception => exc
     $stderr.puts "#{log_str} ERROR\n#{exc.inspect}\n  #{exc.backtrace * "\n  "}"
-    @exit_code += 1
+    self.exit_code += 1
     raise
     nil
   end
 
   def method_missing sel, *args
-    log "method_missing #{sel}" if @verbose >= 3
+    log "method_missing #{sel}" if verbose >= 3
     case sel.to_s
     when /^start_([^_]+)_worker!$/
       _start_worker!
@@ -179,54 +178,6 @@ END
     end
   end
 
-  ################################################################
-
-  def config_rb
-    @config_rb ||=
-      File.expand_path(ENV['ASIR_CONFIG_RB'] || 'config/asir_config.rb')
-  end
-
-  def config_lambda
-    @config_lambda ||=
-      begin
-        file = config_rb
-        $stderr.puts "#{log_str} loading #{file} ..." if @verbose >= 1
-        expr = File.read(file)
-        expr = "begin; lambda do | asir |; #{expr}\n end; end"
-        cfg = Object.new.send(:eval, expr, binding, file, 1)
-        # cfg = load file
-        # $stderr.puts "#{log_str} loading #{file} DONE" if @verbose >= 1
-        raise "#{file} did not return a Proc, returned a #{cfg.class}" unless Proc === cfg
-        cfg
-      end
-  end
-
-  def config! verb = @verb
-    (@config ||= { })[verb] ||=
-      begin
-        save_verb = @verb
-        @verb = verb
-        $stderr.puts "#{log_str} calling #{config_rb} asir.verb=#{@verb.inspect} ..." if @verbose >= 1
-        cfg = config_lambda.call(self)
-        $stderr.puts "#{log_str} calling #{config_rb} asir.verb=#{@verb.inspect} DONE" if @verbose >= 1
-        cfg
-      ensure
-        @verb = save_verb
-      end
-  end
-
-  def pid_file
-    "#{pid_dir}/#{asir_basename}.pid"
-  end
-
-  def log_file
-    "#{log_dir}/#{asir_basename}.log"
-  end
-
-  def asir_basename
-    "asir-#{adjective}-#{object}-#{identifier}"
-  end
-
   def fork_server! cmd = nil, &blk
     pid = Process.fork do
       run_server! cmd, &blk
@@ -301,22 +252,22 @@ END
     config!(:environment)
     case transport = config!(:transport)
     when default_class
-      @transport = transport
+      self.transport = transport
     else
       raise "Expected config to return a #{default_class}, not a #{transport.class}"
     end
   end
 
   def worker_pids
-    (@worker_pids ||= { })[@adjective] ||= { }
+    (@worker_pids ||= { })[adjective] ||= { }
   end
 
   def _run_workers!
-    $0 = "#{@progname} #{@adjective} #{@object} #{@identifier}"
+    $0 = "#{progname} #{adjective} #{object} #{identifier}"
 
     worker_id = 0
-    @transport.prepare_server!
-    worker_processes = @transport[:worker_processes] || 1
+    transport.prepare_server!
+    worker_processes = transport[:worker_processes] || 1
     (worker_processes - 1).times do
       wid = worker_id += 1
       pid = Process.fork do
@@ -334,16 +285,16 @@ END
   end
 
   def _run_transport_server! wid = 0
-    log "running transport worker #{@transport.class} #{wid}"
+    log "running transport worker #{transport.class} #{wid}"
     config!(:start)
-    $0 += " #{wid} #{@transport.uri rescue nil}"
+    $0 += " #{wid} #{transport.uri rescue nil}"
     old_arg0 = $0.dup
-    after_receive_message = @transport.after_receive_message || lambda { | transport, message | nil }
-    @transport.after_receive_message = lambda do | transport, message |
+    after_receive_message = transport.after_receive_message || lambda { | transport, message | nil }
+    transport.after_receive_message = lambda do | transport, message |
       $0 = "#{old_arg0} #{transport.message_count} #{message.identifier}"
       after_receive_message.call(transport, message)
     end
-    @transport.run_server!
+    transport.run_server!
     self
   end
 
@@ -368,7 +319,7 @@ END
       log "TERM pid #{pid}"
       Process.kill('TERM', pid) rescue nil
       sleep 3
-      if @force or process_running? pid
+      if force or process_running? pid
         log "KILL pid #{pid}", :stderr
         Process.kill('KILL', pid) rescue nil
       end
