@@ -206,10 +206,11 @@ module ASIR
   # Reusable constants to avoid unnecessary garbage.
   EMPTY_ARRAY = [ ].freeze; EMPTY_HASH =  { }.freeze; EMPTY_STRING = ''.freeze
   MODULE_SEP = '::'.freeze; IDENTITY_LAMBDA = lambda { | x | x }
-
 end
 # !SLIDE END
+Asir = ASIR
 
+require "asir/version"
 require 'asir/error'
 require 'asir/log'
 require 'asir/initialization'

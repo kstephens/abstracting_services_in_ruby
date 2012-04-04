@@ -2,24 +2,7 @@
 # YUCK! http://stackoverflow.com/questions/4755900/how-to-make-jruby-1-6-default-to-ruby-1-9
 ENV['JRUBY_OPTS'] ||= '--1.9' 
 
-begin
-  require 'rubygems'
-  gem 'jeweler'
-  require 'jeweler'
-  Jeweler::Tasks.new do |s|
-    s.name = "asir"
-    #s.executables = ""
-    s.summary = "Abstracting Services in Ruby"
-    s.email = "ks.ruby@kurtstephens.com"
-    s.homepage = "http://github.com/kstephens/abstracting_services_in_ruby"
-    s.description = s.summary
-    s.authors = ["Kurt Stephens"]
-    s.files = FileList["[A-Z]*", "{bin,lib,test,spec,doc,example,hack_night}/**/*" ]
-    #s.add_dependency 'schacon-git'
-  end
-rescue LoadError
-  puts "Jeweler, or one of its dependencies, is not available. Install it with: sudo gem install jeweler -s http://gems.github.com"
-end
+require "bundler/gem_tasks"
 
 gem 'rspec'
 require 'rspec/core/rake_task'
