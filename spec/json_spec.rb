@@ -2,7 +2,6 @@ require File.expand_path('../spec_helper', __FILE__)
 require 'asir/coder/json'
 
 describe "ASIR::Coder::JSON" do
-# unless RUBY_PLATFORM =~ /java/
   before(:each) do 
     @enc = ASIR::Coder::JSON.new
     @dec = @enc.dup
@@ -123,6 +122,5 @@ FIXME:
       y.instance_variables.sort { | a, b | a.to_s <=> b.to_s }
 =end
   end
-#end
 end
 
