@@ -2,22 +2,23 @@
 # Synchronous HTTP service
 
 require 'example_helper'
-require 'asir/transport/http'
+require 'asir/transport/webrick'
 require 'asir/coder/base64'
 require 'asir/coder/zlib'
 begin
   Email.client.transport = t =
-    ASIR::Transport::HTTP.new(:uri => "http://localhost:31913/")
+    ASIR::Transport::Webrick.new(:uri => "http://localhost:31913/")
   t.encoder =
     ASIR::Coder::Chain.new(:encoders =>
                            [ASIR::Coder::Marshal.new,
                             ASIR::Coder::Base64.new, ])
   server_process do
-    t.setup_webrick_server!
-    t.start_webrick_server!
+    t.prepare_server!
+    t.run_server!
   end; sleep 2
   pr Email.client.send_email(:pdf_invoice,
-                             :to => "user@email.com", :customer => @customer)
+                             :to => "user@email.com",
+                             :customer => @customer)
   sleep 2
 rescue Object => err
   $stderr.puts "#{err.inspect}\n#{err.backtrace * "\n"}"

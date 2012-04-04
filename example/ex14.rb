@@ -2,18 +2,18 @@
 # Synchronous HTTP service on instance methods.
 
 require 'example_helper'
-require 'asir/transport/http'
+require 'asir/transport/webrick'
 require 'asir/coder/base64'
 begin
   MyClass.client.transport = t =
-    ASIR::Transport::HTTP.new(:uri => "http://localhost:30914/")
+    ASIR::Transport::Webrick.new(:uri => "http://localhost:30914/")
   t.encoder =
     ASIR::Coder::Chain.new(:encoders =>
                            [ ASIR::Coder::Marshal.new,
                              ASIR::Coder::Base64.new, ])
   server_process do
-    t.setup_webrick_server!
-    t.start_webrick_server!
+    t.prepare_server!
+    t.run_server!
   end; sleep 2
   pr MyClass.new("abc123").client.size
   sleep 2
