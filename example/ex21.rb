@@ -13,13 +13,11 @@ begin
   end; sleep 1
   UnsafeService.client.transport = t = zmq
   pr UnsafeService.client.do_it(":ok")
-  sleep 1
 rescue ::Exception => err
   $stderr.puts "### #{$$}: ERROR: #{err.inspect}\n  #{err.backtrace * "\n  "}"
   raise
 ensure
-  zmq.close rescue nil; sleep 1
-  server_kill
+  zmq.close rescue nil; sleep 1; server_kill
 end
 
 # !SLIDE END
