@@ -120,7 +120,7 @@ module ASIR
     # Message#invoke!.
     #
     # trans.on_exception.call(trans, exception, :message, Message_instance)
-    # trans.on_exception.call(trans, exception, :result, Result_instance)
+    # trans.on_exception.call(trans, exception, :result, Message_instance, Result_instance)
     attr_accessor :on_exception
 
     attr_accessor :needs_message_identifier, :needs_message_timestamp
@@ -171,7 +171,7 @@ module ASIR
         end
       rescue ::Exception => exc
         _log [ :result_error, exc ]
-        @on_exception.call(self, exc, :result, result) if @on_exception
+        @on_exception.call(self, exc, :result, message, result) if @on_exception
       end
       raise original_exception if unforwardable_exception
     end
