@@ -128,6 +128,25 @@
 # !SLIDE END
 
 # !SLIDE
+# Abstraction Leads to Rich Features
+#
+# * One-way and two-way requests as Module or instance methods.
+# * Message support:
+# ** Delayed Messages.
+# * Transports:
+# ** Null, Local, File, Named Pipe, TCP.
+# ** HTTP under WEBrick or as Rack application.
+# ** Beanstalkd, ZeroMQ.
+# ** Buffered, Broadcast, Fallback transports.
+# ** Time-decaying retry logic.
+# * Encodings:
+# ** Marshal, XML, JSON, YAML, Base64, ZLib.
+# ** Chained encodings.
+# ** Signed payloads.
+#
+# !SLIDE END
+
+# !SLIDE
 # Simple
 #
 # !IMAGE BEGIN PIC width:800 height:300
