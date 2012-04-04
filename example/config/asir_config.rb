@@ -37,6 +37,9 @@ when :transport
   when :http, :webrick
     transport = ASIR::Transport::Webrick.new
     transport.uri = "http://localhost:#{30000 + asir.identifier.to_s.to_i}/asir"
+  when :rack
+    transport = ASIR::Transport::Rack.new
+    transport.uri = "http://localhost:#{30000 + asir.identifier.to_s.to_i}/asir"
   when :zmq
     transport = ASIR::Transport::Zmq.new
     transport.one_way = true

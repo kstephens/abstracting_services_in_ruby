@@ -5,6 +5,8 @@ when /java/
 else
   gem 'json'
   case RUBY_VERSION
+  when /^2\./
+    gem 'simplecov'
   when /^1\.9/
     gem 'ruby-debug19'
     gem 'simplecov'
