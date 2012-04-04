@@ -7,8 +7,7 @@ source "http://rubygems.org"
   gem 'zmq', '~> 2.1.4'
 
 group :development do
-#  gem "bundler", "~> 1.0.0"
-  gem 'jeweler'
+  gem "bundler", "~> 1.0.0"
   gem "rspec", "~> 2.0"
 
   require File.expand_path('../spec/debug_helper', __FILE__)
