@@ -1,31 +1,57 @@
 require 'asir'
 require 'time'
 
+
 module ASIR
 class Main
   attr_accessor :verb, :adjective, :object, :identifier
   attr_accessor :config_rb, :config
   attr_accessor :log_dir, :pid_dir
-
+  attr_accessor :verbose
   attr_accessor :exit_code
 
   def initialize
     @verbose = 0
     @progname = File.basename($0)
-    @log_dir = '/var/log'
-    @log_dir = '/tmp' unless File.writable?(@log_dir)
-    @pid_dir = '/var/run'
-    @pid_dir = '/tmp' unless File.writable?(@pid_dir)
+    @log_dir = find_writable_directory :log_dir,
+      ENV['ASIR_LOG_DIR'],
+      '/var/log/asir',
+      '~/asir/log',
+      '/tmp'
+    @pid_dir = find_writable_directory :pid_dir,
+      ENV['ASIR_PID_DIR'],
+      '/var/run/asir',
+      '~/asir/run',
+      '/tmp'
     @exit_code = 0
+  end
+
+  def find_writable_directory kind, *list
+    list.
+      reject { | p | ! p }.
+      map { | p |  File.expand_path(p) }.
+      find { | p | File.writable?(p) } or
+      raise "Cannot find writable directory for #{kind}"
   end
 
   def parse_args! args = ARGV.dup
     @args = args
+    until args.empty?
+      case args.first
+      when /^([a-z0-9_]+=)(.*)/i
+        k, v = $1.to_sym, $2
+        args.shift
+        v = v.to_i if v == v.to_i.to_s
+        send(k, v)
+      else
+        break
+      end
+    end
     @verb, @adjective, @object, @identifier = args.map{|x| x.to_sym}
     @identifier ||= :'0'
     self
   end
-  
+
   def log_str
     "#{Time.now.gmtime.iso8601(4)} #{$$} #{log_str_no_time}"
   end
@@ -39,28 +65,42 @@ class Main
       @exit_code = 1
       return usage!
     end
-    config(:config)
-    case verb
+    config!(:config)
+    # $stderr.puts "log_file = #{log_file.inspect}"
+    case self.verb
     when :restart
-      @verb = :stop
-      _run! && sleep(1)
-      @verb = :start
-      _run!
+      self.verb = :stop
+      _run_verb! && sleep(1)
+      self.verb = :start
+      _run_verb!
     else
-      _run!
+      _run_verb!
     end
     self
-  end
-
-  def _run!
-    send(:"#{verb}_#{adjective}_#{object}!")
   rescue ::Exception => exc
     $stderr.puts "#{log_str} ERROR\n#{exc.inspect}\n  #{exc.backtrace * "\n  "}"
     @exit_code += 1
+    self
+  end
+
+  def _run_verb!
+    sel = :"#{verb}_#{adjective}_#{object}!"
+    if @verbose >= 3
+      $stderr.puts "verb      = #{verb.inspect}"
+      $stderr.puts "adjective = #{adjective.inspect}"
+      $stderr.puts "object    = #{object.inspect}"
+      $stderr.puts "sel       = #{sel.inspect}"
+    end
+    send(sel)
+  rescue ::Exception => exc
+    $stderr.puts "#{log_str} ERROR\n#{exc.inspect}\n  #{exc.backtrace * "\n  "}"
+    @exit_code += 1
+    raise
     nil
   end
 
   def method_missing sel, *args
+    log "method_missing #{sel}" if @verbose >= 3
     case sel.to_s
     when /^start_([^_]+)_worker!$/
       _start_worker!
@@ -84,7 +124,13 @@ class Main
   def usage!
     $stderr.puts <<"END"
 SYNOPSIS:
-  asir <<verb>> <<adjective>> <<object>> [ <<identifier>> ]
+  asir [ <<options>> ... ] <<verb>> <<adjective>> <<object>> [ <<identifier>> ]
+
+OPTIONS:
+  config_rb=file.rb ($ASIR_LOG_DIR)
+  pid_dir=dir/      ($ASIR_PID_DIR)
+  log_dir=dir/      ($ASIR_LOG_DIR)
+  verbose=[0-9]
 
 VERBS:
   start
@@ -122,9 +168,12 @@ END
   end
 
   def _start_worker! type = adjective
+    log "start_worker! #{type}"
     type = type.to_s
     fork_server! do
-      require "asir/transport/#{type}"
+      transport_file = "asir/transport/#{type}"
+      log "loading #{transport_file}"
+      require transport_file
       _create_transport ASIR::Transport.const_get(type[0..0].upcase + type[1..-1])
       _run_workers!
     end
@@ -152,7 +201,7 @@ END
       end
   end
 
-  def config verb = @verb
+  def config! verb = @verb
     (@config ||= { })[verb] ||=
       begin
         save_verb = @verb
@@ -182,59 +231,62 @@ END
     pid = Process.fork do
       run_server! cmd, &blk
     end
+    log "forked pid #{pid}"
     Process.detach(pid) # Forks a Thread?  We are gonna exit anyway.
     File.open(pid_file, "w+") { | o | o.puts pid }
     File.chmod(0666, pid_file) rescue nil
+
+    # Wait and check if process still exists.
+    sleep 3
+    unless process_running? pid
+      raise "Server process #{pid} died to soon?"
+    end
+
     self
   end
 
   def run_server! cmd = nil
-    log = File.open(log_file, "a+")
+    lf = File.open(log_file, "a+")
     File.chmod(0666, log_file) rescue nil
-    log.puts "#{log_str} starting pid #{$$}"
     $stdin.close rescue nil
     STDIN.close rescue nil
-    STDOUT.reopen(log)
-    STDERR.reopen(log)
-    Process.daemon rescue nil # Ruby 1.9.x only.
-    if cmd
-      exec(cmd)
-    else
-      begin
+    STDOUT.reopen(lf)
+    $stdout.reopen(lf) if $stdout.object_id != STDOUT.object_id
+    STDERR.reopen(lf)
+    $stderr.reopen(lf) if $stderr.object_id != STDERR.object_id
+    # Process.daemon rescue nil # Ruby 1.9.x only.
+    lf.puts "#{log_str} starting pid #{$$}"
+    begin
+      if cmd
+        exec(cmd)
+      else
         yield
-      ensure
-        log.puts "#{log_str} finished pid #{$$}"
-        File.unlink(pid_file) rescue nil
       end
+    ensure
+      lf.puts "#{log_str} finished pid #{$$}"
+      File.unlink(pid_file) rescue nil
     end
+    self
   rescue ::Exception => exc
-    msg = "#{log_str} ERROR pid #{$$}\n#{exc.inspect}\n  #{exc.backtrace * "\n  "}"
-    $stderr.puts msg
-    log.puts msg
+    msg = "ERROR pid #{$$}\n#{exc.inspect}\n  #{exc.backtrace * "\n  "}"
+    log msg, :stderr
     raise
+    self
   end
 
   def kill_server!
-    log = nil
-    log = File.open(log_file, "a+")
-    log.puts "#{log_str} kill"
+    log "#{log_str} kill"
     pid = server_pid
-    log.puts "#{log_str} kill pid #{pid}"
-    begin
-      Process.kill('TERM', pid)
-      if @force
-        sleep 5
-        Process.kill('KILL', pid) rescue nil
-      end
-    end
+    stop_pid! pid
   rescue ::Exception => exc
-    log.puts "#{log_str} ERROR\n#{exc.inspect}\n  #{exc.backtrace * "\n  "}"
+    log "#{log_str} ERROR\n#{exc.inspect}\n  #{exc.backtrace * "\n  "}", :stderr
     raise
-  ensure
-    log.close if log
   end
 
-  def log msg
+  def log msg, to_stderr = false
+    if to_stderr
+      $stderr.puts "#{log_str_no_time} #{msg}"
+    end
     File.open(log_file, "a+") do | log |
       log.puts "#{log_str} #{msg}"
     end
@@ -246,8 +298,8 @@ END
   end
 
   def _create_transport default_class
-    config(:environment)
-    case transport = config(:start)
+    config!(:environment)
+    case transport = config!(:transport)
     when default_class
       @transport = transport
     else
@@ -282,7 +334,9 @@ END
   end
 
   def _run_transport_server! wid = 0
-    $0 += " #{wid}"
+    log "running transport worker #{@transport.class} #{wid}"
+    config!(:start)
+    $0 += " #{wid} #{@transport.uri rescue nil}"
     old_arg0 = $0.dup
     after_receive_message = @transport.after_receive_message || lambda { | transport, message | nil }
     @transport.after_receive_message = lambda do | transport, message |
@@ -297,19 +351,43 @@ END
     workers = worker_pids.dup
     worker_pids.clear
     workers.each do | wid, pid |
-      log "stopping #{wid} pid #{pid}"
-      Process.kill('TERM', pid) rescue nil
-      if @force
-        sleep 1
-        Process.kill('KILL', pid) rescue nil
-      end
+      config!(:stop)
+      stop_pid! pid, "wid #{wid} "
     end
     workers.each do | wid, pid |
       wr = Process.waitpid(pid) rescue nil
-      log "stopped #{wid} pid #{pid} => #{wr.inspect}"
+      log "stopped #{wid} pid #{pid} => #{wr.inspect}", :stderr
     end
   ensure
     worker_pids.clear
+  end
+
+  def stop_pid! pid, msg = nil
+    log "stopping #{msg}pid #{pid}", :stderr
+    if process_running? pid
+      log "TERM pid #{pid}"
+      Process.kill('TERM', pid) rescue nil
+      sleep 3
+      if @force or process_running? pid
+        log "KILL pid #{pid}", :stderr
+        Process.kill('KILL', pid) rescue nil
+      end
+      if process_running? pid
+        log "cant-stop pid #{pid}", :stderr
+      end
+    else
+      log "not-running? pid #{pid}", :stderr
+    end
+  end
+
+  def process_running? pid
+    Process.kill(0, pid)
+    true
+  rescue ::Errno::ESRCH
+    false
+  rescue ::Exception => exc
+    $stderr.puts "  DEBUG: process_running? #{pid} => #{exc.inspect}"
+    false
   end
 
 end # class
