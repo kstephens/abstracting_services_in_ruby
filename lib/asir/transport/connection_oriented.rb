@@ -1,5 +1,6 @@
 require 'asir/transport/stream'
 require 'asir/transport/payload_io'
+require 'uri'
 
 module ASIR
   class Transport
@@ -8,14 +9,42 @@ module ASIR
     class ConnectionOriented < Stream
       include PayloadIO
 
-      attr_accessor :uri, :port, :address
+      attr_accessor :uri, :scheme, :port, :address
+      alias :protocol :scheme
+      alias :protocol= :scheme=
 
       def uri
-        @uri ||= "tcp://#{address}:#{port}"
+        @uri ||= "#{scheme}://#{address}:#{port}"
+      end
+
+      def scheme
+        @scheme ||=
+          case
+          when @uri
+            URI.parse(@uri).scheme
+          else
+            'tcp'.freeze
+          end
       end
 
       def address
-        @address ||= '127.0.0.1'.freeze
+        @address ||=
+          case
+          when @uri
+            URI.parse(@uri).host
+          else
+            '127.0.0.1'.freeze
+          end
+      end
+
+      def port
+        @port ||=
+          case
+          when @uri
+            URI.parse(@uri).port
+          else
+            raise Error, "#{self.class}: port not set."
+          end
       end
 
       # !SLIDE
