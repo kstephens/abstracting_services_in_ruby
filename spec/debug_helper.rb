@@ -1,7 +1,7 @@
 require 'rubygems'
 case (RUBY_PLATFORM rescue 'UNKNOWN')
 when /java/
-  # gem 'json_pure' # Fails to load under jruby 1.6.6
+  gem 'json_pure'
 else
   gem 'json'
   case RUBY_VERSION

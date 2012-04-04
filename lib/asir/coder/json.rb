@@ -22,8 +22,9 @@ module ASIR
   end
 end
 
-unless RUBY_PLATFORM =~ /java/
-gem 'json'
+if RUBY_PLATFORM =~ /java/
+require 'json'
+else
 require 'json/ext'
 end
 
