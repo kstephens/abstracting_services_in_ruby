@@ -3,7 +3,7 @@
 #
 # * Kurt Stephens
 # * Enova Financial
-# * 2012/04/02
+# * 2012/04/04
 # * Slides -- "":http://kurtstephens.com/pub/ruby/abstracting_services_in_ruby/asir.slides/
 # * Code -- "":http://kurtstephens.com/pub/ruby/abstracting_services_in_ruby/
 # * Git -- "":http://github.com/kstephens/abstracting_services_in_ruby
@@ -73,11 +73,11 @@
 # !SLIDE
 # Messaging
 #
-# * "Call a Method", "Call a Function" are all the same, in *all* languages.
+# * "Send a Message", "Call a Function" are all the same, in *all* languages.
 # ** Decomposed into lookup() and apply().
-# * "Send Message", not "Call a Method".
+# * "Send a Message", not "Call a Method".
 # * Messaging abstracts:
-# ** Object use from its implementation.
+# ** Behavior from Implementation.
 # ** Transfer of control (method, function invocation, RPC, etc).
 
 # !SLIDE
