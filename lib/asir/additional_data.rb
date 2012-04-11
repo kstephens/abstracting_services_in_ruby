@@ -19,6 +19,31 @@ module ASIR
     def []= key, value
       (@additional_data ||= { })[key] = value
     end
+
+    def self.included target
+      super
+      target.extend(ModuleMethods)
+    end
+
+    module ModuleMethods
+      # Provide a getter method that delegates to addtional_data[...].
+      def addr_getter *names
+        names.each do | name |
+          name = name.to_sym
+          define_method(name) { | | addtional_data[name] }
+        end
+      end
+
+      # Provide getter and setter methods that delegate to addtional_data[...].
+      def addr_accessor *names
+        addr_getter *names
+        names.each do | name |
+          name = name.to_sym
+          define_method(:"#{name}=") { | v | addtional_data[name] = v }
+        end
+      end
+    end
+
   end
   # !SLIDE END
 end
