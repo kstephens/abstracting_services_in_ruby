@@ -85,7 +85,7 @@ module ASIR
       result = decoder.dup.decode(result_payload)
       if result && ! message.one_way
         if exc = result.exception
-          exc.invoke!
+          invoker.invoke!(exc, self)
         else
           if ! @one_way && message.block
             message.block.call(result)
@@ -228,9 +228,14 @@ module ASIR
       _processing_message = @processing_message
       @processing_message = true
       wait_for_delay! message
-      message.invoke!
+      invoker.invoke!(message, self)
     ensure
       @processing_message = _processing_message
+    end
+
+    attr_accessor :invoker
+    def invoker
+      @invoker ||= Invoker.new
     end
 
     # !SLIDE END

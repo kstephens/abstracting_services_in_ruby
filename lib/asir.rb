@@ -245,6 +245,7 @@ require 'asir/coder'
 require 'asir/coder/null'
 require 'asir/coder/identity'
 require 'asir/transport'
+require 'asir/invoker'
 require 'asir/channel'
 require 'asir/transport/local'
 
