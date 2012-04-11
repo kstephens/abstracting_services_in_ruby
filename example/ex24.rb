@@ -1,8 +1,8 @@
 # !SLIDE :capture_code_output true
 # Synchronous HTTP service on Rack under WEBrick
 
-gem 'rack'
 require 'example_helper'
+gem 'rack'
 require 'asir/transport/rack'
 require 'asir/coder/base64'
 begin
