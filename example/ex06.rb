@@ -12,7 +12,6 @@ begin
   server_process do
     t.run_pipe_server!
   end
-  sleep 1
   pr Email.client.send_email(:pdf_invoice, :to => "user@email.com", :customer => @customer)
 ensure
   t.close; sleep 1; server_kill
