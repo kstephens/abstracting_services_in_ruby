@@ -24,6 +24,10 @@ describe 'ASIR::ThreadVariable' do
       tc.tv1.should == nil
       tc.tv1 = 1
       tc.tv1.should == 1
+      tc.with_attr! :tv1, 2 do
+        tc.tv1.should == 2
+      end
+      tc.tv1.should == 1
       tc.clear_tv1.should == tc
       tc.tv1.should == nil
     }
@@ -43,6 +47,10 @@ describe 'ASIR::ThreadVariable' do
       begin
         ti.iv1.should == nil
         ti.iv1 = 1
+        ti.iv1.should == 1
+        ti.with_attr! :iv1, 2 do
+          ti.iv1.should == 2
+        end
         ti.iv1.should == 1
         ti.clear_iv1.should == ti
         ti.iv1.should == nil

@@ -7,7 +7,26 @@ module ThreadVariable
   def self.included target
     super
     target.instance_eval do
+      include CommonMethods
+      extend CommonMethods
       extend ModuleMethods
+    end
+  end
+
+  def self.setter sym
+    SETTER[sym] ||= :"#{sym}="
+  end
+  SETTER = { }
+
+  module CommonMethods
+    # Yields to block while self.name = value.
+    # Restores self.name after yield.
+    def with_attr! name, value
+      save_value = send(name)
+      send(ThreadVariable.setter(name), value)
+      yield
+    ensure
+      send(ThreadVariable.setter(name), save_value)
     end
   end
 
