@@ -6,11 +6,17 @@ class ASIR::ThreadVariable::Test
   cattr_accessor_thread :tv2, :initialize => '1'
   cattr_accessor_thread :tv3, :default => '2'
   cattr_accessor_thread :tv4, :transform => '__val.to_s'
+  attr_accessor_thread  :iv1
 end
 
 describe 'ASIR::ThreadVariable' do
   def tc
-    ASIR::ThreadVariable::Test
+    @tc ||=
+      ASIR::ThreadVariable::Test
+  end
+  def ti
+    @ti ||=
+      tc.new
   end
 
   it 'cattr_accessor_thread handles concurrency' do
@@ -18,16 +24,43 @@ describe 'ASIR::ThreadVariable' do
       tc.tv1.should == nil
       tc.tv1 = 1
       tc.tv1.should == 1
-      tc.clear_tv1
+      tc.clear_tv1.should == tc
       tc.tv1.should == nil
     }
     th2 = Thread.new { 
       tc.tv1.should == nil
       tc.tv1 = 2
       tc.tv1.should == 2
-      tc.clear_tv1
+      tc.clear_tv1.should == tc
       tc.tv1.should == nil
     }
+    th1.join
+    th2.join
+  end
+
+  it 'attr_accessor_thread handles concurrency' do
+    th1 = Thread.new do
+      begin
+        ti.iv1.should == nil
+        ti.iv1 = 1
+        ti.iv1.should == 1
+        ti.clear_iv1.should == ti
+        ti.iv1.should == nil
+      rescue Exception => exc
+        raise exc.class, "In th1: #{exc.message}", exc.backtrace
+      end
+    end
+    th2 = Thread.new do
+      begin
+        ti.iv1.should == nil
+        ti.iv1 = 2
+        ti.iv1.should == 2
+        ti.clear_iv1.should == ti
+        ti.iv1.should == nil
+      rescue Exception => exc
+        raise exc.class, "In th2: #{exc.message}", exc.backtrace
+      end
+    end
     th1.join
     th2.join
   end

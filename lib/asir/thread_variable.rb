@@ -63,6 +63,7 @@ END
         instance_eval(expr = <<"END", __FILE__, __LINE__)
 def self.clear_#{name}
   Thread.current[:'#{self.name}.#{name}'] = nil
+  self
 end
 
 def self.#{name}
@@ -91,12 +92,19 @@ END
       transform = "__val = (#{transform})" if transform
 
       names.each do | name |
-        instance_eval <<"END", __FILE__, __LINE__
+        expr = [ <<"END", __FILE__, __LINE__ ]
+def clear_#{name}
+  (Thread.current[:'#{self.name}\##{name}'] ||= { }).delete(self.id)
+  self
+end
+
 def #{name}= __val
   #{transform}
   (Thread.current[:'#{self.name}\##{name}'] ||= { })[self.id] = [ __val ]
 end
 END
+        $stderr.puts "expr::\n#{expr}\n====" if opts[:debug]
+        class_eval *expr
       end
     end
 
@@ -118,7 +126,7 @@ END
       transform = "__val = (#{transform})" if transform
 
       names.each do | name |
-        instance_eval <<"END", __FILE__, __LINE__
+        expr = [ <<"END", __FILE__, __LINE__ ]
 def #{name}
   __val = (Thread.current[:'#{self.name}\##{name}'] #{initialize})
   #{pre_default}
@@ -128,6 +136,8 @@ def #{name}
   __val
 end
 END
+        $stderr.puts "expr::\n#{expr}\n====" if opts[:debug]
+        class_eval *expr
       end
     end
 
