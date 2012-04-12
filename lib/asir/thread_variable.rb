@@ -121,7 +121,7 @@ def #{name}= __val
   thread_attrs[:'#{name}'] = [ __val ]
 end
 END
-        $stderr.puts "expr::\n#{expr}\n====" if opts[:debug]
+        $stderr.puts "expr::\n#{expr}\n====" if opts[:debug] || DEBUG
         class_eval *expr
       end
     end
@@ -130,11 +130,19 @@ END
       opts = Hash === names[-1] ? names.pop : EMPTY_HASH
 
       expr = [ <<"END", __FILE__, __LINE__ ]
-def thread_attrs
-  (Thread.current[:'#{self.name}\#'] ||= { })[self.object_id] ||= { }
+def self.attr_thread_hash(obj)
+  thr = Thread.current
+  ObjectSpace.define_finalizer(obj) do | oid |
+    (thr[:'#{self.name}\#'] ||= { }).delete(oid)
+  end
+  { }
 end
 
-def attr_thread_forget! oic = self.object_id
+def thread_attrs
+  (Thread.current[:'#{self.name}\#'] ||= { })[self.object_id] ||= #{self.name}.attr_thread_hash(self)
+end
+
+def attr_thread_clear_all! oid = self.object_id
   (Thread.current[:'#{self.name}\#'] ||= { }).delete(oid)
 end
 END
