@@ -1,4 +1,5 @@
 require 'time'
+require 'asir/thread_variable'
 require 'asir/message/delay'
 
 module ASIR
@@ -11,7 +12,7 @@ module ASIR
   # Service: Send the Result to the Client.
   # Client: Receive the Result from the Service.
   class Transport
-    include Log, Initialization, AdditionalData, Message::Delay
+    include Log, Initialization, AdditionalData, Message::Delay, ThreadVariable
 
     attr_accessor :encoder, :decoder, :one_way
 
@@ -225,13 +226,15 @@ module ASIR
 
     # Invokes the Message object, returns a Result object.
     def invoke_message! message
-      _processing_message = @processing_message
-      @processing_message = true
-      wait_for_delay! message
-      invoker.invoke!(message, self)
-    ensure
-      @processing_message = _processing_message
+      with_attr! :processing_message, message do
+        Transport.with_attr! :current, self do
+          wait_for_delay! message
+          invoker.invoke!(message, self)
+        end
+      end
     end
+    attr_accessor_thread :processing_message
+    cattr_accessor_thread :current
 
     attr_accessor :invoker
     def invoker
