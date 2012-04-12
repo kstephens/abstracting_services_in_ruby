@@ -1,5 +1,3 @@
-require 'asir'
-
 module ASIR
 
 # Adds Thread-based class and instance variables.
@@ -8,8 +6,21 @@ module ThreadVariable
     super
     target.instance_eval do
       include CommonMethods
-      extend CommonMethods
-      extend ModuleMethods
+      extend  CommonMethods
+      extend  ModuleMethods
+    end
+  end
+  DEBUG = false
+
+  module CommonMethods
+    # Yields to block while self.name = value.
+    # Restores self.name after yield.
+    def with_attr! name, value
+      save_value = send(name)
+      send(::ASIR::ThreadVariable.setter(name), value)
+      yield
+    ensure
+      send(::ASIR::ThreadVariable.setter(name), save_value)
     end
   end
 
@@ -17,18 +28,6 @@ module ThreadVariable
     SETTER[sym] ||= :"#{sym}="
   end
   SETTER = { }
-
-  module CommonMethods
-    # Yields to block while self.name = value.
-    # Restores self.name after yield.
-    def with_attr! name, value
-      save_value = send(name)
-      send(ThreadVariable.setter(name), value)
-      yield
-    ensure
-      send(ThreadVariable.setter(name), save_value)
-    end
-  end
 
   module ModuleMethods
     # Defines a Module or Class attribute stored in Thread.current.
@@ -113,13 +112,13 @@ END
       names.each do | name |
         expr = [ <<"END", __FILE__, __LINE__ ]
 def clear_#{name}
-  (Thread.current[:'#{self.name}\##{name}'] ||= { }).delete(self.id)
+  ((Thread.current[:'#{self.name}\#'] ||= { })[self.object_id] || { }).delete(:'#{name}')
   self
 end
 
 def #{name}= __val
   #{transform}
-  (Thread.current[:'#{self.name}\##{name}'] ||= { })[self.id] = [ __val ]
+  thread_attrs[:'#{name}'] = [ __val ]
 end
 END
         $stderr.puts "expr::\n#{expr}\n====" if opts[:debug]
@@ -130,12 +129,21 @@ END
     def attr_getter_thread *names
       opts = Hash === names[-1] ? names.pop : EMPTY_HASH
 
+      expr = [ <<"END", __FILE__, __LINE__ ]
+def thread_attrs
+  (Thread.current[:'#{self.name}\#'] ||= { })[self.object_id] ||= { }
+end
+
+def attr_thread_forget! oic = self.object_id
+  (Thread.current[:'#{self.name}\#'] ||= { }).delete(oid)
+end
+END
+      $stderr.puts "expr::\n#{expr}\n====" if opts[:debug] || DEBUG
+      class_eval *expr
+
       initialize = opts[:initialize]
       if initialize
-        pre_default = "__val[self.id] ||= [ #{initialize} ]"
         initialize = "||= { }"
-      else
-        pre_default = "__val &&= __val[self.id]"
       end
 
       default = opts[:default]
@@ -147,20 +155,21 @@ END
       names.each do | name |
         expr = [ <<"END", __FILE__, __LINE__ ]
 def #{name}
-  __val = (Thread.current[:'#{self.name}\##{name}'] #{initialize})
-  #{pre_default}
+  __val = (thread_attrs[:'#{name}'] #{initialize})
   #{default}
   __val = __val && __val.first
   #{transform}
   __val
 end
 END
-        $stderr.puts "expr::\n#{expr}\n====" if opts[:debug]
+        $stderr.puts "expr::\n#{expr}\n====" if opts[:debug] || DEBUG
         class_eval *expr
       end
     end
 
   end # module
+
+  EMPTY_HASH = { }.freeze
 end # module
 
 end # module
