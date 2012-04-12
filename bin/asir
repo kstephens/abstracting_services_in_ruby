@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 # -*- ruby -*-
-$: << File.expand_path('../../lib', __FILE__)
+$:.unshift File.expand_path('../../lib', __FILE__)
 require 'asir/main'
 exit ASIR::Main.new.parse_args!.run!.exit_code
 
