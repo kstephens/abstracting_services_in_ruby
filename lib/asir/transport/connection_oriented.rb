@@ -1,51 +1,13 @@
 require 'asir/transport/stream'
 require 'asir/transport/payload_io'
-require 'uri'
+require 'asir/uri_config'
 
 module ASIR
   class Transport
     # !SLIDE
     # Connection-Oriented Transport
     class ConnectionOriented < Stream
-      include PayloadIO
-
-      attr_accessor :uri, :scheme, :port, :address
-      alias :protocol :scheme
-      alias :protocol= :scheme=
-
-      def uri
-        @uri ||= "#{scheme}://#{address}:#{port}"
-      end
-
-      def scheme
-        @scheme ||=
-          case
-          when @uri
-            URI.parse(@uri).scheme
-          else
-            'tcp'.freeze
-          end
-      end
-
-      def address
-        @address ||=
-          case
-          when @uri
-            URI.parse(@uri).host
-          else
-            '127.0.0.1'.freeze
-          end
-      end
-
-      def port
-        @port ||=
-          case
-          when @uri
-            URI.parse(@uri).port
-          else
-            raise Error, "#{self.class}: port not set."
-          end
-      end
+      include PayloadIO, UriConfig
 
       # !SLIDE
       # Returns a connected Channel.
