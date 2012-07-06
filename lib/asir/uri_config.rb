@@ -33,7 +33,7 @@ module ASIR
     def port
       @port ||=
         @uri ? _uri.port :
-          raise Error, "#{self.class}: port not set."
+          (raise Error, "#{self.class}: port not set.")
     end
 
   end
