@@ -12,6 +12,12 @@ module ASIR
 
       attr_accessor :queues, :queue, :namespace
 
+      def initialize *args
+        @port_default = 6379
+        super
+        self.one_way = true
+      end
+
       # !SLIDE
       # Resque client.
       def _client_connect!
