@@ -1,6 +1,6 @@
 require 'ASIR'
 
-class ASIR
+module ASIR
   module PollThrottle
     # Polls block until non-nil block result.
     # If non-nil, retry after sleeping for s sec, which starts at opts[:min_sleep].
@@ -32,7 +32,7 @@ class ASIR
         if opts[:verbose]
           $stderr.puts "  #{self}: poll_throttle: sleeping for #{this_s} sec"
         end
-        sleep this_s
+        sleep this_s if this_s > 0
         if x = opts[:mul_sleep]
           s *= x
         end

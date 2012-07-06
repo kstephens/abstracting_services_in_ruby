@@ -1,6 +1,8 @@
 # !SLIDE :capture_code_output true
 # One-way, named pipe service
 
+$stderr.puts "  #{$$} at #{__FILE__}:#{__LINE__}"
+
 require 'example_helper'
 begin
   File.unlink(service_pipe = "service.pipe") rescue nil

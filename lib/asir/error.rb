@@ -7,6 +7,9 @@ module ASIR
     # Unsupported Feature.
     class Unsupported < self; end
 
+    # Unimplemented Feature
+    class Unimplemented < self; end
+
     # Requested Stop.
     class Terminate < self; end
 
