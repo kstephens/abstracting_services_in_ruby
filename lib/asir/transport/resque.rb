@@ -26,7 +26,7 @@ module ASIR
       # !SLIDE
       # Resque client.
       def _client_connect!
-        $stderr.puts "  #{$$} #{self} _client_connect!"
+        # $stderr.puts "  #{$$} #{self} _client_connect!"
         resque_connect!
       rescue ::Exception => exc
         raise exc.class, "#{self.class} #{uri}: #{exc.message}", exc.backtrace
@@ -56,14 +56,6 @@ module ASIR
           $stderr.puts "  #{self} _send_message #{message_payload.inspect} to queue=#{queue.inspect} as #{self.class} :process_job"
           ::Resque.enqueue_to(queue, self.class, message_payload)
         end
-      end
-
-      def _write payload, stream
-        raise Error::Unimplemented
-      end
-
-      def _read stream # stream *is* the payload
-        raise Error::Unimplemented
       end
 
       def queues
