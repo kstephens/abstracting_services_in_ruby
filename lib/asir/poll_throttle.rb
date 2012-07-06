@@ -12,7 +12,7 @@ class ASIR
     def poll_throttle opts = nil
       opts ||= { }
       i = 0
-      s = opts[:min_sleep] ||= 0.25
+      s = opts[:min_sleep] ||= 0.01
       opts[:max_sleep] ||= 60
       # opts[:inc_sleep] ||= 1
       # opts[:mul_sleep] ||= 1.5
