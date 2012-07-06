@@ -159,7 +159,7 @@ module ASIR
         @redis =
           ::Redis.new({
                         :host => address || '127.0.0.1',
-                        :port => port || 6379,
+                        :port => port,
                         :thread_safe => true,
                       })
         if namespace_
