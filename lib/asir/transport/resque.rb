@@ -15,22 +15,18 @@ module ASIR
       # !SLIDE
       # Resque client.
       def _client_connect!
-        sock = zmq_context.socket(one_way ? ZMQ::PUB : ZMQ::REQ)
-        sock.connect(zmq_uri)
-        sock
+        resque_connect!
       rescue ::Exception => exc
-        raise exc.class, "#{self.class} #{zmq_uri}: #{exc.message}", exc.backtrace
+        raise exc.class, "#{self.class} #{uri}: #{exc.message}", exc.backtrace
       end
 
       # !SLIDE
       # Resque server (worker).
       def _server!
-        sock = zmq_context.socket(one_way ? ZMQ::SUB : ZMQ::REP)
-        sock.setsockopt(ZMQ::SUBSCRIBE, queue) if one_way
-        sock.bind("tcp://*:#{port}") # WTF?: why doesn't tcp://localhost:PORT work?
-        @server = sock
+        resque_connect!
+        resque_worker
       rescue ::Exception => exc
-        raise exc.class, "#{self.class} #{zmq_uri}: #{exc.message}", exc.backtrace
+        raise exc.class, "#{self.class} #{uri}: #{exc.message}", exc.backtrace
       end
 
       def _receive_result message, opaque_result
@@ -45,24 +41,19 @@ module ASIR
 
       # Based on Resque.enqueue
       def _write payload, stream
-        klass = self.class
-        ::Resque::Job.create(queue, klass, payload)
-        Plugin.after_enqueue_hooks(klass).each do | hook |
-          klass.send(hook, payload)
-        end
+        Resque.enqueue_to(queue, self.class, :process_job, payload)
       end
 
-      def _read stream
-        
+      def _read stream # stream *is* the payload
+        stream
       end
 
-      # def scheme; SCHEME; end; SCHEME = 'tcp'.freeze
       def queues
         @queues ||=
           (
           case
           when @uri
-            x = URI.parse(@uri).path
+            x = _uri.path
           else
             x = ""
           end
@@ -74,17 +65,20 @@ module ASIR
       # Defaults to [ 'asir' ].
       def queues_
         @queues_ ||=
-          (queues.empty? ? [ 'asir' ] : queues.freeze
+          (queues.empty? ? [ DEFAULT_QUEUE ] : queues.freeze
       end
 
       # Defaults to 'asir'.
       def queue
-        @queue ||= queues_.first || 'asir'.freeze
+        @queue ||= queues_.first || DEFAULT_QUEUE
       end
 
+      # Defaults to 'asir'.
       def namespace_
-        @namespace_ ||= namespace || 'asir'.freeze
+        @namespace_ ||= namespace || DEFAULT_QUEUE
       end
+
+      DEFAULT_QUEUE = 'asir'.freeze
 
       def run_server!
         _log { "run_server! #{uri}" } if @verbose >= 1
@@ -92,7 +86,7 @@ module ASIR
           @running = true
           while @running
             begin
-              serve_stream_message!(@server, @one_way ? nil : @server)
+              serve_stream_message!(nil, nil)
             rescue Error::Terminate => err
               @running = false
               _log [ :run_server_terminate, err ]
@@ -104,30 +98,66 @@ module ASIR
         _server_close!
       end
 
+      def serve_stream_message! in_stream, out_stream # ignored
+        save = Thread.current[:asir_transport_resque_payload]
+        Thread.current[:asir_transport_resque_payload] = nil
+        poll_throttle \
+          :inc_sleep => 1,
+          :mul_sleep => 1.5,
+          :rand_sleep => 0.1 \
+        do
+          resque_worker.process
+        end
+        self
+      ensure
+        Thread.current[:asir_transport_resque_payload] = save
+      end
+
+      def self.process_job payload
+        Thread.current[:asir_transport_resque_payload] = payload
+      end
+
+      def receive_message in_stream # ignored
+        payload = Thread.current[:asir_transport_resque_payload]
+        [ payload, nil ]
+      end
+
+      ####################################
+
       def resque_uri
         @resque_uri ||=
           (
           unless scheme == 'redis'
             raise ArgumentError, "Invalid resque URI: #{uri.inspect}"
           end
-          URI.parse(uri)
+          _uri
           )
       end
 
       def resque_connect!
-        ::Resque.redis =
-          ::Redis::Namespace.new(namespace_,
-                             :redis => ::Redis.new(
-                                               :host => address || '127.0.0.1',
-                                               :port => port || 6379
-                                               )
-                             )
-        ::Resque.redis.
+        @redis = ::Redis.new(
+                         :host => address || '127.0.0.1',
+                         :port => port || 6379
+                         )
+        if namespace_
+          ::Resque.redis =
+            @redis =
+            ::Redis::Namespace.new(namespace_, :redis => @redis)
+          ::Resque.redis.namespace = namespace_
+        else
+          ::Resque.redis = @redis
+        end
+        @redis
+      end
+
+      def resque_disconnect!
+        ::Resque.redis = nil
       end
 
       def resque_worker
         @resque_worker ||= ::Resque::Worker.new(queues_)
       end
+
     end
     # !SLIDE END
   end # class
