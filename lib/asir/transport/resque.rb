@@ -205,10 +205,11 @@ module ASIR
         if @redis_pid
           ::Process.kill 'TERM', @redis_pid
           ::Process.waitpid @redis_pid
-          @redis_pid = nil
           # File.unlink @redis_conf
         end
         self
+      ensure
+        @redis_pid = nil
       end
 
     end
