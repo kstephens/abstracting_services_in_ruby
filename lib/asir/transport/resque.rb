@@ -1,5 +1,4 @@
 require 'asir/transport/connection_oriented'
-gem 'resque'
 require 'resque'
 require 'asir/poll_throttle'
 

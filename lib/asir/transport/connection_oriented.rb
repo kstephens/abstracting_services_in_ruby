@@ -98,21 +98,29 @@ module ASIR
         with_server_signals! do
           @running = true
           while @running
-            stream = _server_accept_connection! @server
-            _log { "run_server!: connected" } if @verbose >= 1
-            begin
-              # Same socket for both in and out stream.
-              serve_stream! stream, stream
-            ensure
-              _server_close_connection!(stream)
-            end
-            _log { "run_server!: disconnected" } if @verbose >= 1
+            serve_connection!
           end
         end
         self
       ensure
         _server_close!
       end
+
+      def serve_connection!
+        in_stream, out_stream = _server_accept_connection! @server
+        _log { "run_server!: connected" } if @verbose >= 1
+        begin
+          _server_serve_stream! in_stream, out_stream
+        rescue Error::Terminate => err
+          @running = false
+          _log [ :run_server_terminate, err ]
+        ensure
+          _server_close_connection!(in_stream, out_stream)
+        end
+        _log { "run_server!: disconnected" } if @verbose >= 1
+      end
+
+      alias :_server_serve_stream! :serve_stream!
 
       def _server!
         raise Error::SubclassResponsibility, "_server!"
@@ -127,12 +135,13 @@ module ASIR
       end
 
       # Accept a client connection.
+      # Returns [ in_stream, out_stream ].
       def _server_accept_connection! server
         raise Error::SubclassResponsibility, "_server_accept_connection!"
       end
 
       # Close a client connection.
-      def _server_close_connection! stream
+      def _server_close_connection! in_stream, out_stream
         raise Error::SubclassResponsibility, "_server_close_connection!"
       end
     end

@@ -20,10 +20,11 @@ module ASIR
       end
 
       def _server_accept_connection! server
-        server.accept
+        socket = server.accept
+        [ socket, socket ] # Use same socket for in_stream and out_stream
       end
 
-      def _server_close_connection! stream
+      def _server_close_connection! stream, out_stream
         stream.close rescue nil
       end
     end

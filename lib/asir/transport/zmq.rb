@@ -69,23 +69,17 @@ module ASIR
           (queue.empty? ? queue : queue + " ").freeze
       end
 
+      # server represents an receiving ZMQ endpoint.
+      def _server_accept_connection! server
+        [ server, @one_way ? nil : server ]
+      end
 
-      def run_server!
-        _log { "run_server! #{uri}" } if @verbose >= 1
-        with_server_signals! do
-          @running = true
-          while @running
-            begin
-              serve_stream_message!(@server, @one_way ? nil : @server)
-            rescue Error::Terminate => err
-              @running = false
-              _log [ :run_server_terminate, err ]
-            end
-          end
-        end
-        self
-      ensure
-        _server_close!
+      # ZMQ is message-oriented, process only one message per "connection".
+      alias :_server_serve_stream! :serve_stream_message!
+
+      # Nothing to be closed for ZMQ.
+      def _server_close_connect! in_stream, out_stream
+        # NOTHING
       end
 
       def zmq_uri
