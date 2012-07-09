@@ -32,7 +32,7 @@ module ASIR
         if ! try_max || try_max > n_try
           yield :retry, exc
           if sleep_secs
-            sleep sleep_secs
+            sleep sleep_secs if sleep_secs > 0
             sleep_secs += try_sleep_increment if try_sleep_increment
             sleep_secs = try_sleep_max if try_sleep_max && sleep_secs > try_sleep_max
           end
