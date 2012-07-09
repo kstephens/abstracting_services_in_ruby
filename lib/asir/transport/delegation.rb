@@ -34,7 +34,7 @@ module ASIR
           transports.any? { | t | t.needs_message_timestamp? }
       end
 
-      # Subclasses with multiple transport should override this method.
+      # Subclasses with multiple transports should override this method.
       def transports
         @transports ||= [ transport ]
       end
