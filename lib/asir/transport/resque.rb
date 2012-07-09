@@ -109,8 +109,11 @@ module ASIR
         poll_throttle throttle do
           # $stderr.puts "  #{self} serve_stream_message!"
           # $stderr.puts "  #{self} resque_worker = #{resque_worker} on queues #{resque_worker.queues}"
-          job = resque_worker.process
+          if job = resque_worker.reserve
+            job = resque_worker.process(job)
+          end
           # $stderr.puts "  #{self} serve_stream_message! job=#{job.class}:#{job.inspect}"
+          job
         end
         self
       ensure
