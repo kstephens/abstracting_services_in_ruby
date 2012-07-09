@@ -116,6 +116,11 @@ module ASIR
         false
       end
 
+      # Nothing to be closed for Resque.
+      def _server_close_connection! in_stream, out_stream
+        # NOTHING
+      end
+
       def serve_stream_message! in_stream, out_stream # ignored
         save = Thread.current[:asir_transport_resque_instance]
         Thread.current[:asir_transport_resque_instance] = self
