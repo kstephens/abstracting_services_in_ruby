@@ -120,7 +120,7 @@ module ASIR
     # Proc to call with exception, if exception occurs within #serve_message!, but outside
     # Message#invoke!.
     #
-    # trans.on_exception.call(trans, exception, :message, Message_instance)
+    # trans.on_exception.call(trans, exception, :message, Message_instance, nil)
     # trans.on_exception.call(trans, exception, :result, Message_instance, Result_instance)
     attr_accessor :on_exception
 
@@ -155,7 +155,7 @@ module ASIR
     rescue ::Exception => exc
       exception = original_exception = exc
       _log [ :message_error, exc ]
-      @on_exception.call(self, exc, :message, message) if @on_exception
+      @on_exception.call(self, exc, :message, message, nil) if @on_exception
     ensure
       begin
         if message_ok
