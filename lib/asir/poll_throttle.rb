@@ -1,4 +1,4 @@
-require 'ASIR'
+require 'asir'
 
 module ASIR
   module PollThrottle
