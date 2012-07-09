@@ -120,7 +120,7 @@ module ASIR
         _log { "run_server!: disconnected" } if @verbose >= 1
       end
 
-      alias :_server_serve_stream! :serve_stream!
+      alias :_server_serve_stream! :_serve_stream!
 
       def _server!
         raise Error::SubclassResponsibility, "_server!"

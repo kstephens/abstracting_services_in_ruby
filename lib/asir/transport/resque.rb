@@ -107,6 +107,15 @@ module ASIR
         _server_close!
       end
 
+      def _server_accept_connection! server
+        [ server, server ]
+      end
+
+      # Resque is message-oriented, process only one message per "connection".
+      def stream_eof? stream
+        false
+      end
+
       def serve_stream_message! in_stream, out_stream # ignored
         save = Thread.current[:asir_transport_resque_instance]
         Thread.current[:asir_transport_resque_instance] = self

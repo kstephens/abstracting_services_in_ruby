@@ -50,7 +50,6 @@ module ASIR
         stream.recv 0
       end
 
-      # def scheme; SCHEME; end; SCHEME = 'tcp'.freeze
       def queue
         @queue ||=
           (
@@ -69,16 +68,20 @@ module ASIR
           (queue.empty? ? queue : queue + " ").freeze
       end
 
-      # server represents an receiving ZMQ endpoint.
+      # server represents a receiving ZMQ endpoint.
       def _server_accept_connection! server
         [ server, @one_way ? nil : server ]
       end
 
       # ZMQ is message-oriented, process only one message per "connection".
-      alias :_server_serve_stream! :serve_stream_message!
+      alias :_server_serve_stream :serve_message!
+
+      def stream_eof? stream
+        false
+      end
 
       # Nothing to be closed for ZMQ.
-      def _server_close_connect! in_stream, out_stream
+      def _server_close_connection! in_stream, out_stream
         # NOTHING
       end
 

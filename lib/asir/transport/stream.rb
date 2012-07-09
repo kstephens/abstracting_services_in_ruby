@@ -11,7 +11,12 @@ module ASIR
       # Serve all Messages from a stream.
       def serve_stream! in_stream, out_stream
         with_server_signals! do
-          while @running && ! in_stream.eof?
+          _serve_stream! in_stream, out_stream
+        end
+      end
+
+      def _serve_stream! in_stream, out_stream
+          while @running && ! stream_eof?(in_stream)
             begin
               serve_stream_message! in_stream, out_stream
             rescue Error::Terminate => err
@@ -21,7 +26,6 @@ module ASIR
               _log [ :serve_stream_error, err ]
             end
           end
-        end
       end
 
       # !SLIDE
@@ -29,6 +33,12 @@ module ASIR
       def serve_stream_message! in_stream, out_stream
         serve_message! in_stream, out_stream
       end
+
+      # Subclasses can override this method.
+      def stream_eof? stream
+        stream.eof?
+      end
+
     end
     # !SLIDE END
   end
