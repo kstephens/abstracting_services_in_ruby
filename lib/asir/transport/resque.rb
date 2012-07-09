@@ -89,24 +89,6 @@ module ASIR
 
       DEFAULT_QUEUE = 'asir'.freeze
 
-      def run_server!
-        _log { "run_server! #{uri}" } if @verbose >= 1
-        with_server_signals! do
-          @running = true
-          while @running
-            begin
-              serve_stream_message!(nil, nil)
-            rescue Error::Terminate => err
-              @running = false
-              _log [ :run_server_terminate, err ]
-            end
-          end
-        end
-        self
-      ensure
-        _server_close!
-      end
-
       def _server_accept_connection! server
         [ server, server ]
       end
