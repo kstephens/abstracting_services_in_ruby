@@ -112,11 +112,11 @@ class Main
     when /^taillog_([^_]+)_([^_]+)!$/
       exec "tail -f #{log_file.inspect}"
     when /^pid_([^_]+)_([^_]+)!$/
-      pid = File.read(pid_file) rescue nil
+      pid = server_pid rescue nil
       alive = process_running? pid
       puts "#{pid_file} #{pid || :NA} #{alive}"
     when /^alive_([^_]+)_([^_]+)!$/
-      pid = File.read(pid_file) rescue nil
+      pid = server_pid rescue nil
       alive = process_running? pid
       puts "#{pid_file} #{pid || :NA} #{alive}" if @verbose
       self.exit_code += 1 unless alive
@@ -152,6 +152,8 @@ ADJECTIVE-OBJECTs:
   beanstalk worker
   zmq worker
   webrick worker
+  resque conduit
+  resque worker
 
 EXAMPLES:
 
@@ -172,7 +174,19 @@ END
   end
 
   def start_beanstalk_conduit!
-    fork_server! "beanstalkd"
+    _start_conduit!
+  end
+
+  def start_resque_conduit!
+    _start_conduit!
+  end
+
+  def _start_conduit!
+    config!(:environment)
+    self.transport = config!(:transport)
+    fork_server! do
+      transport.start_conduit! :fork => false
+    end
   end
 
   def _start_worker! type = adjective
@@ -347,7 +361,7 @@ END
     when Integer
       Process.kill(0, pid)
     else
-      raise TypeError
+      raise TypeError, "expected false, nil, Integer; given #{pid.inspect}"
     end
     true
   rescue ::Errno::ESRCH

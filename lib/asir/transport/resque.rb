@@ -188,37 +188,18 @@ module ASIR
 
       #########################################
 
-      def start_redis!
-        raise "already running #{@redis_pid}" if @redis_pid
-        @redis_conf ||= "redis_#{port}.conf"
-        @redis_log ||= "redis_#{port}.log"
+      def _start_conduit!
+        @redis_dir ||= "/tmp"
+        @redis_conf ||= "#{@redis_dir}/asir-redis-#{port}.conf"
+        @redis_log ||= "#{@redis_dir}/asir-redis-#{port}.log"
         ::File.open(@redis_conf, "w+") do | out |
           out.puts "daemonize no"
           out.puts "port #{port}"
           out.puts "loglevel warning"
           out.puts "logfile #{@redis_log}"
         end
-        @redis_pid = ::Process.fork do
-          exec "redis-server", @redis_conf
-          raise "Could not exec"
-        end
-        # $stderr.puts "*** #{$$} started redis-server pid=#{@redis_pid} port=#{port}"
-        self
+        exec "redis-server", @redis_conf
       end
-      alias :start_conduit! :start_redis!
-
-      def stop_redis!
-        if @redis_pid
-          ::Process.kill 'TERM', @redis_pid
-          ::Process.waitpid @redis_pid
-          # File.unlink @redis_conf
-        end
-        self
-      ensure
-        @redis_pid = nil
-      end
-      alias :stop_conduit! :stop_redis!
-
     end
     # !SLIDE END
   end # class

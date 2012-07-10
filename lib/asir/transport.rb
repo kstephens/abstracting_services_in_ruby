@@ -1,6 +1,7 @@
 require 'time'
 require 'asir/thread_variable'
 require 'asir/message/delay'
+require 'asir/transport/conduit'
 
 module ASIR
   # !SLIDE
@@ -12,7 +13,7 @@ module ASIR
   # Service: Send the Result to the Client.
   # Client: Receive the Result from the Service.
   class Transport
-    include Log, Initialization, AdditionalData, Message::Delay, ThreadVariable
+    include Log, Initialization, AdditionalData, Message::Delay, ThreadVariable, Conduit
 
     attr_accessor :encoder, :decoder, :one_way
 

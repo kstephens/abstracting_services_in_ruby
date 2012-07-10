@@ -8,7 +8,7 @@ begin
     ASIR::Transport::Beanstalk.new(:address => '127.0.0.1', :port => 30916)
   t.encoder =
     ASIR::Coder::Marshal.new
-  t.start_beanstalkd!; sleep 1
+  t.start_conduit!; sleep 1
   server_process do
     t.prepare_server!
     t.run_server!
@@ -22,7 +22,7 @@ rescue Object => err
 ensure
   t.close; sleep 1
   server_kill; sleep 1
-  t.stop_beanstalkd!
+  t.stop_conduit!
 end
 
 # !SLIDE END

@@ -17,7 +17,7 @@ begin
     :mul_sleep => 1.5,
     :rand_sleep => 0.1,
   }
-  t.start_redis!; sleep 1
+  t.start_conduit!; sleep 1
   server_process do
     t.prepare_server!
     t.run_server!
@@ -30,7 +30,7 @@ rescue ::Exception => err
 ensure
   sleep 5
   t.close rescue nil; sleep 1; server_kill
-  t.stop_redis!
+  t.stop_conduit!
 end
 
 # !SLIDE END

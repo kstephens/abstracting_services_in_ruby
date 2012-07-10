@@ -11,7 +11,7 @@ begin
     ASIR::Coder::Chain.new(:encoders =>
                            [ ASIR::Coder::Marshal.new,
                             ASIR::Coder::Zlib.new, ])
-  t.start_beanstalkd!; sleep 1
+  t.start_conduit!; sleep 1
   pr Email.client.send_email(:pdf_invoice,
                              :to => "user@email.com", :customer => @customer)
   sleep 2
@@ -23,7 +23,7 @@ rescue Object => err
   $stderr.puts "#{err.inspect}\n#{err.backtrace * "\n"}"
 ensure
   t.close; sleep 3; server_kill; sleep 2
-  t.stop_beanstalkd!
+  t.stop_conduit!
 end
 
 # !SLIDE END

@@ -171,31 +171,11 @@ module ASIR
         false
       end
 
-      def start_beanstalkd!
-        _log { "run_beanstalkd! #{uri}" } if @verbose >= 1
-        raise "already running #{@beanstalkd_pid}" if @beanstalkd_pid
+      def _start_conduit!
         addr = address ? "-l #{address} " : ""
         cmd = "beanstalkd #{addr}-p #{port}"
-        @beanstalkd_pid = Process.fork do 
-          _log { "Start beanstalkd: #{cmd} ..." } if @verbose >= 1
-          exec(cmd)
-          raise "exec #{cmd.inspect} failed"
-        end
-        _log { "Start beanstalkd: #{cmd} pid=#{@beanstalkd_pid.inspect}" } if @verbose >= 2
-        self
+        exec(cmd)
       end
-      alias :start_conduit! :start_beanstalkd!
-
-      def stop_beanstalkd!
-        _log { "stop_beanstalkd! #{uri} pid=#{@beanstalkd_pid.inspect}" } if @verbose >= 1
-        Process.kill 'TERM', @beanstalkd_pid
-        Process.waitpid @beanstalkd_pid
-        self
-      ensure
-        @beanstalkd_pid = nil
-      end
-      alias :stop_conduit! :stop_beanstalkd!
-
     end
     # !SLIDE END
   end # class

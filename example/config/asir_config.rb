@@ -8,6 +8,8 @@ when :configure
   # NOTHING
   true
 when :environment
+  require 'rubygems'
+
   require 'asir'
   require 'asir/transport/file'
   require 'asir/coder/marshal'
@@ -17,6 +19,9 @@ when :environment
   require 'example_helper'
   require 'sample_service'
   require 'unsafe_service'
+when :start
+  # NOTHING
+  true
 when :transport
   # Compose with Marshal for final coding.
   coder = ASIR::Coder::Marshal.new
@@ -32,8 +37,8 @@ when :transport
   # Setup requested Transport.
   case asir.adjective
   when :beanstalk
+    require 'asir/transport/beanstalk'
     transport = ASIR::Transport::Beanstalk.new
-    transport[:worker_processes] = 3
   when :http, :webrick
     transport = ASIR::Transport::Webrick.new
     transport.uri = "http://localhost:#{30000 + asir.identifier.to_s.to_i}/asir"
@@ -44,6 +49,10 @@ when :transport
     transport = ASIR::Transport::Zmq.new
     transport.one_way = true
     transport.uri = "tcp://localhost:#{31000 + asir.identifier.to_s.to_i}" # /asir"
+  when :resque
+    gem 'resque'
+    require 'asir/transport/resque'
+    transport = ASIR::Transport::Resque.new
   else
     raise "Cannot configure Transport for #{asir.adjective}"
   end
@@ -51,9 +60,9 @@ when :transport
   transport.encoder = coder
   transport._logger = STDERR
   transport._log_enabled = true
-  transport.verbose = 3
+  # transport.verbose = 3
   transport.on_exception =
-    lambda { | transport, exc, phase, message, *rest |
+    lambda { | transport, exc, phase, message, result |
       error_transport.send_request(message)
     }
 
