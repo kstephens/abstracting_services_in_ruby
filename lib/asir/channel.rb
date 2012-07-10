@@ -101,9 +101,8 @@ module ASIR
     # Maps from Channel objects to actual stream.
     def _streams
       streams = Thread.current[:'ASIR::Channel._streams'] ||= { }
-      if ! @owning_process ||
-          @owning_process != $$ || # child process?
-          @owning_process > $$ # PIDs wrapped around?
+      if  @owning_process != $$ || # child process?
+          @owning_process > $$     # PIDs wrapped around?
         @owning_process = $$
         streams.clear
       end
