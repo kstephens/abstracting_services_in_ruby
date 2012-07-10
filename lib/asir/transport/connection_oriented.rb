@@ -108,7 +108,7 @@ module ASIR
 
       def serve_connection!
         in_stream, out_stream = _server_accept_connection! @server
-        _log { "run_server!: connected" } if @verbose >= 1
+        _log { "serve_connection!: connected" } if @verbose >= 1
         begin
           _server_serve_stream! in_stream, out_stream
         rescue Error::Terminate => err
@@ -117,7 +117,7 @@ module ASIR
         ensure
           _server_close_connection!(in_stream, out_stream)
         end
-        _log { "run_server!: disconnected" } if @verbose >= 1
+        _log { "serve_connection!: disconnected" } if @verbose >= 1
       end
 
       alias :_server_serve_stream! :_serve_stream!

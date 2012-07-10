@@ -52,7 +52,7 @@ module ASIR
 
       def _send_message message, message_payload
         stream.with_stream! do | io |  # Force connect
-          $stderr.puts "  #{self} _send_message #{message_payload.inspect} to queue=#{queue.inspect} as #{self.class} :process_job"
+          $stderr.puts "  #{self} _send_message #{message_payload.inspect} to queue=#{queue.inspect} as #{self.class} :process_job" # if @verbose >= 2
           ::Resque.enqueue_to(queue, self.class, message_payload)
         end
       end
@@ -107,12 +107,11 @@ module ASIR
         save = Thread.current[:asir_transport_resque_instance]
         Thread.current[:asir_transport_resque_instance] = self
         poll_throttle throttle do
-          # $stderr.puts "  #{self} serve_stream_message!"
           # $stderr.puts "  #{self} resque_worker = #{resque_worker} on queues #{resque_worker.queues}"
           if job = resque_worker.reserve
-            job = resque_worker.process(job)
+            # $stderr.puts "  #{self} serve_stream_message! job=#{job.class}:#{job.inspect}"
+            resque_worker.process(job)
           end
-          # $stderr.puts "  #{self} serve_stream_message! job=#{job.class}:#{job.inspect}"
           job
         end
         self
