@@ -14,9 +14,9 @@ begin
     t0 = ASIR::Transport::Buffer.new(:transport => t)
   t0.pause!
   server_process do
-    t.prepare_beanstalk_server!
-    t.run_beanstalk_server!
-  end; sleep 1
+    t.prepare_server!
+    t.run_server!
+  end
   pr [ :paused, t0.paused?, :at, Time.now.iso8601(2) ]
   pr DelayedService.client.
     _configure{|req| req.delay = 5}.

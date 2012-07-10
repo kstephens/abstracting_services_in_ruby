@@ -16,8 +16,8 @@ begin
                              :to => "user@email.com", :customer => @customer)
   sleep 2
   server_process do
-    t.prepare_beanstalk_server!
-    t.run_beanstalk_server!
+    t.prepare_server!
+    t.run_server!
   end
 rescue Object => err
   $stderr.puts "#{err.inspect}\n#{err.backtrace * "\n"}"

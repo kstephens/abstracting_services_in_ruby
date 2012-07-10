@@ -55,22 +55,23 @@ module ASIR
       def serve_file!
         ::File.open(file, "r") do | stream |
           @running = true
-          serve_stream! stream, nil # One-way: no result stream.
+          _serve_stream! stream, nil # One-way: no result stream.
         end
       end
 
       # !SLIDE
       # Named Pipe Server
 
-      def prepare_pipe_server!
+      def prepare_server!
         # _log [ :prepare_pipe_server!, file ]
         unless ::File.exist? file
           system(cmd = "mkfifo #{file.inspect}") or raise "cannot run #{cmd.inspect}"
           ::File.chmod(perms, file) rescue nil if perms
         end
       end
+      alias :prepare_pipe_server! :prepare_server!
 
-      def run_pipe_server!
+      def run_server!
         # _log [ :run_pipe_server!, file ]
         with_server_signals! do
           @running = true
@@ -79,6 +80,7 @@ module ASIR
           end
         end
       end
+      alias :run_pipe_server! :run_server!
 
       # !SLIDE END
     end

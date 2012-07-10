@@ -140,9 +140,8 @@ module ASIR
 
       # !SLIDE
       # Beanstalk Server
-
-      def prepare_beanstalk_server!
-        _log { "prepare_beanstalk_server! #{uri}" } if @verbose >= 1
+      def _server!
+        _log { "_server! #{uri}" } if @verbose >= 1
         @server = connect!(:try_max => nil,
                            :try_sleep => 1,
                            :try_sleep_increment => 0.1,
@@ -155,42 +154,27 @@ module ASIR
         end
         self
       end
-      alias :prepare_server! :prepare_beanstalk_server!
 
-      def run_beanstalk_server!
-        _log :run_beanstalk_server! if @verbose >= 1
-        with_server_signals! do
-          @running = true
-          while @running
-            prepare_beanstalk_server! unless @server
-            # Same socket for both in and out stream.
-            serve_stream! @server, @server
-          end
-        end
-        self
-      ensure
-        _server_close!
+      def _server_accept_connection! server
+        prepare_server! unless @server
+        [ @server, @server ]
       end
-      alias :run_server! :run_beanstalk_server!
- 
-      def serve_stream! in_stream, out_stream
-        while @running
-          begin
-            serve_stream_message! in_stream, out_stream
-          rescue ::Exception => exc
-            _log [ :serve_stream_error, exc ]
-            @running = false
-          end
-        end
-        self
-      ensure
-        _server_close!
+
+      def _server_close_connection! in_stream, out_stream
+        # NOTHING
+      end
+
+      def stream_eof? stream
+        # Note: stream.eof? on a beanstalkd connection,
+        # will cause blocking read *forever* because
+        # beanstalk connections are long lived.
+        false
       end
 
       def start_beanstalkd!
         _log { "run_beanstalkd! #{uri}" } if @verbose >= 1
         raise "already running #{@beanstalkd_pid}" if @beanstalkd_pid
-        addr = @address ? "-l #{@address} " : ""
+        addr = address ? "-l #{address} " : ""
         cmd = "beanstalkd #{addr}-p #{port}"
         @beanstalkd_pid = Process.fork do 
           _log { "Start beanstalkd: #{cmd} ..." } if @verbose >= 1
@@ -200,6 +184,7 @@ module ASIR
         _log { "Start beanstalkd: #{cmd} pid=#{@beanstalkd_pid.inspect}" } if @verbose >= 2
         self
       end
+      alias :start_conduit! :start_beanstalkd!
 
       def stop_beanstalkd!
         _log { "stop_beanstalkd! #{uri} pid=#{@beanstalkd_pid.inspect}" } if @verbose >= 1
@@ -209,6 +194,7 @@ module ASIR
       ensure
         @beanstalkd_pid = nil
       end
+      alias :stop_conduit! :stop_beanstalkd!
 
     end
     # !SLIDE END

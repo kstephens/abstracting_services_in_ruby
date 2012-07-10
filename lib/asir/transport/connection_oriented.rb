@@ -32,12 +32,12 @@ module ASIR
       # Returns raw client stream.
       def _connect!
         _log { "_connect! #{uri}" } if @verbose >= 1
-        sock = _client_connect!
-        _log { "_connect! socket=#{sock}" } if @verbose >= 1
-        _after_connect! sock
-        sock
+        stream = _client_connect!
+        _log { "_connect! stream=#{stream}" } if @verbose >= 1
+        _after_connect! stream
+        stream
       rescue ::Exception => err
-        raise Error, "Cannot connect to #{self.class} #{uri}: #{err.inspect}", err.backtrace
+        raise err.class, "Cannot connect to #{self.class} #{uri}: #{err.inspect}", err.backtrace
       end
 
       # Subclasses can override.
@@ -90,7 +90,7 @@ module ASIR
         _server!
       rescue ::Exception => err
         _log [ "prepare_server! #{uri}", :exception, err ]
-        raise Error, "Cannot prepare server on #{self.class} #{uri}: #{err.inspect}", err.backtrace
+        raise err.class, "Cannot prepare server on #{self.class} #{uri}: #{err.inspect}", err.backtrace
       end
 
       def run_server!
@@ -108,18 +108,15 @@ module ASIR
 
       def serve_connection!
         in_stream, out_stream = _server_accept_connection! @server
-        _log { "serve_connection!: connected" } if @verbose >= 1
-        begin
-          _server_serve_stream! in_stream, out_stream
-        rescue Error::Terminate => err
-          @running = false
-          _log [ :run_server_terminate, err ]
-        ensure
-          _server_close_connection!(in_stream, out_stream)
-        end
+        _log { "serve_connection!: connected #{in_stream} #{out_stream}" } if @verbose >= 1
+        _server_serve_stream! in_stream, out_stream
+      rescue Error::Terminate => err
+        @running = false
+        _log [ :serve_connection_terminate, err ]
+      ensure
+        _server_close_connection!(in_stream, out_stream)
         _log { "serve_connection!: disconnected" } if @verbose >= 1
       end
-
       alias :_server_serve_stream! :_serve_stream!
 
       def _server!

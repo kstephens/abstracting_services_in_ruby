@@ -10,9 +10,9 @@ begin
     ASIR::Coder::Marshal.new
   t.start_beanstalkd!; sleep 1
   server_process do
-    t.prepare_beanstalk_server!
-    t.run_beanstalk_server!
-  end; sleep 1
+    t.prepare_server!
+    t.run_server!
+  end
   pr DelayedService.client.
     _configure{|req| req.delay = 5}.
     do_it(Time.now)
