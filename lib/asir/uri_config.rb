@@ -3,8 +3,8 @@ require 'uri'
 
 module ASIR
   module UriConfig
-    attr_accessor :uri, :scheme, :host, :port
-    attr_accessor :scheme_default, :host_default, :port_default
+    attr_accessor :uri, :scheme, :host, :port, :path
+    attr_accessor :scheme_default, :host_default, :port_default, :path_default
     alias :protocol :scheme
     alias :protocol= :scheme=
     alias :address :host
@@ -42,5 +42,10 @@ module ASIR
         (raise Error, "#{self.class}: port not set.")
     end
 
+    def path
+      @path ||=
+        (@uri && _uri.path) ||
+        @path_default
+    end
   end
 end

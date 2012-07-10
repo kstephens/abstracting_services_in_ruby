@@ -60,13 +60,13 @@ module ASIR
       def queues
         @queues ||=
           (
-          case
-          when @uri
-            x = _uri.path
-          else
-            x = ""
-          end
+          x = nil
+          x = path if @uri
+          x ||= ""
+          root, x = x.split('/')
+          x ||= ""
           x = x.split(/(\s+|\s*,\s*)/)
+          x.each(&:freeze)
           x.freeze
           )
       end
