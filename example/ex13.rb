@@ -15,7 +15,7 @@ begin
   server_process do
     t.prepare_server!
     t.run_server!
-  end; sleep 2
+  end
   pr Email.client.send_email(:pdf_invoice,
                              :to => "user@email.com",
                              :customer => @customer)
@@ -24,7 +24,7 @@ rescue Object => err
   $stderr.puts "#{err.inspect}\n#{err.backtrace * "\n"}"
 ensure
   t.close rescue nil; sleep 3
-  server_kill; sleep 2
+  server_kill
 end
 
 # !SLIDE END

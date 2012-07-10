@@ -35,7 +35,7 @@ def pr result
 end
 
 def server_process &blk
-  $stderr.puts "  at #{__FILE__}:#{__LINE__}"
+  # $stderr.puts "  at #{__FILE__}:#{__LINE__}"
   case RUBY_PLATFORM
   when /java/i
     # JRuby cannot fork.
@@ -60,7 +60,7 @@ def server_process &blk
       $stderr.puts "  spawned #{$server_pid} at #{__FILE__}:#{__LINE__}"
     end
   else
-    $stderr.puts "  at #{__FILE__}:#{__LINE__}"
+    # $stderr.puts "  at #{__FILE__}:#{__LINE__}"
     $server_pid = Process.fork do
       puts "*** #{$$}: server process"; $stdout.flush
       yield

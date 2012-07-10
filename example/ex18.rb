@@ -15,7 +15,7 @@ begin
     server_process do
       tcp.prepare_server!
       tcp.run_server!
-    end; sleep 2
+    end
   end
   Email.client.transport = t =
     ASIR::Transport::Retry.new(:transport => tcp,

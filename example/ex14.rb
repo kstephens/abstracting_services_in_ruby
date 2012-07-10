@@ -14,13 +14,13 @@ begin
   server_process do
     t.prepare_server!
     t.run_server!
-  end; sleep 2
+  end
   pr MyClass.new("abc123").client.size
   sleep 2
 rescue Object => err
   $stderr.puts "#{err.inspect}\n#{err.backtrace * "\n"}"
 ensure
-  t.close; sleep 3; server_kill; sleep 2
+  t.close; sleep 3; server_kill
 end
 
 # !SLIDE END

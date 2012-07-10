@@ -15,7 +15,7 @@ begin
   server_process do
     t.prepare_server!
     t.run_server!
-  end; sleep 2
+  end
   pr Email.client.send_email(:pdf_invoice,
                              :to => "user@email.com",
                              :customer => @customer)

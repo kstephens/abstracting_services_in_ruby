@@ -18,11 +18,10 @@ begin
     :rand_sleep => 0.1,
   }
   t.start_redis!; sleep 1
-
   server_process do
     t.prepare_server!
     t.run_server!
-  end; sleep 1
+  end
   UnsafeService.client.transport = t
   pr UnsafeService.client.do_it(":ok")
 rescue ::Exception => err

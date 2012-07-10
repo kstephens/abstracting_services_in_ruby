@@ -10,7 +10,7 @@ begin
   server_process do
     zmq.prepare_server!
     zmq.run_server!
-  end; sleep 1
+  end
   UnsafeService.client.transport = t = zmq
   pr UnsafeService.client.do_it(":ok")
 rescue ::Exception => err

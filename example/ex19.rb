@@ -8,7 +8,7 @@ begin
   server_process do
     tcp.prepare_server!
     tcp.run_server!
-  end; sleep 2
+  end
   UnsafeService.client.transport = t = tcp
   pr UnsafeService.client.do_it("exit 999; :ok")
   sleep 1

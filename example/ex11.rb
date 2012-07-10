@@ -19,7 +19,7 @@ begin
   server_process do
     tcp.prepare_server!
     tcp.run_server!
-  end; sleep 2
+  end
   pr Email.client.send_email(:pdf_invoice,
                              :to => "user2@email.com", :customer => @customer)
 ensure
