@@ -181,6 +181,7 @@ module ASIR
 
     # !SLIDE 
     # Transport Server Support
+    attr_accessor :running
 
     def stop! force = false
       @running = false
