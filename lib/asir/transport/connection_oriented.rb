@@ -97,13 +97,21 @@ module ASIR
         _log { "run_server! #{uri}" } if @verbose >= 1
         with_server_signals! do
           @running = true
+          server_on_start!
           while @running
             serve_connection!
           end
         end
         self
       ensure
+        server_on_stop!
         _server_close!
+      end
+
+      def server_on_start!
+      end
+
+      def server_on_stop!
       end
 
       def serve_connection!

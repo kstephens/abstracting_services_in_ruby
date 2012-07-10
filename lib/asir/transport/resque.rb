@@ -171,6 +171,21 @@ module ASIR
         @resque_worker ||= ::Resque::Worker.new(queues_)
       end
 
+      def server_on_start!
+        if worker = resque_worker
+          worker.prune_dead_workers
+          worker.register_worker
+        end
+        self
+      end
+
+      def server_on_stop!
+        if worker = @resque_worker
+          worker.unregister_worker
+        end
+        self
+      end
+
       #########################################
 
       def start_redis!
