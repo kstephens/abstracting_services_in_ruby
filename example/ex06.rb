@@ -10,9 +10,9 @@ begin
     ASIR::Transport::File.new(:file => service_pipe)
   t.encoder =
     ASIR::Coder::Yaml.new
-  t.prepare_pipe_server!
   server_process do
-    t.run_pipe_server!
+    t.prepare_server!
+    t.run_server!
   end
   pr Email.client.send_email(:pdf_invoice, :to => "user@email.com", :customer => @customer)
 ensure

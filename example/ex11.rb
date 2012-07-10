@@ -38,7 +38,7 @@ end
 # EXPECT: service.log" contents:
 # EXPECT: --- !ruby/object:ASIR::Message
 # EXPECT:   :transport_exceptions:
-# EXPECT: ASIR::Error: Cannot connect to ASIR::Transport::TcpSocket tcp://127.0.0.1:
+# EXPECT: Cannot connect to ASIR::Transport::TcpSocket tcp://127.0.0.1:
 # EXPECT: arguments:
 # EXPECT: - :pdf_invoice
 # EXPECT/: :to: user@email.com
