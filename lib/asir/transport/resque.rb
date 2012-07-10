@@ -174,6 +174,7 @@ module ASIR
       #########################################
 
       def start_redis!
+        raise "already running #{@redis_pid}" if @redis_pid
         @redis_conf ||= "redis_#{port}.conf"
         @redis_log ||= "redis_#{port}.log"
         ::File.open(@redis_conf, "w+") do | out |
@@ -186,9 +187,10 @@ module ASIR
           exec "redis-server", @redis_conf
           raise "Could not exec"
         end
-        $stderr.puts "*** #{$$} started redis-server pid=#{@redis_pid} port=#{port}"
+        # $stderr.puts "*** #{$$} started redis-server pid=#{@redis_pid} port=#{port}"
         self
       end
+      alias :start_conduit! :start_redis!
 
       def stop_redis!
         if @redis_pid
@@ -200,6 +202,7 @@ module ASIR
       ensure
         @redis_pid = nil
       end
+      alias :stop_conduit! :stop_redis!
 
     end
     # !SLIDE END
