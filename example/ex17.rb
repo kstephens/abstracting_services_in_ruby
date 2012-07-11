@@ -19,7 +19,7 @@ begin
   end
   pr [ :paused?, t0.paused?, :at, Time.now.iso8601(2) ]
   pr DelayedService.client.
-    _configure{|req| req.delay = 5}.
+    _configure{|req, p| req.delay = 5}.
     do_it(Time.now)
   sleep 2
   pr [ :resuming, :size, t0.size, :at, Time.now.iso8601(2) ]

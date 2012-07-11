@@ -48,7 +48,7 @@ module ASIR
       def send selector, *arguments, &block
         message = Message.new(@receiver, selector, arguments, block, self)
         message = @before_send_message.call(message) if @before_send_message
-        @__configure.call(message) if @__configure
+        @__configure.call(message, self) if @__configure
         result = transport.send_message(message)
         result
       end

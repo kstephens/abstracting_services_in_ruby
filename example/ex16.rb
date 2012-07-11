@@ -14,7 +14,7 @@ begin
     t.run_server!
   end
   pr DelayedService.client.
-    _configure{|req| req.delay = 5}.
+    _configure{|req, p| req.delay = 5}.
     do_it(Time.now)
   sleep 10
 rescue Object => err
