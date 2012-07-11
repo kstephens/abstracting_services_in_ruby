@@ -10,11 +10,11 @@ module ASIR
     attr_accessor :on_connect, :on_close, :on_retry, :on_error
     
     ON_ERROR = lambda do | channel, exc, action, stream |
-      channel.close rescue nil if stream
+      channel.close rescue nil
       raise exc
     end
     ON_CLOSE = lambda do | channel, stream |
-      stream.close
+      stream.close rescue nil if stream
     end
     ON_RETRY = lambda do | channel, exc, action |
     end
