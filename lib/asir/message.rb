@@ -24,7 +24,7 @@ module ASIR
       @result = Result.new(self, nil, exc)
     end
 
-    # Optional: Specifies the Numeric seconds or absolute Time to delay the Message until actual processing.
+    # Optional: Specifies the Numeric seconds or absolute Time for the Transport to delay the Message until actual invocation.
     attr_accessor :delay
   end
   # !SLIDE END
