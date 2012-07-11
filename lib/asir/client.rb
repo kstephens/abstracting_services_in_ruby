@@ -23,7 +23,7 @@ module ASIR
       # Proxies are cached for Module/Class methods because serialization will not include
       # Transport.
       def client
-        @_asir_client ||= ASIR::Client::Proxy.new(self)
+        @_asir_client ||= ASIR::Client::Proxy.new(self, self)
       end
     end
 
@@ -32,7 +32,9 @@ module ASIR
       # Proxies are not cached in instances because receiver is to be serialized by
       # its Transport's Coder.
       def client
-        ASIR::Client::Proxy.new(self)
+        proxy = self.class.client.dup
+        proxy.receiver = self
+        proxy
       end
     end
 
@@ -41,7 +43,7 @@ module ASIR
     #
     # Provide client interface proxy to a service.
     class Proxy
-      attr_accessor :receiver
+      attr_accessor :receiver, :receiver_class
 
       # Accept messages as a proxy for the receiver.
       # Blocks are used represent a "continuation" for the Result.
@@ -80,8 +82,12 @@ module ASIR
       # Returns a new Client Proxy with a block to be called with the Message.
       # This block can configure additional options of the Message before
       # it is sent to the Transport.
+      #
+      # Call sequence:
+      #
+      #   proxy.__configure.call(message, proxy).
       def _configure &blk
-        proxy = self.dup
+        proxy = @receiver == @receiver_class ? self.dup : self
         proxy.__configure = blk
         proxy
       end
@@ -90,12 +96,19 @@ module ASIR
       # !SLIDE
       # Configuration Callbacks
 
-      def initialize rcvr
-        key = Module === (@receiver = rcvr) ? @receiver : @receiver.class
-        (@@config_callbacks[key] || 
-         @@config_callbacks[key.name] || 
+      def initialize rcvr, rcvr_class
+        @receiver = rcvr
+        @receiver_class = rcvr_class
+        _configure!
+      end
+
+      def _configure!
+        key = @receiver_class
+        (@@config_callbacks[key] ||
+         @@config_callbacks[key.name] ||
          @@config_callbacks[nil] ||
          IDENTITY_LAMBDA).call(self)
+        self
       end
 
       @@config_callbacks ||= { }
