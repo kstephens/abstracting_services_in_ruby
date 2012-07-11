@@ -59,13 +59,6 @@ module ASIR
     # Send Result to stream.
     def send_result result, stream, message_state
       message = result.message
-      if @on_result_exception && result.exception
-        begin
-          @on_result_exception.call(self, result)
-        rescue ::Exception => exc
-          _log { [ :send_result, :result, result, :on_result_exception, exc ] }
-        end
-      end
       if @one_way && message.block
         message.block.call(result)
       else
@@ -107,14 +100,14 @@ module ASIR
     attr_accessor :message_count
 
     # A Proc to call within #receive_message, after #_receive_message.
-    # trans.after_receiver_message(trans, message)
+    # trans.after_receive_message(trans, message)
     attr_accessor :after_receive_message
 
     # A Proc to call within #send_message, before #_send_message.
     # trans.before_send_message(trans, message)
     attr_accessor :before_send_message
 
-    # Proc to call after #_send_result if result.exception.
+    # Proc to call with #invoke_message! if result.exception.
     # trans.on_result_exception.call(trans, result)
     attr_accessor :on_result_exception
 
@@ -228,16 +221,26 @@ module ASIR
 
     # Invokes the Message object, returns a Result object.
     def invoke_message! message
-      with_attr! :processing_message, message do
-        Transport.with_attr! :current, self do
+      result = nil
+      Transport.with_attr! :current, self do
+        with_attr! :message, message do
           wait_for_delay! message
-          invoker.invoke!(message, self)
+          result = invoker.invoke!(message, self)
+          # Hook for Exceptions.
+          if @on_result_exception && result.exception
+            @on_result_exception.call(self, result)
+          end
         end
       end
+      result
     end
-    attr_accessor_thread :processing_message
+    # The current Message being handled.
+    attr_accessor_thread :message
+
+    # The current active Transport.
     cattr_accessor_thread :current
 
+    # The Invoker responsible for invoking the Message.
     attr_accessor :invoker
     def invoker
       @invoker ||= Invoker.new
