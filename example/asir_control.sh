@@ -4,16 +4,21 @@ dir="$(cd "$(dirname $0)" && /bin/pwd)"
 PATH="$dir/../bin:$PATH"
 export RUBYLIB="$dir/../example:$dir/../lib"
 asir="asir verbose=9 config_rb=$dir/config/asir_config.rb" 
-
+args="$*"
+args="${args:-ALL}"
 # set -e
 
-if false; then
+#############################
+
+case "$args"
+in
+  *webrick*|*ALL*)
 
 $asir start webrick worker
 sleep 1
 $asir pid webrick worker
 if $asir alive webrick worker; then
-  echo "alive"
+  echo "alive webrick worker"
 fi
 
 ruby "$dir/asir_control_client_http.rb"
@@ -23,10 +28,14 @@ $asir stop webrick worker
 sleep 1
 $asir pid webrick worker
 
-fi
+;;
+esac
 
 #############################
-if false; then
+
+case "$args"
+in
+  *zmq*|*ALL*)
 
 $asir start zmq worker
 sleep 1
@@ -42,10 +51,14 @@ $asir stop zmq worker
 sleep 1
 $asir pid zmq worker
 
-fi
+;;
+esac
 
 #############################
-if true; then
+
+case "$args"
+in
+  *resque*|*ALL*)
 
 $asir start resque conduit
 sleep 1
@@ -65,7 +78,9 @@ $asir stop resque worker
 sleep 1
 $asir stop resque conduit
 
-fi
+;;
+esac
+
 #############################
 
 exit 0
