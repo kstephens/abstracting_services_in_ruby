@@ -7,6 +7,7 @@ class ASIR::ThreadVariable::Test
   cattr_accessor_thread :tv3, :default => '2'
   cattr_accessor_thread :tv4, :transform => '__val.to_s'
   attr_accessor_thread  :iv1
+  attr_accessor :iv2
 end
 
 describe 'ASIR::ThreadVariable' do
@@ -105,6 +106,30 @@ describe 'ASIR::ThreadVariable' do
     tc.tv4.should == '102'
     tc.clear_tv4
     tc.tv4.should == ''
+  end
+
+  it 'attr_accessor_thread :with_attr!' do
+    ti.iv1.should == nil
+    ti.with_attr! :iv1, :value do
+      ti.iv1.should == :value
+      ti.with_attr! :iv1, :value2 do
+        ti.iv1.should == :value2
+      end
+      ti.iv1.should == :value
+    end
+    ti.iv1.should == nil
+  end
+
+  it 'attr_accessor :with_attr!' do
+    ti.iv2.should == nil
+    ti.with_attr! :iv2, :value do
+      ti.iv2.should == :value
+      ti.with_attr! :iv2, :value2 do
+        ti.iv2.should == :value2
+      end
+      ti.iv2.should == :value
+    end
+    ti.iv2.should == nil
   end
 end
 

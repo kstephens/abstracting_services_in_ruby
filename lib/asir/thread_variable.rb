@@ -87,7 +87,7 @@ end
 def self.#{name}
   __val = Thread.current[:'#{self.name}.#{name}'] #{initialize}
   #{default}
-  __val = __val && __val.first
+  __val &&= __val.first
   #{transform}
   __val
 end
@@ -165,7 +165,7 @@ END
 def #{name}
   __val = (thread_attrs[:'#{name}'] #{initialize})
   #{default}
-  __val = __val && __val.first
+  __val &&= __val.first
   #{transform}
   __val
 end
