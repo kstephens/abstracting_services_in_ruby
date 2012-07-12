@@ -28,10 +28,11 @@ h3. Features
 ** HTTP under WEBrick or as Rack application.
 ** Beanstalkd.
 ** ZeroMQ.
+** Resque.
 ** Buffered transports.
 ** Broadcast transports.
 ** Fallback transports.
-** Time-decaying retry logic.
+** Time-decaying retry and polling logic.
 * Support for multiple encodings:
 ** Marshal.
 ** XML.
@@ -42,7 +43,8 @@ h3. Features
 ** Chained encodings.
 ** Signed payloads.
 
-h2. Platform support.
+h2. Platform support
+
 * CRuby 1.8.7
 * CRuby 1.9.3-head
 * CRuby 2.0-head
