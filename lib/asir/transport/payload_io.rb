@@ -4,9 +4,10 @@ module ASIR
     # Payload IO for Transport
     #
     # Framing
-    # * Line containing the number of bytes in the payload.
+    # * Header line containing the number of bytes in the payload.
     # * The payload bytes.
     # * Blank line.
+    # * Footer.
     module PayloadIO
       class UnexpectedResponse < Error; end
 
