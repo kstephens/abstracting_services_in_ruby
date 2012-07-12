@@ -10,19 +10,22 @@ module ASIR
     module PayloadIO
       class UnexpectedResponse < Error; end
 
-      NEWLINE = "\n"
+      HEADER = "# asir_payload_size: "
+      FOOTER = "\n# asir_payload_end"
 
       def _write payload, stream
+        stream.write HEADER
         stream.puts payload.size
         stream.write payload
-        stream.write NEWLINE
+        stream.puts FOOTER
         stream.flush
         stream
       end
 
       def _read stream
-        size = stream.readline.chomp.to_i
+        size = /\d+$/.match(stream.readline.chomp)[0].to_i # HEADER (size)
         payload = stream.read(size)
+        stream.readline # FOOTER
         stream.readline
         payload
       end
