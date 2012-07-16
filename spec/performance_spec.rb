@@ -52,7 +52,7 @@ describe "ASIR Performance" do
     $stderr.puts "\n#{desc}:"
     $stderr.puts "  n       = #{@t[:n]}"
     $stderr.puts "  elapsed = #{@t[:dt]} s"
-    $stderr.puts "  rate    = #{@t[:n_per_s] = @t[:n] / @t[:dt]} n/s"
+    $stderr.puts "  rate    = #{@t[:n_per_s]  = @t[:n] / @t[:dt]} n/s"
     $stderr.puts "  time    = #{@t[:ms_per_n] = @t[:dt] / @t[:n] * 1000} ms/n"
     result
   end
