@@ -24,8 +24,8 @@ module ASIR
     # * Receive decoded Result.
     def send_message message
       @message_count ||= 0; @message_count += 1
-      message.create_timestamp! if needs_message_timestamp?
-      message.create_identifier! if needs_message_identifier?
+      message.create_timestamp! if needs_message_timestamp? message
+      message.create_identifier! if needs_message_identifier? message
       @before_send_message.call(self, message) if @before_send_message
       relative_message_delay! message
       message_payload = encoder.dup.encode(message)
@@ -119,8 +119,8 @@ module ASIR
     attr_accessor :on_exception
 
     attr_accessor :needs_message_identifier, :needs_message_timestamp
-    alias :needs_message_identifier? :needs_message_identifier
-    alias :needs_message_timestamp? :needs_message_timestamp
+    def needs_message_identifier? m; @needs_message_identifier; end
+    def needs_message_timestamp?  m; @needs_message_timestamp; end
 
     attr_accessor :verbose
 

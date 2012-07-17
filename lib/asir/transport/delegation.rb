@@ -24,14 +24,14 @@ module ASIR
         opaque_result
       end
 
-      def needs_message_identifier?
+      def needs_message_identifier? message
         @needs_message_identifier ||
-          transports.any? { | t | t.needs_message_identifier? }
+          transports.any? { | t | t.needs_message_identifier?(message) }
       end
 
-      def needs_message_timestamp?
+      def needs_message_timestamp? message
         @needs_message_timestamp ||
-          transports.any? { | t | t.needs_message_timestamp? }
+          transports.any? { | t | t.needs_message_timestamp?(message) }
       end
 
       # Subclasses with multiple transports should override this method.
