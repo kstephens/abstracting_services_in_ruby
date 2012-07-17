@@ -13,29 +13,32 @@ module ASIR
     end
 
     module CommonMethods
-      def client_options &blk
-        client._configure(&blk)
+      def asir_options &blk
+        asir._configure(&blk)
       end
+      alias_method :"#{ASIR::Config.client_method}_options", :asir_options if ASIR::Config.client_method
     end
 
     module ModuleMethods
       include CommonMethods
       # Proxies are cached for Module/Class methods because serialization will not include
       # Transport.
-      def client
-        @_asir_client ||= ASIR::Client::Proxy.new(self, self)
+      def asir
+        @_asir ||= ASIR::Client::Proxy.new(self, self)
       end
+      alias_method ASIR::Config.client_method, :asir if ASIR::Config.client_method
     end
 
     module InstanceMethods
       include CommonMethods
       # Proxies are not cached in instances because receiver is to be serialized by
       # its Transport's Coder.
-      def client
-        proxy = self.class.client.dup
+      def asir
+        proxy = self.class.asir.dup
         proxy.receiver = self
         proxy
       end
+      alias_method ASIR::Config.client_method, :asir if ASIR::Config.client_method
     end
 
     # !SLIDE

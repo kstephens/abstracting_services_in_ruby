@@ -230,6 +230,7 @@ end
 Asir = ASIR
 
 require "asir/version"
+require 'asir/config'
 require 'asir/error'
 require 'asir/log'
 require 'asir/initialization'
