@@ -111,8 +111,8 @@
 # * Proxy
 # * Message -> Just a Ruby message.
 # * Result, Exception (two-way) -> Return value or else.
-# * Transport -> (file, pipe, http, queue, ActiveResource)
-# * Encoder, Decoder -> Coder (Marshal, XML, JSON, ActiveResource)
+# * Transport -> (file, pipe, http, queue, socket, ZMQ).
+# * Encoder, Decoder -> Coder (Marshal, XML, JSON, zlib).
 #
 # !SLIDE END
 
