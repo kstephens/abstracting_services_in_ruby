@@ -3,7 +3,7 @@
 #
 # * Kurt Stephens
 # * Enova Financial
-# * 2012/04/04
+# * 2012/07/18
 # * Slides -- "":http://kurtstephens.com/pub/ruby/abstracting_services_in_ruby/asir.slides/
 # * Code -- "":http://kurtstephens.com/pub/ruby/abstracting_services_in_ruby/
 # * Git -- "":http://github.com/kstephens/abstracting_services_in_ruby
@@ -34,7 +34,7 @@
 # * Directionality: One-way, Two-way
 # * Synchronicity: Synchronous, Asynchronous, Delayed, Buffered
 # * Distribution: Local Thread, Local Process, Distributed
-# * Transport: File, IPC, Pipe, Network
+# * Transport: File, IPC, Pipe, Network, Beanstalk, ZMQ, Resque
 # * Robustness: Retry, Replay, Fallback
 # * Encoding: XML, JSON, YAML, Base64, Compression
 #
@@ -136,8 +136,8 @@
 # * Transports:
 # ** Null, Local, File, Named Pipe, TCP.
 # ** HTTP under WEBrick or as Rack application.
-# ** Beanstalkd, ZeroMQ.
-# ** Buffered, Broadcast, Fallback transports.
+# ** Beanstalkd, ZeroMQ, Resque.
+# ** Buffered, Broadcast, Fallback, Demux transports.
 # ** Time-decaying retry logic.
 # * Encodings:
 # ** Marshal, XML, JSON, YAML, Base64, ZLib.
