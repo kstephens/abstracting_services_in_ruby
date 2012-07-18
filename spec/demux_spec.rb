@@ -5,11 +5,11 @@ require 'asir/transport/demux'
 
 require 'asir/transport/buffer'
 
-describe "ASIR::Transport::Dynamic" do
+describe "ASIR::Transport::Demux" do
   attr_accessor :transport, :object
 
   before(:each) do
-    self.transport = ASIR::Transport::Dynamic.new
+    self.transport = ASIR::Transport::Demux.new
     self.transport.transport_proc = lambda do | t, m |
       m.arguments[0].size % 2 == 0 ? t[:even] : t[:odd]
     end

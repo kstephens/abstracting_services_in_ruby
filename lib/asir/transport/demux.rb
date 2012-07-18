@@ -3,8 +3,8 @@ require 'asir/transport/delegation'
 module ASIR
   class Transport
     # !SLIDE
-    # Dynamic Transport
-    class Dynamic < self
+    # Select a Transport based on a Proc.
+    class Demux < self
       include Delegation
 
       # Proc returning actual transport to use.
