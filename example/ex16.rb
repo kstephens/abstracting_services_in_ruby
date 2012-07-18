@@ -4,7 +4,7 @@
 require 'example_helper'
 require 'asir/transport/beanstalk'
 begin
-  DelayedService.client.transport = t =
+  DelayedService.asir.transport = t =
     ASIR::Transport::Beanstalk.new(:address => '127.0.0.1', :port => 30916)
   t.encoder =
     ASIR::Coder::Marshal.new
@@ -13,7 +13,7 @@ begin
     t.prepare_server!
     t.run_server!
   end
-  pr DelayedService.client.
+  pr DelayedService.asir.
     _configure{|req, p| req.delay = 5}.
     do_it(Time.now)
   sleep 10

@@ -81,9 +81,9 @@ begin
 
   # system("curl http://localhost:#{port}/")
 
-  MathService.client.transport = t
+  MathService.asir.transport = t
 
-  MathService.client.sum([1, 2, 3])
+  MathService.asir.sum([1, 2, 3])
 
 rescue Exception => err
   $stderr.puts "ERROR: #{err.inspect}\n#{err.backtrace * "\n"}"

@@ -6,7 +6,7 @@ $stderr.puts "  #{$$} at #{__FILE__}:#{__LINE__}"
 require 'example_helper'
 begin
   File.unlink(service_pipe = "service.pipe") rescue nil
-  Email.client.transport = t =
+  Email.asir.transport = t =
     ASIR::Transport::File.new(:file => service_pipe)
   t.encoder =
     ASIR::Coder::Yaml.new
@@ -14,7 +14,7 @@ begin
     t.prepare_server!
     t.run_server!
   end
-  pr Email.client.send_email(:pdf_invoice, :to => "user@email.com", :customer => @customer)
+  pr Email.asir.send_email(:pdf_invoice, :to => "user@email.com", :customer => @customer)
 ensure
   t.close; sleep 1; server_kill
 end

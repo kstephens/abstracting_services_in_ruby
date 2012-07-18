@@ -4,7 +4,7 @@
 require 'example_helper'
 begin
   File.unlink(service_log = "#{__FILE__}.service.log") rescue nil
-  Email.client.transport = t =
+  Email.asir.transport = t =
     ASIR::Transport::Fallback.new(:transports => [
       tcp = ASIR::Transport::TcpSocket.new(:port => 31911,
                                            :encoder => ASIR::Coder::Marshal.new),
@@ -14,13 +14,13 @@ begin
         ASIR::Transport::Subprocess.new,
       ]),
     ])
-  pr Email.client.send_email(:pdf_invoice,
+  pr Email.asir.send_email(:pdf_invoice,
                              :to => "user@email.com", :customer => @customer)
   server_process do
     tcp.prepare_server!
     tcp.run_server!
   end
-  pr Email.client.send_email(:pdf_invoice,
+  pr Email.asir.send_email(:pdf_invoice,
                              :to => "user2@email.com", :customer => @customer)
 ensure
   file.close rescue nil;

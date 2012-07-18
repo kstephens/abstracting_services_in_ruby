@@ -3,7 +3,7 @@
 
 require 'example_helper'
 begin
-  Email.client.transport = t =
+  Email.asir.transport = t =
     ASIR::Transport::TcpSocket.new(:port => 30910)
   t.encoder =
     ASIR::Coder::Marshal.new
@@ -11,7 +11,7 @@ begin
   server_process do
     t.run_server!
   end
-  pr Email.client.do_raise("Raise Me!")
+  pr Email.asir.do_raise("Raise Me!")
 rescue Exception => err
   pr [ :exception, err ]
 ensure

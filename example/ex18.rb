@@ -17,17 +17,17 @@ begin
       tcp.run_server!
     end
   end
-  Email.client.transport = t =
+  Email.asir.transport = t =
     ASIR::Transport::Retry.new(:transport => tcp,
                                :try_sleep => 1,
                                :try_sleep_increment => 2,
                                :try_max => 3,
                                :before_retry => start_server_proc
                                )
-  pr Email.client.send_email(:pdf_invoice,
+  pr Email.asir.send_email(:pdf_invoice,
                              :to => "user@email.com", :customer => 123)
   sleep 1
-  pr Email.client.send_email(:pdf_invoice,
+  pr Email.asir.send_email(:pdf_invoice,
                              :to => "user2@email.com", :customer => 456)
   sleep 1
 rescue ::Exception => err

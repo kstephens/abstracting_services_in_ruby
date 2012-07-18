@@ -4,11 +4,11 @@
 require 'example_helper'
 begin
   File.unlink(service_log = "#{__FILE__}.service.log") rescue nil
-  Email.client.transport = t =
+  Email.asir.transport = t =
     ASIR::Transport::File.new(:file => service_log)
   t.encoder =
     ASIR::Coder::Yaml.new
-  pr Email.client.send_email(:pdf_invoice,
+  pr Email.asir.send_email(:pdf_invoice,
                              :to => "user@email.com",
                              :customer => @customer)
 ensure

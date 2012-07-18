@@ -11,7 +11,7 @@ MathService.send(:include, ASIR::Client)
 # Driver:
 
 begin
-  MathService.client.transport = ASIR::Transport::Subprocess.new
-  MathService.client.transport._log_enabled = true
-  puts MathService.client.sum([1, 2, 3])
+  MathService.asir.transport = ASIR::Transport::Subprocess.new
+  MathService.asir.transport._log_enabled = true
+  puts MathService.asir.sum([1, 2, 3])
 end

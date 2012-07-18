@@ -5,7 +5,7 @@ require 'example_helper'
 require 'asir/transport/webrick'
 require 'asir/coder/base64'
 begin
-  MyClass.client.transport = t =
+  MyClass.asir.transport = t =
     ASIR::Transport::Webrick.new(:uri => "http://localhost:30914/")
   t.encoder =
     ASIR::Coder::Chain.new(:encoders =>
@@ -15,7 +15,7 @@ begin
     t.prepare_server!
     t.run_server!
   end
-  pr MyClass.new("abc123").client.size
+  pr MyClass.new("abc123").asir.size
   sleep 2
 rescue Object => err
   $stderr.puts "#{err.inspect}\n#{err.backtrace * "\n"}"

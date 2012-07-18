@@ -2,7 +2,7 @@
 # In-core, in-process service, with continuation block.
 
 require 'example_helper'
-pr(Email.client.send_email(:pdf_invoice,
+pr(Email.asir.send_email(:pdf_invoice,
                            :to => "user@email.com",
                            :customer => @customer,
                            &proc { | res | pr [ :in_block, res.result ] })

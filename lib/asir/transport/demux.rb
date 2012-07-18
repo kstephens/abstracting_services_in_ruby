@@ -24,7 +24,6 @@ module ASIR
       end
 
       def _send_message message, message_payload
-        # $stderr.puts "  transport = #{transport.inspect}"
         transport.send_message(message)
       end
     end

@@ -9,8 +9,8 @@ begin
     tcp.prepare_server!
     tcp.run_server!
   end
-  UnsafeService.client.transport = t = tcp
-  pr UnsafeService.client.do_it("exit 999; :ok")
+  UnsafeService.asir.transport = t = tcp
+  pr UnsafeService.asir.do_it("exit 999; :ok")
   sleep 1
 rescue ::ASIR::Error::Unforwardable => err
   $stderr.puts "### #{$$}: Unforwardable ERROR: #{err.inspect}}"

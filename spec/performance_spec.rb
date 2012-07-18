@@ -11,7 +11,7 @@ describe "ASIR Performance" do
     self.data = { }
     self.transport = ASIR::Transport::Local.new
     self.object = ASIR::Test::TestObject.new(self)
-    object.class.client.transport = transport
+    object.class.asir.transport = transport
   end
 
   it 'Raw message time' do
@@ -23,7 +23,7 @@ describe "ASIR Performance" do
 
   it 'Message time using Transport::Local, Coder::Identity' do
     run! do
-      object.client.return_argument :this_value
+      object.asir.return_argument :this_value
     end
     that_t = $raw_t # FIXME!
     this_t = @t

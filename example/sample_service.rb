@@ -89,7 +89,7 @@ end
 # !SLIDE
 # Example Message
 #
-Email.client.send_email(:pdf_invoice,
+Email.asir.send_email(:pdf_invoice,
                         :to => "user@email.com",
                         :customer => @customer)
 # ->
@@ -109,7 +109,7 @@ Email.send_email(:pdf_invoice,
                  :to => "user@email.com",
                  :customer => @customer)
 # ->
-Email.client.
+Email.asir.
       send_email(:pdf_invoice,
                  :to => "user@email.com",
                  :customer => @customer)
@@ -133,9 +133,9 @@ ee.exception_backtrace = [ ... ]
 #
 
 require 'asir'
-# Added .client support.
+# Added .asir support.
 module Email
-  include ASIR::Client # Email.client
+  include ASIR::Client # Email.asir
   def send_email template_name, options
     $stderr.puts "*** #{$$}: Email.send_mail #{template_name.inspect} #{options.inspect}"
     :ok

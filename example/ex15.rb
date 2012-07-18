@@ -3,7 +3,7 @@
 
 require 'example_helper'
 
-pr DelayedService.client.
+pr DelayedService.asir.
   _configure{|req, p| req.delay = 5}.
   do_it(Time.now)
 

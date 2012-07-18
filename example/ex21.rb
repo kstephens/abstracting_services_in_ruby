@@ -11,8 +11,8 @@ begin
     zmq.prepare_server!
     zmq.run_server!
   end
-  UnsafeService.client.transport = t = zmq
-  pr UnsafeService.client.do_it(":ok")
+  UnsafeService.asir.transport = t = zmq
+  pr UnsafeService.asir.do_it(":ok")
 rescue ::Exception => err
   $stderr.puts "### #{$$}: ERROR: #{err.inspect}\n  #{err.backtrace * "\n  "}"
   raise

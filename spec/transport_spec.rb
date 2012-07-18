@@ -1,7 +1,5 @@
 require File.expand_path('../spec_helper', __FILE__)
 
-$:.unshift File.expand_path('../../example', __FILE__)
-
 require 'asir'
 
 describe "ASIR::Transport" do
@@ -11,31 +9,31 @@ describe "ASIR::Transport" do
     self.data = { }
     self.transport = ASIR::Transport::Local.new
     self.object = ASIR::Test::TestObject.new(self)
-    object.class.client.transport = transport
-    object.class.client.transport.should == self.transport
+    object.class.asir.transport = transport
+    object.class.asir.transport.should == self.transport
   end
 
   it 'should return result.' do
-    result = object.client.return_argument :this_value
+    result = object.asir.return_argument :this_value
     object.arg.should == :this_value
     result.should == :this_value
   end
 
   it 'should set ASIR::Transport only during processing.' do
     ASIR::Transport.current.should == nil
-    object.client.return_argument :this_value
+    object.asir.return_argument :this_value
     ASIR::Transport.current.should == nil
     object.transport.class.should == transport.class
   end
 
   it 'should not create clone of ASIR::Transport during processing.' do
-    object.client.return_argument :this_value
+    object.asir.return_argument :this_value
     object.transport.object_id.should == transport.object_id
   end
 
   it 'should set ASIR::Transport#message during processing.' do
     transport.message.should == nil
-    object.client.return_argument :this_value
+    object.asir.return_argument :this_value
     transport.message.should == nil
     object.transport.message.should == nil
     object.message.class.should == ASIR::Message
@@ -52,10 +50,10 @@ describe "ASIR::Transport" do
     cls = ::ASIR::Test::TestError
     msg = 'This Message'.freeze
 
-    object.client.transport.on_result_exception.should == p
+    object.asir.transport.on_result_exception.should == p
 
     expect {
-      object.client.raise_exception! cls, msg
+      object.asir.raise_exception! cls, msg
     }.to raise_error
 
     object.msg.should == msg

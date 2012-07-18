@@ -10,7 +10,7 @@ begin
   t.encoder =
     ASIR::Coder::Marshal.new
   t.start_conduit!; sleep 1
-  DelayedService.client.transport =
+  DelayedService.asir.transport =
     t0 = ASIR::Transport::Buffer.new(:transport => t)
   t0.pause!
   server_process do
@@ -18,7 +18,7 @@ begin
     t.run_server!
   end
   pr [ :paused?, t0.paused?, :at, Time.now.iso8601(2) ]
-  pr DelayedService.client.
+  pr DelayedService.asir.
     _configure{|req, p| req.delay = 5}.
     do_it(Time.now)
   sleep 2

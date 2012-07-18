@@ -22,8 +22,8 @@ begin
     t.prepare_server!
     t.run_server!
   end
-  UnsafeService.client.transport = t
-  pr UnsafeService.client.do_it(":ok")
+  UnsafeService.asir.transport = t
+  pr UnsafeService.asir.do_it(":ok")
 rescue ::Exception => err
   $stderr.puts "### #{$$}: ERROR: #{err.inspect}\n  #{err.backtrace * "\n  "}"
   raise

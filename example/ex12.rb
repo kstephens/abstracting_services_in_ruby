@@ -5,14 +5,14 @@ require 'example_helper'
 require 'asir/transport/beanstalk'
 require 'asir/coder/zlib'
 begin
-  Email.client.transport = t =
+  Email.asir.transport = t =
     ASIR::Transport::Beanstalk.new(:address => '127.0.0.1', :port => 30904)
   t.encoder =
     ASIR::Coder::Chain.new(:encoders =>
                            [ ASIR::Coder::Marshal.new,
                             ASIR::Coder::Zlib.new, ])
   t.start_conduit!; sleep 1
-  pr Email.client.send_email(:pdf_invoice,
+  pr Email.asir.send_email(:pdf_invoice,
                              :to => "user@email.com", :customer => @customer)
   sleep 2
   server_process do

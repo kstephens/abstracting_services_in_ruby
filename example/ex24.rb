@@ -6,7 +6,7 @@ gem 'rack'
 require 'asir/transport/rack'
 require 'asir/coder/base64'
 begin
-  Email.client.transport = t =
+  Email.asir.transport = t =
     ASIR::Transport::Rack.new(:uri => "http://localhost:31924/")
   t.encoder =
     ASIR::Coder::Chain.new(:encoders =>
@@ -16,7 +16,7 @@ begin
     t.prepare_server!
     t.run_server!
   end
-  pr Email.client.send_email(:pdf_invoice,
+  pr Email.asir.send_email(:pdf_invoice,
                              :to => "user@email.com",
                              :customer => @customer)
   sleep 2

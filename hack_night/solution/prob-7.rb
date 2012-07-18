@@ -26,8 +26,8 @@ begin
   end
   sleep 1 # wait for server to start
 
-  MathService.client.transport = t
-  MathService.client.sum([1, 2, 3])
+  MathService.asir.transport = t
+  MathService.asir.sum([1, 2, 3])
 rescue Exception => err
   $stderr.puts "ERROR: #{err.inspect}\n#{err.backtrace * "\n"}"
 ensure

@@ -4,9 +4,9 @@
 
 require 'example_helper'
 begin
-  Email.client.transport = t =
+  Email.asir.transport = t =
     ASIR::Transport::Subprocess.new(:one_way => true)
-  pr(Email.client.send_email(:pdf_invoice,
+  pr(Email.asir.send_email(:pdf_invoice,
                              :to => "user@email.com",
                              :customer => @customer) { | resp |
      pr [ :in_block, resp.result ] })

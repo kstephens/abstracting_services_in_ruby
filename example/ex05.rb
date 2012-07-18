@@ -4,7 +4,7 @@
 require 'example_helper'
 begin
   service_log = "#{__FILE__.sub('ex05', 'ex04')}.service.log"
-  Email.client.transport = t =
+  Email.asir.transport = t =
     ASIR::Transport::File.new(:file => service_log)
   t.encoder =
     ASIR::Coder::Yaml.new
