@@ -1,7 +1,7 @@
 require File.expand_path('../spec_helper', __FILE__)
 
 require 'asir'
-require 'asir/transport/dynamic'
+require 'asir/transport/demux'
 
 require 'asir/transport/buffer'
 
@@ -25,14 +25,14 @@ describe "ASIR::Transport::Dynamic" do
     result = object.asir.return_argument [ 1, 2 ]
     transport[:even].size.should == 1
     transport[:odd].size.should == 0
-    result.should == [ 1, 2 ]
+    result.should == nil
   end
 
   it 'should direct odd-sized arg[0] Arrays to transport[:odd].' do
     result = object.asir.return_argument [ 1, 2, 3 ]
     transport[:even].size.should == 0
     transport[:odd].size.should == 1
-    result.should == [ 1, 2, 3 ]
+    result.should == nil
   end
 end
 
