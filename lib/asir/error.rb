@@ -31,7 +31,7 @@ module ASIR
       end
       def self.unforwardable;    @@unforwardable; end
       def self.unforwardable= x; @@unforwardable = x; end
-      @@unforwardable ||= [ ::SystemExit, ::Interrupt ]
+      @@unforwardable ||= [ ::SystemExit, ::Interrupt, ::SignalException ]
     end
   end
 end
