@@ -172,6 +172,9 @@ module ASIR
       end
 
       def server_on_start!
+        # prune_dead_workers expects processes to have "resque " in the name.
+        @save_progname ||= $0.dup
+        $0 = "resque #{$0}"
         if worker = resque_worker
           worker.prune_dead_workers
           worker.register_worker
@@ -180,6 +183,7 @@ module ASIR
       end
 
       def server_on_stop!
+        $0 = @save_progname if @save_progname
         if worker = @resque_worker
           worker.unregister_worker
         end
