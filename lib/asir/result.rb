@@ -34,6 +34,12 @@ module ASIR
     def invoke!
       raise resolve_object(@exception_class), @exception_message, @exception_backtrace
     end
+
+    def construct!
+      invoke!
+    rescue ::Exception => exc
+      exc
+    end
   end
   # !SLIDE END
 end
