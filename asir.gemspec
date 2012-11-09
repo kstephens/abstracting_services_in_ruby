@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{asir}
-  s.version = "1.0.2"
+  s.version = "1.0.4"
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Kurt Stephens"]
   s.date = %q{2012-04-03}
@@ -19,6 +19,14 @@ Gem::Specification.new do |s|
   s.rubygems_version = %q{1.3.7}
   s.summary = %q{Abstracting Services in Ruby}
   s.test_files = `git ls-files spec`.split("\n")
+
+  s.add_dependency "uuid", "~> 2.3.5"
+  s.add_dependency "redis", "~> 3.0.2"
+  s.add_dependency "resque", "~> 1.23.0"
+  s.add_dependency "httpclient", "~> 2.3.0"
+  s.add_dependency "libxml-ruby", "~> 2.3.3"
+  s.add_dependency "rack", "~> 1.4.1"
+  s.add_dependency "zmq", "~> 2.1.4"
 
   if s.respond_to? :specification_version then
     current_version = Gem::Specification::CURRENT_SPECIFICATION_VERSION

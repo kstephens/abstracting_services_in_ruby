@@ -23,9 +23,10 @@ module Asir
         self
       end
 
-      def stop_conduit!
+      def stop_conduit! opts = nil
         if @conduit_pid
-          ::Process.kill 'TERM', @conduit_pid
+          _log { "stop_conduit! #{self} pid=#{@conduit_pid.inspect}" } if @verbose >= 1
+          ::Process.kill( (opts && opts[:signal]) || 'TERM', @conduit_pid)
           ::Process.waitpid @conduit_pid
           # File.unlink @redis_conf
         end

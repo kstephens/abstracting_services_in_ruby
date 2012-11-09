@@ -17,12 +17,11 @@ module ASIR
           rescue ::Exception => exc
             first_exception ||= exc
             _handle_send_message_exception! transport, message, exc
-            raise unless @continue_on_exception
+            raise exc unless @continue_on_exception
           end
         end
         if first_exception && @reraise_first_exception
-          $! = first_exception
-          raise
+          raise first_exception
         end
         result
       end

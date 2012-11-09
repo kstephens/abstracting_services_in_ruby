@@ -60,6 +60,7 @@ module ASIR
             _log { [ :_receive_message, :exception, exc ] }
             additional_data[:beanstalk_error] = exc
             channel.close
+            raise exc
           end
         end
       end

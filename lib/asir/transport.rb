@@ -37,17 +37,14 @@ module ASIR
     # Transport#receive_message
     # Receive Message payload from stream.
     def receive_message stream
+      # $stderr.puts "  #{$$} #{self} receive_message #{stream}"
       @message_count ||= 0; @message_count += 1
       additional_data = { }
       if req_and_state = _receive_message(stream, additional_data)
         message = req_and_state[0] = encoder.dup.decode(req_and_state.first)
         message.additional_data!.update(additional_data) if message
         if @after_receive_message
-          begin
-            @after_receive_message.call(self, message)
-          rescue ::Exception => exc
-            _log { [ :receive_message, :after_receive_message, :exception, exc ] }
-          end
+          @after_receive_message.call(self, message)
         end
       end
       req_and_state

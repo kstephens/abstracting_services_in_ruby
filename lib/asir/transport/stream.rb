@@ -24,7 +24,8 @@ module ASIR
             @running = false
             _log [ :serve_stream_terminate, err ]
           rescue ::Exception => err
-            _log [ :serve_stream_error, err ]
+            _log [ :serve_stream_error, err, err.backtrace ]
+            raise err
           end
         end
       end

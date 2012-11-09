@@ -21,8 +21,7 @@ module ASIR
         end
         unless sent
           if first_exception && @reraise_first_exception
-            $! = first_exception
-            raise
+            raise first_exception
           end
           raise FallbackError, "fallback failed"
         end

@@ -16,10 +16,6 @@ module ASIR
         @scheme_default = 'redis'.freeze
         super
         self.one_way = true
-        # Reraise exception, let Resque::Worker handle it.
-        @on_exeception ||= lambda do | trans, exc, type, message |
-          raise exc, exc.backtrace
-        end
       end
 
       # !SLIDE
@@ -34,6 +30,7 @@ module ASIR
       # !SLIDE
       # Resque server (worker).
       def _server!
+        # $stderr.puts "  #{$$} #{self} _server!"
         resque_connect!
         resque_worker
       rescue ::Exception => exc
@@ -52,7 +49,7 @@ module ASIR
 
       def _send_message message, message_payload
         stream.with_stream! do | io |  # Force connect
-          $stderr.puts "  #{self} _send_message #{message_payload.inspect} to queue=#{queue.inspect} as #{self.class} :process_job" if @verbose >= 2
+          $stderr.puts "  #{$$} #{self} _send_message #{message_payload.inspect} to queue=#{queue.inspect} as #{self.class} :process_job" if @verbose >= 2
           ::Resque.enqueue_to(queue, self.class, message_payload)
         end
       end
@@ -107,9 +104,9 @@ module ASIR
         save = Thread.current[:asir_transport_resque_instance]
         Thread.current[:asir_transport_resque_instance] = self
         poll_throttle throttle do
-          # $stderr.puts "  #{self} resque_worker = #{resque_worker} on queues #{resque_worker.queues}"
+          $stderr.puts "  #{$$} #{self} serve_stream_message!: resque_worker = #{resque_worker} on queues #{resque_worker.queues}" if @verbose >= 3
           if job = resque_worker.reserve
-            $stderr.puts "  #{self} serve_stream_message! job=#{job.class}:#{job.inspect}" if @verbose >= 2
+            $stderr.puts "  #{$$} #{self} serve_stream_message! job=#{job.class}:#{job.inspect}" if @verbose >= 2
             resque_worker.process(job)
           end
           job
@@ -128,7 +125,7 @@ module ASIR
       end
 
       def _receive_message payload, additional_data # is actual payload
-        # $stderr.puts "  #{self} _receive_message payload=#{payload.inspect}"
+        # $stderr.puts "  #{$$} #{self} _receive_message payload=#{payload.inspect}"
         [ payload, nil ]
       end
 
@@ -145,12 +142,13 @@ module ASIR
       end
 
       def resque_connect!
+        @redis_config = {
+          :host => host,
+          :port => port,
+          :thread_safe => true,
+        }
         @redis =
-          ::Redis.new({
-                        :host => address || '127.0.0.1',
-                        :port => port,
-                        :thread_safe => true,
-                      })
+          ::Redis.new(@redis_config)
         if namespace_
           ::Resque.redis =
             @redis =
@@ -188,6 +186,10 @@ module ASIR
           worker.unregister_worker
         end
         self
+      rescue Redis::CannotConnectError
+        # This error is not actionable since server
+        # is stopping.
+        nil
       end
 
       #########################################
