@@ -32,6 +32,19 @@ module ASIR
       self
     end
 
+    # Returns "Module.selector" if receiver is Module.
+    # Returns "Class#selector" if receiver is an instance.
+    def description
+      case
+      when ::String === @receiver_class
+        "#{@receiver_class}.#{@selector}"
+      when ::Module === @receiver
+        "#{@receiver}.#{@selector}"
+      else
+        "#{@receiver_class}\#\#{@selector}"
+      end
+    end
+
     # Mixin for Result.
     module Result
       def encode_more!
