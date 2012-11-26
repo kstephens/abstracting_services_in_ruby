@@ -49,6 +49,7 @@ module ASIR
 
       def _send_message message, message_payload
         stream.with_stream! do | io |  # Force connect
+          queue = message[:resque_queue] || self.queue
           $stderr.puts "  #{$$} #{self} _send_message #{message_payload.inspect} to queue=#{queue.inspect} as #{self.class} :process_job" if @verbose >= 2
           ::Resque.enqueue_to(queue, self.class, message_payload)
         end
