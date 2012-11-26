@@ -18,7 +18,7 @@ module ASIR
       def _send_message message, message_payload
         _write message_payload, stream
       ensure
-        close if ::File.pipe?(file)
+        close if file && ::File.pipe?(file)
       end
 
       # Returns a Message payload String.
