@@ -9,6 +9,7 @@ class Main
   [ :verb, :adjective, :object, :identifier,
     :config_rb,
     :verbose,
+    :options,
     :log_dir, :log_file,
     :pid_dir, :pid_file,
   ].

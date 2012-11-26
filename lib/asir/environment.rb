@@ -5,11 +5,13 @@ module ASIR; class Environment
   attr_accessor :verb, :adjective, :object, :identifier
   attr_accessor :config_rb, :config
   attr_accessor :log_dir, :log_file, :pid_dir
+  attr_accessor :options
   attr_accessor :verbose
 
   def initialize
     @verbose = 0
     @exit_code = 0
+    @options = { }
   end
 
   def log_dir
