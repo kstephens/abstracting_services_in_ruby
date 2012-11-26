@@ -42,7 +42,7 @@ module ASIR
       # Called from within _send_message rescue.
       def _handle_send_message_exception! transport, message, exc
         _log { [ :send_message, :transport_failed, exc ] }
-        (message[:transport_exceptions] ||= [ ]) << "#{exc.inspect}"
+        (message[:transport_exceptions] ||= [ ]) << "#{exc.inspect}: #{exc.backtrace.first}"
         @on_send_message_exception.call(self, message, exc) if @on_send_message_exception
         self
       end
