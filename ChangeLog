@@ -1,10 +1,9 @@
 2012-11-27  Kurt A. Stephens  <ks.github@kurtstephens.com>
 
 	* v1.0.6: New version.
+	* lib/asir/transport/resque.rb: Fixed Resque::Worker initialization.
+	* lib/asir/transport/resque.rb: Support for redis-server 2.6 command line options.
 	* Changelog: Added Changelog
 	* asir.gemspec: Fixed Bundle and gemspec dependencies.
 	* Rakefile: Added rake prereq.
-	* lib/asir/transport/resque.rb: Fixed Resque support for Redis 3.x.
-
-	
 
