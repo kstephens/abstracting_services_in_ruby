@@ -195,17 +195,45 @@ module ASIR
 
       #########################################
 
+      @@redis_server_version = nil
+      def redis_server_version
+        @@redis_server_version ||=
+          begin
+            case v = `redis-server --version`
+            when /v=([.0-9]+)/ # 3.x
+              v = $1
+            when / version ([.0-9]+)/ # 2.x
+              v = $1
+            else
+              v = 'UNKNOWN'
+            end
+            v
+          end
+      end
+
       def _start_conduit!
         @redis_dir ||= "/tmp"
         @redis_conf ||= "#{@redis_dir}/asir-redis-#{port}.conf"
         @redis_log ||= "#{@redis_dir}/asir-redis-#{port}.log"
-        ::File.open(@redis_conf, "w+") do | out |
-          out.puts "daemonize no"
-          out.puts "port #{port}"
-          out.puts "loglevel warning"
-          out.puts "logfile #{@redis_log}"
+        @redis_cmd = [ 'redis-server' ]
+        case redis_server_version
+        when /^2\.4/
+          ::File.open(@redis_conf, "w+") do | out |
+            out.puts "daemonize no"
+            out.puts "port #{port}"
+            out.puts "loglevel warning"
+            out.puts "logfile #{@redis_log}"
+          end
+          @redis_cmd << @redis_conf
+        else
+          @redis_cmd <<
+            '--port'     << port <<
+            '--loglevel' << 'warning' <<
+            '--logfile'  << @redis_log
         end
-        exec "redis-server", @redis_conf
+        @redis_cmd.map! { | x | x.to_s }
+        # $stderr.puts "  redis_cmd = #{@redis_cmd * ' '}" if @verbose >= 1
+        exec *@redis_cmd
       end
     end
     # !SLIDE END
