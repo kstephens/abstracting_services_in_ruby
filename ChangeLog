@@ -1,5 +1,11 @@
 2012-11-27  Kurt A. Stephens  <ks.github@kurtstephens.com>
 
+	* v1.0.7: New version.
+	* lib/asir/transport/resque.rb: Improve diagnostics in resque-web.
+	Pass message[:resque_metadata] or message.description as first argument to Transport::Resque.perform.
+
+2012-11-27  Kurt A. Stephens  <ks.github@kurtstephens.com>
+
 	* v1.0.6: New version.
 	* lib/asir/transport/resque.rb: Fixed Resque::Worker initialization.
 	* lib/asir/transport/resque.rb: Support for redis-server 2.6 command line options.
