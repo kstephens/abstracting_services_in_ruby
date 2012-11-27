@@ -51,7 +51,9 @@ module ASIR
         stream.with_stream! do | io |  # Force connect
           queue = message[:resque_queue] || self.queue
           $stderr.puts "  #{$$} #{self} _send_message #{message_payload.inspect} to queue=#{queue.inspect} as #{self.class} :process_job" if @verbose >= 2
-          ::Resque.enqueue_to(queue, self.class, message_payload)
+          # Invokes Transport::Resque.perform(metadata, payload)
+          metadata = message[:resque_metadata] || message.description
+          ::Resque.enqueue_to(queue, self.class, metadata, message_payload)
         end
       end
 
@@ -118,7 +120,8 @@ module ASIR
       end
 
       # Class method entry point from Resque::Job.perform.
-      def self.perform payload
+      def self.perform metadata, payload = nil
+        payload ||= metadata # old calling signature (just payload).
         # $stderr.puts "  #{self} process_job payload=#{payload.inspect}"
         t = Thread.current[:asir_transport_resque_instance]
         # Pass payload as in_stream; _receive_message will return it.
