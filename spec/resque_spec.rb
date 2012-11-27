@@ -4,8 +4,33 @@ gem 'resque'
 require 'asir'
 require 'asir/transport/resque'
 require 'asir/coder/marshal'
+require 'timeout'
 
 describe "ASIR::Transport::Resque" do
+  it "should be able to start/stop redis" do
+    with_cleanup! do
+      create_transport!
+      pid = Process.fork do
+        # exec "false" # simulate failure to start.
+        transport._start_conduit!
+      end
+      sleep 1
+      Process.kill('TERM', pid)
+      sleep 1
+      wpid, status = nil, nil
+      Timeout.timeout(5) do
+        wpid, status = Process.waitpid2(pid, Process::WUNTRACED)
+      end
+      # puts status.inspect
+      wpid.should == pid
+      status.stopsig.should == nil
+      status.termsig.should == nil
+      status.exited?.should == true
+      status.exitstatus.should == 0
+      status.success?.should == true
+    end
+  end
+
   it "should process and stop! gracefully" do
     with_cleanup! do
       create_transport!
@@ -14,12 +39,15 @@ describe "ASIR::Transport::Resque" do
 
       message_count = 0
       transport.after_receive_message = lambda do | t, message |
-        $stderr.write ">#{message_count += 1}" if verbose
+        message_count += 1
+        $stderr.write ">#{message_count}" if verbose
         if message_count >= 5
           t.stop!
         end
       end
-      start_server!
+      Timeout.timeout(20) do
+        start_server!
+      end
 
       message_count.should == 5
       exceptions.should == [ ]
@@ -32,12 +60,15 @@ describe "ASIR::Transport::Resque" do
       message_count = 0
       lambda do
         transport.after_receive_message = lambda do | t, message |
-          $stderr.write ">#{message_count += 1}" if verbose
+          message_count += 1
+          $stderr.write ">#{message_count}" if verbose
           if message_count >= 10
             t.stop!
           end
         end
-        start_server!
+        Timeout.timeout(20) do
+          start_server!
+        end
       end.should raise_error(Redis::CannotConnectError)
       message_count.should == 0
       exceptions.should == [ ]
@@ -54,7 +85,8 @@ describe "ASIR::Transport::Resque" do
       message_count = 0
       lambda do
         transport.after_receive_message = lambda do | t, message |
-          $stderr.write ">#{message_count += 1}" if verbose
+          message_count += 1
+          $stderr.write ">#{message_count}" if verbose
           if message_count >= 5
             stop_client!
             stop_conduit! :signal => 9
@@ -63,7 +95,9 @@ describe "ASIR::Transport::Resque" do
             t.stop!
           end
         end
-        start_server!
+        Timeout.timeout(20) do
+          start_server!
+        end
         raise "start_server! exited"
       end.should raise_error(Redis::CannotConnectError)
       message_count.should == 5
@@ -76,7 +110,7 @@ describe "ASIR::Transport::Resque" do
   before :each do
     @target = ASIR::Test::ResqueTarget.new
     @exceptions = [ ]
-    @verbose = true
+    @verbose = (ENV['ASIR_TEST_VERBOSE'] || 0).to_i > 0
   end
 
   def with_cleanup!
@@ -91,11 +125,13 @@ describe "ASIR::Transport::Resque" do
     @uri = "redis://localhost:23456"
     @transport = ASIR::Transport::Resque.new(:uri => @uri)
     transport.encoder = ASIR::Coder::Marshal.new
-    transport._logger = $stderr
-    transport._log_enabled = true
-    ASIR::Client::Proxy.config_callbacks[target.class] = lambda { | proxy |
+    if verbose
+      transport._logger = $stderr
+      transport._log_enabled = true
+    end
+    ASIR::Client::Proxy.config_callbacks[target.class] = lambda do | proxy |
       proxy.transport = transport
-    }
+    end
   end
 
   def start_conduit!
@@ -115,7 +151,8 @@ describe "ASIR::Transport::Resque" do
       # transport.verbose = 3
       i = 0
       loop do
-        $stderr.write "<#{i += 1}" if verbose
+        i += 1
+        $stderr.write "<#{i}" if verbose
         target.asir.eval! "2 + 2"
         sleep 0.25
       end
