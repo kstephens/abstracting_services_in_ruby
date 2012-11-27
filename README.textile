@@ -50,3 +50,9 @@ h2. Platform support
 * CRuby 2.0-head
 * JRuby 1.6.x (with JRUBY_OPTS=--1.9) IN-PROGRESS
 
+h2. Dependencies
+
+* gem install zmq
+** zmq 2.1.4 needs a zmq 2.x library.
+** On OS X Macports: sudo port install zmq22.
+
