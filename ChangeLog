@@ -1,0 +1,10 @@
+2012-11-27  Kurt A. Stephens  <ks.github@kurtstephens.com>
+
+	* v1.0.6: New version.
+	* Changelog: Added Changelog
+	* asir.gemspec: Fixed Bundle and gemspec dependencies.
+	* Rakefile: Added rake prereq.
+	* lib/asir/transport/resque.rb: Fixed Resque support for Redis 3.x.
+
+	
+

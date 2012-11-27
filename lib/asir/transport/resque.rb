@@ -105,7 +105,7 @@ module ASIR
         save = Thread.current[:asir_transport_resque_instance]
         Thread.current[:asir_transport_resque_instance] = self
         poll_throttle throttle do
-          $stderr.puts "  #{$$} #{self} serve_stream_message!: resque_worker = #{resque_worker} on queues #{resque_worker.queues}" if @verbose >= 3
+          $stderr.puts "  #{$$} #{self} serve_stream_message!: resque_worker = #{resque_worker} on queues #{resque_worker.queues.inspect}" if @verbose >= 3
           if job = resque_worker.reserve
             $stderr.puts "  #{$$} #{self} serve_stream_message! job=#{job.class}:#{job.inspect}" if @verbose >= 2
             resque_worker.process(job)
@@ -167,7 +167,7 @@ module ASIR
       end
 
       def resque_worker
-        @resque_worker ||= ::Resque::Worker.new(queues_)
+        @resque_worker ||= ::Resque::Worker.new(*queues_)
       end
 
       def server_on_start!
