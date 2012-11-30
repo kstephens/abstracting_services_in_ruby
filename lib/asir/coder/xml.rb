@@ -207,6 +207,8 @@ module ASIR
         @cls_tag_map[cls_name.freeze] ||= resolve_object(cls_name.gsub('.', '::'))
       end
 
+      # This coder is stateful.
+      def prepare; dup; end
     end
     # !SLIDE END
   end

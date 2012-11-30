@@ -39,9 +39,6 @@ module ASIR
       def initialize_before_opts
         @function = :SHA1
       end
-
-      # Completely stateless.
-      def dup; self; end
       # !SLIDE END
     end 
     # !SLIDE END

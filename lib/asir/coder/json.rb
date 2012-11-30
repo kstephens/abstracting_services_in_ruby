@@ -17,9 +17,6 @@ module ASIR
         ary = parser.parse
         ary.first
       end
-
-      # Completely stateless.
-      def dup; self; end
     end
     # !SLIDE END
   end
