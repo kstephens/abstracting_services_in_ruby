@@ -1,5 +1,7 @@
-2012-11-29  Kurt A. Stephens  <ks.github@kurtstephens.com>
+2012-11-30  Kurt A. Stephens  <ks.github@kurtstephens.com>
 
+	* Database: Preliminary support for storing Message and Result objects
+	  using ActiveRecord.
 	* Coder: Use Coder#prepare instead of Object#dup to handle statefulness.
 	* CodeMore: Use @receiver_name to disambiguate Models vs. Instances.
 

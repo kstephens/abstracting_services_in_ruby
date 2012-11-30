@@ -43,7 +43,7 @@ module ASIR
 
         self.table_name = Migration.table_name.to_s
 
-        attr_accessor :object
+        attr_accessor :object, :original_object
 
         has_one :result, :class_name => 'ASIR::Coder::ActiveRecord::ResultModel'
 
@@ -56,14 +56,15 @@ module ASIR
         before_save :prepare_for_save!
         def prepare_for_save!
           if message = self.object
-            self.external_id ||= message[:external_id]
-            self.message_identifier ||= message.message_identifier
-            x = message.message_kind
-            self.receiver_class = x[0].to_s
+            self.external_id ||= original_object[:external_id]
+            self.message_identifier ||= message.identifier
+            x = original_object.message_kind
+            self.receiver_class = x[0].to_s # original_object.receiver_class.name.to_s
             self.message_type   = x[1].to_s
+            # pp [ message, x ]
             self.selector ||= message.selector.to_s
-            self.description ||= (message[:description] || message.description).to_s
-            if String == (ad = message._additional_data)
+            self.description ||= (original_object[:description] || original_object.description).to_s
+            if String === (ad = message._additional_data)
               self.additional_data ||= ad
             end
             self.payload ||= object_payload

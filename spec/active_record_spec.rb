@@ -15,6 +15,7 @@ describe "ASIR::Coder::ActiveRecord" do
     self.data = { }
     self.object = ASIR::Test::TestObject.new(nil)
     self.message = ASIR::Message.new(object, nil, nil, nil, nil)
+    message.create_identifier!
     ActiveRecord::Base.
       establish_connection({
                              :adapter => 'postgresql',
@@ -47,26 +48,46 @@ describe "ASIR::Coder::ActiveRecord" do
       )
   end
 
-  it 'should encode Message.' do
-    message.selector = :instance_method!
-    message[:external_id] = 1234
+  context "with encoded message" do
+    attr_accessor :m
 
-    m = coder.prepare.encode(message)
-    m.save!
-    m = m.class.find(m.id)
+    before :each do
+      message.selector = :instance_method!
+      message.arguments = [ 1, "two", :three, 4.0 ]
+      message[:external_id] = 1234
+      message[:foo] = "bar"
 
-    m.external_id.should == message[:external_id]
-    m.receiver_class.should == message.object.class.name
-    m.message_type.should == '#'
-    m.selector.should == message.selector.to_s
-    m.additional_data.should == ''
-    m.description.should == "#{message.object.class.name}\#\#{message.selector}"
-    m.delay.should == nil
-    m.one_way.should == nil
-  end
+      self.m = coder.prepare.encode(message)
+      m.prepare_for_save!
+      # $stderr.puts m.inspect
+      m.save!
+      self.m = m.class.find(m.id)
+      $stderr.puts m.payload
+    end
 
-  it 'should decode Message.' do
-  end
+    it 'should encode Message.' do
+      m.external_id.should == message[:external_id]
+      m.receiver_class.should == message.receiver.class.name
+      m.message_type.should == '#'
+      m.selector.should == message.selector.to_s
+      ad = coder.additional_data_coder.prepare.decode(m.additional_data)
+      ad.keys.size.should == 2
+      ad['external_id'].should == message[:external_id]
+      ad['foo'].should == message[:foo]
+      m.description.should == "#{message.receiver.class.name}\##{message.selector}"
+      m.delay.should == nil
+      m.one_way.should == nil
+    end
+
+    it 'should decode Message.' do
+      message_ = coder.prepare.decode(m)
+      message_.receiver.class.should == message.receiver.class
+      message_.selector.should == message.selector
+      message_.arguments.should == message.arguments
+      message_.description.should == message.description
+      message_.additional_data.should == message.additional_data
+    end
+  end # context
 
   it 'should return result.' do
   end

@@ -50,7 +50,7 @@ module ASIR
             self.external_id ||= message[:external_id]
             self.message_id = message[:database_id] or raise
             self.result_class = result.result.class.name.to_s
-            if String == (ad = result._additional_data)
+            if String === (ad = result._additional_data)
               self.additional_data ||= ad
             end
             if e = result.exception
