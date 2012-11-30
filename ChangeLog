@@ -1,3 +1,7 @@
+2012-11-29  Kurt A. Stephens  <ks.github@kurtstephens.com>
+
+	* Use Coder#prepare instead of Object#dup to handle statefulness.
+
 2012-11-27  Kurt A. Stephens  <ks.github@kurtstephens.com>
 
 	* v1.0.7: New version.
