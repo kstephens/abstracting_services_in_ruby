@@ -1,9 +1,10 @@
 2012-11-30  Kurt A. Stephens  <ks.github@kurtstephens.com>
 
-	* Database: Preliminary support for storing Message and Result objects
-	  using ActiveRecord.
+	* v1.0.8: New version.
+	* Database: Preliminary support for storing Message and Result objects 
+	  in a database: see gem asir_activerecord.
 	* Coder: Use Coder#prepare instead of Object#dup to handle statefulness.
-	* CodeMore: Use @receiver_name to disambiguate Models vs. Instances.
+	* CodeMore: Use @receiver_name to disambiguate Modules vs. Instances.
 
 2012-11-27  Kurt A. Stephens  <ks.github@kurtstephens.com>
 
