@@ -64,5 +64,34 @@ describe "ASIR::Message" do
     exc.exception_message.should == "#{cls.name} #{msg}"
     exc.exception_backtrace.class.should == Array
   end
+
+  it 'should return appropriate message_kind and #description.' do
+    self.object = ASIR::Coder.new
+    self.message = ASIR::Message.new(object, nil, nil, nil, nil)
+    message.selector = :instance_message!
+
+    x = message.description
+    x.should == "ASIR::Coder#instance_message!"
+    message.encode_more!
+    message.description.should == x
+
+    self.object = ASIR::Coder
+    self.message = ASIR::Message.new(object, nil, nil, nil, nil)
+    message.selector = :class_message!
+
+    x = message.description
+    x.should == "ASIR::Coder.class_message!"
+    message.encode_more!
+    message.description.should == x
+
+    self.object = ASIR
+    self.message = ASIR::Message.new(object, nil, nil, nil, nil)
+    message.selector = :module_message!
+
+    x = message.description
+    x.should == "ASIR.module_message!"
+    message.encode_more!
+    message.description.should == x
+  end
 end
 

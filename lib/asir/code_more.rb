@@ -32,17 +32,27 @@ module ASIR
       self
     end
 
+    # Returns the receiver name:
+    # If receiver is a Module (i.e. class or module message),
+    #   Returns [ name of the Module, :'.' ]
+    # Otherwise
+    #   Returns [ name of the receiver's Class, :'#' ]
+    def message_kind
+      case
+      when ::String === @receiver_class
+        [ @receiver_class, :'.' ]
+      when ::Module === @receiver
+        [ @receiver.name, :'.' ]
+      else
+        [ @receiver_class.name, :'#' ]
+      end
+    end
+
     # Returns "Module.selector" if receiver is Module.
     # Returns "Class#selector" if receiver is an instance.
     def description
-      case
-      when ::String === @receiver_class
-        "#{@receiver_class}.#{@selector}"
-      when ::Module === @receiver
-        "#{@receiver}.#{@selector}"
-      else
-        "#{@receiver_class}\#\#{@selector}"
-      end
+      x = message_kind
+      "#{x[0]}#{x[1]}#{@selector}"
     end
 
     # Mixin for Result.
