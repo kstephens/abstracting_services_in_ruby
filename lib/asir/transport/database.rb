@@ -15,6 +15,7 @@ module ASIR
 
       def initialize *args
         super
+        self.coder_needs_result_message = true
         self.needs_message_identifier = true
       end
 

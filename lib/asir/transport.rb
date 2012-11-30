@@ -59,11 +59,14 @@ module ASIR
       if @one_way && message.block
         message.block.call(result)
       else
-        result.message = nil # avoid sending back entire Message.
+        # avoid sending back entire Message.
+        result.message = nil unless @coder_needs_result_message
         result_payload = decoder.prepare.encode(result)
         _send_result(message, result, result_payload, stream, message_state)
       end
     end
+    attr_accessor :coder_needs_result_message
+
     # !SLIDE END
 
     # !SLIDE
