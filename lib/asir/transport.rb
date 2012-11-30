@@ -28,7 +28,7 @@ module ASIR
       message.create_identifier! if needs_message_identifier? message
       @before_send_message.call(self, message) if @before_send_message
       relative_message_delay! message
-      message_payload = encoder.dup.encode(message)
+      message_payload = encoder.prepare.encode(message)
       opaque_result = _send_message(message, message_payload)
       receive_result(message, opaque_result)
     end
@@ -41,7 +41,7 @@ module ASIR
       @message_count ||= 0; @message_count += 1
       additional_data = { }
       if req_and_state = _receive_message(stream, additional_data)
-        message = req_and_state[0] = encoder.dup.decode(req_and_state.first)
+        message = req_and_state[0] = encoder.prepare.decode(req_and_state.first)
         message.additional_data!.update(additional_data) if message
         if @after_receive_message
           @after_receive_message.call(self, message)
@@ -60,7 +60,7 @@ module ASIR
         message.block.call(result)
       else
         result.message = nil # avoid sending back entire Message.
-        result_payload = decoder.dup.encode(result)
+        result_payload = decoder.prepare.encode(result)
         _send_result(message, result, result_payload, stream, message_state)
       end
     end
@@ -74,7 +74,7 @@ module ASIR
     # * Extract Result result or exception.
     def receive_result message, opaque_result
       result_payload = _receive_result(message, opaque_result)
-      result = decoder.dup.decode(result_payload)
+      result = decoder.prepare.decode(result_payload)
       if result && ! message.one_way
         if exc = result.exception
           invoker.invoke!(exc, self)

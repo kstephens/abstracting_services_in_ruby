@@ -14,6 +14,9 @@ module ASIR
       obj and _decode obj
     end
 
+    # If this Coder is stateful, #prepare should return a new instance.
+    def prepare; self; end
+
     # Coder subclasses:
     def _subclass_responsibility *args
       raise "subclass responsibility"
