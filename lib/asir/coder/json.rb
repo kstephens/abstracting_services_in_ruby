@@ -13,9 +13,8 @@ module ASIR
       end
 
       def _decode obj
-        parser = ::JSON.parser.new(obj)
-        ary = parser.parse
-        ary.first
+        ::JSON.parser.new(obj).
+          parse.first
       end
     end
     # !SLIDE END

@@ -105,9 +105,23 @@ describe "ASIR::Coder::JSON" do
     x.h = Hash[ *basic_objs.flatten.reverse ]
     x.o = ASIR::Coder::Test::Object.new
     x.o.a = 123
-    out = @enc.encode(x)
+    out = @enc.prepare.encode(x)
+    if out =~ %r{#<ASIR::Coder::Test::Object}
+      out.should =~ %r{\A\[\"#<ASIR::Coder::Test::Object:[^>]+>\"\]\Z}
+    else
+      out.should =~ %r{"a":\[null,true,false,1234,1.234,"symbol","String"\]}
+      out.should =~ %r{"h":\{}
+      out.should =~ %r{"\[1234\]":1234}
+      out.should =~ %r{"\[1.234\]":1.234}
+      out.should =~ %r{"\[null\]":null}
+      out.should =~ %r{"\[\\"String\\"\]":"String"}
+      out.should =~ %r{"\[\\"symbol\\"\]":"symbol"}
+      out.should =~ %r{"\[null\]":null}
+      out.should =~ %r{"\[true\]":true}
+      out.should =~ %r{"\[null\]":null}
+    end
+
     # FIXME:
-    out.should =~ %r{\A\[\"#<ASIR::Coder::Test::Object:[^>]+>\"\]\Z}
     #out.should =~ %r{<#{x.class.name.gsub('::', '.')} id=\"#{x.object_id}\" >}
     #out.should =~ %r{</#{x.class.name.gsub('::', '.')}>}
     y = @dec.prepare.decode(out)
