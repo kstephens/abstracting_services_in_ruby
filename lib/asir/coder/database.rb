@@ -41,13 +41,32 @@ module ASIR
         end
         if model
           obj = in_obj.encode_more!
+          # Prepare attributes for Model.
+          attrs = { :original_object => in_obj }
+
+          # Encode AdditionalData.
           if AdditionalData === obj and ad = obj._additional_data
-            obj = obj.dup if obj.equal?(in_obj)
             c = additional_data_coder || payload_coder
-            obj.additional_data = c.prepare.encode(ad)
+            attrs[:additional_data] = c.prepare.encode(ad)
           end
-          payload = payload_coder.prepare.encode(in_obj)
-          attrs = { :object => obj, :original_object => in_obj, :payload => payload }
+
+          # Results need links back to its Message.
+          if Result === obj and message = in_obj.message
+            attrs[:message_object] = message
+            # Do not encode entire Message in ResultModel#payload.
+            obj.message = nil
+            if message_id = message[:database_id]
+              attrs[:message_id] = message_id
+            end
+            obj[:external_id] ||= message[:external_id]
+            # pp [ :Result_attrs, attrs ]
+          end
+
+          # Encode Object payload
+          payload = payload_coder.prepare.encode(obj)
+          attrs[:object] = obj
+          attrs[:payload] = payload
+
           if @before_model_new
             attr = @before_model_new.call(self, in_obj, attrs)
           end

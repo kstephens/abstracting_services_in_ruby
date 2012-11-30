@@ -61,13 +61,20 @@ module ASIR
             x = original_object.message_kind
             self.receiver_class = x[0].to_s # original_object.receiver_class.name.to_s
             self.message_type   = x[1].to_s
-            # pp [ message, x ]
             self.selector ||= message.selector.to_s
             self.description ||= (original_object[:description] || original_object.description).to_s
-            if String === (ad = message._additional_data)
-              self.additional_data ||= ad
-            end
             self.payload ||= object_payload
+          end
+          if additional_data
+            raise TypeError, "additional_data is not a String" \
+              unless String === additional_data
+          end
+        end
+
+        after_save :update_original_object!
+        def update_original_object!
+          if original_object
+            original_object[:database_id] = self.id
           end
         end
 

@@ -34,7 +34,7 @@ module ASIR
 
         self.table_name = Migration.table_name.to_s
 
-        attr_accessor :object, :message
+        attr_accessor :object, :original_object, :message_object
 
         belongs_to :message, :class_name => 'ASIR::Coder::ActiveRecord::MessageModel'
 
@@ -46,19 +46,33 @@ module ASIR
         before_save :prepare_for_save!
         def prepare_for_save!
           if result = self.object
-            message = self.message || result.message
-            self.external_id ||= message[:external_id]
-            self.message_id = message[:database_id] or raise
-            self.result_class = result.result.class.name.to_s
-            if String === (ad = result._additional_data)
-              self.additional_data ||= ad
+            message = self.message_object || result.message
+            self.external_id ||= result[:external_id]
+            self.message_id  ||= result[:message_id]
+            if message
+              self.external_id ||= message[:external_id]
+              self.message_id  ||= message[:message_id]
             end
+            self.result_class = result.result.class.name.to_s
             if e = result.exception
               e = EncapsulatedException.new(e) unless EncapsulatedException === e
               self.exception_class = e.exception_class
               self.exception_message = e.exception_message
               self.exception_backtrace = (e.exception_backtrace * "\n") << "\n";
             end
+          end
+          # self.message_id &&= self.message_id.to_i
+          # pp self
+          if additional_data
+            raise TypeError, "additional_data is not a String" \
+              unless String === additional_data
+          end
+        end
+
+        after_save :update_original_object!
+        def update_original_object!
+          if original_object
+            original_object[:database_id] = self.id
           end
         end
 

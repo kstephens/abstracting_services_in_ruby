@@ -24,7 +24,7 @@ module ASIR
           @before_message_save.call(self, message, message_payload)
         end
         message_payload.save!
-        message[:database_id] = message_payload.database_id
+        # message[:database_id] ||= message_payload.database_id
         if @after_message_save
           @after_message_save.call(self, message, message_payload)
         end
