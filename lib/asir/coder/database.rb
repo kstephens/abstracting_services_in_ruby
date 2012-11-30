@@ -7,7 +7,7 @@ module ASIR
     #
     # Construct a database object from a Message or Result object.
     #
-    # obj = model.new(:object => raw object, :payload => Binary)
+    # obj = model.new(:object => partially encoded object, :original_object => original object, :payload => Binary)
     # obj.payload
     #
     # See Transport::Database:
@@ -42,11 +42,12 @@ module ASIR
         if model
           obj = in_obj.encode_more!
           if AdditionalData === obj and ad = obj._additional_data
+            obj = obj.dup if obj.equal?(in_obj)
             c = additional_data_coder || payload_coder
             obj.additional_data = c.prepare.encode(ad)
           end
-          payload = payload_coder.prepare.encode(obj)
-          attrs = { :object => obj, :payload => payload }
+          payload = payload_coder.prepare.encode(in_obj)
+          attrs = { :object => obj, :original_object => in_obj, :payload => payload }
           if @before_model_new
             attr = @before_model_new.call(self, in_obj, attrs)
           end
@@ -60,8 +61,7 @@ module ASIR
       end
 
       def _decode obj
-        obj = payload_coder.prepare.decode(obj.payload)
-        obj.decode_more!
+        payload_coder.prepare.decode(obj.payload)
       end
     end
     # !SLIDE END
