@@ -41,7 +41,7 @@ module ASIR
           model = nil
         end
         if model
-          payload = payload_coder.dup.encode(obj)
+          payload = payload_coder.prepare.encode(obj)
           if @before_model_new
             @before_model_new.call(self, obj, attrs)
           end
@@ -56,7 +56,7 @@ module ASIR
       end
 
       def _decode obj
-        payload_coder.dup.decode(obj.payload)
+        payload_coder.prepare.decode(obj.payload)
       end
 
       # Completely stateless.
