@@ -27,6 +27,9 @@ module ASIR
           obj
         end
       end
+
+      # Completely stateless.
+      def dup; self; end
     end # class
   end # class
 end # module

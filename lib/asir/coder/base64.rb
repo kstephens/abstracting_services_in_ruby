@@ -13,6 +13,9 @@ module ASIR
         raise TypeError unless String === obj
         ::Base64.decode64(obj)
       end
+
+      # Completely stateless.
+      def dup; self; end
     end
   end
 end

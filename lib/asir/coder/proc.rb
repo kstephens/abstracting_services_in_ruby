@@ -15,6 +15,9 @@ module ASIR
       def _decode obj
         @decoder.call(obj)
       end
+
+      # Completely stateless.
+      def dup; self; end
     end
     # !SLIDE END
   end

@@ -15,6 +15,9 @@ module ASIR
         raise TypeError unless String === obj
         ::Zlib::Inflate.inflate(obj)
       end
+
+      # Completely stateless.
+      def dup; self; end
     end
   end
 end

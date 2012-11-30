@@ -11,6 +11,9 @@ module ASIR
       def _decode obj
         ::Marshal.load(obj)
       end
+
+      # Completely stateless.
+      def dup; self; end
     end # class
     # !SLIDE END
   end # class
