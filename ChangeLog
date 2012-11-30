@@ -1,6 +1,7 @@
 2012-11-29  Kurt A. Stephens  <ks.github@kurtstephens.com>
 
-	* Use Coder#prepare instead of Object#dup to handle statefulness.
+	* Coder: Use Coder#prepare instead of Object#dup to handle statefulness.
+	* CodeMore: Use @receiver_name to disambiguate Models vs. Instances.
 
 2012-11-27  Kurt A. Stephens  <ks.github@kurtstephens.com>
 
