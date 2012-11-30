@@ -34,6 +34,8 @@ describe "ASIR::Coder::ActiveRecord" do
         end
       end
     end
+    ASIR::Coder::ActiveRecord::MessageModel.delete_all
+    ASIR::Coder::ActiveRecord::ResultModel.delete_all
 
     self.coder =
       ASIR::Coder::Database.
@@ -47,7 +49,20 @@ describe "ASIR::Coder::ActiveRecord" do
 
   it 'should encode Message.' do
     message.selector = :instance_method!
+    message[:external_id] = 1234
+
     m = coder.prepare.encode(message)
+    m.save!
+    m = m.class.find(m.id)
+
+    m.external_id.should == message[:external_id]
+    m.receiver_class.should == message.object.class.name
+    m.message_type.should == '#'
+    m.selector.should == message.selector.to_s
+    m.additional_data.should == ''
+    m.description.should == "#{message.object.class.name}\#\#{message.selector}"
+    m.delay.should == nil
+    m.one_way.should == nil
   end
 
   it 'should decode Message.' do

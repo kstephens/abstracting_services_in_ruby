@@ -16,9 +16,9 @@ describe "ASIR::Coder::XML" do
   ].each do | x |
     basic_objs << x
     it "should handle #{x.inspect}" do
-      xml = @enc.encode(x)
+      xml = @enc.prepare.encode(x)
       xml.should == "<#{x.class.name} />"
-      @dec.decode(xml).should == x
+      @dec.prepare.decode(xml).should == x
     end
   end
 
@@ -28,9 +28,9 @@ describe "ASIR::Coder::XML" do
   ].each do | x |
     basic_objs << x
     it "should handle #{x.inspect}" do
-      xml = @enc.encode(x)
+      xml = @enc.prepare.encode(x)
       xml.should == "<#{x.class.name} v=\"#{x.to_s}\" />"
-      @dec.decode(xml).should == x
+      @dec.prepare.decode(xml).should == x
     end
   end
 
@@ -39,9 +39,9 @@ describe "ASIR::Coder::XML" do
   ].each do | x |
     basic_objs << x
     it "should handle #{x.inspect}" do
-      xml = @enc.encode(x)
+      xml = @enc.prepare.encode(x)
       xml.should == "<#{x.class.name} >#{x.to_s}</#{x.class.name}>"
-      @dec.decode(xml).should == x
+      @dec.prepare.decode(xml).should == x
     end
   end
 
@@ -50,36 +50,36 @@ describe "ASIR::Coder::XML" do
   ].each do | x |
     basic_objs << x
     it "should handle #{x.inspect}" do
-      xml = @enc.encode(x)
+      xml = @enc.prepare.encode(x)
       xml.should == "<#{x.class.name} id=\"1\" >#{x.to_s}</#{x.class.name}>"
-      @dec.decode(xml).should == x
+      @dec.prepare.decode(xml).should == x
     end
   end
 
   it "should handle empty Array" do
     x = [ ]
-    xml = @enc.encode(x)
+    xml = @enc.prepare.encode(x)
     xml.should == "<#{x.class.name} id=\"1\" ></#{x.class.name}>"
-    @dec.decode(xml).should == x
+    @dec.prepare.decode(xml).should == x
   end
 
   it "should handle Array" do
     x = [ *basic_objs ]
-    xml = @enc.encode(x)
+    xml = @enc.prepare.encode(x)
     xml.should =~ %r{\A<#{x.class.name} id=\"1\" ><NilClass /><TrueClass /><FalseClass /><Fixnum v="1234" /><Float v="1.234" /><Symbol >symbol</Symbol><String id=\"[^"]+\" >String</String></#{x.class.name}>\Z} # " emacs
-    @dec.decode(xml).should == x
+    @dec.prepare.decode(xml).should == x
   end
 
   it "should handle empty Hash" do
     x = { }
-    xml = @enc.encode(x)
+    xml = @enc.prepare.encode(x)
     xml.should == "<#{x.class.name} id=\"1\" ></#{x.class.name}>"
-    @dec.decode(xml).should == x
+    @dec.prepare.decode(xml).should == x
   end
 
   it "should handle Hash" do
     x = Hash[ *basic_objs.map{|e| e.inspect}.zip(basic_objs).flatten ]
-    xml = @enc.encode(x)
+    xml = @enc.prepare.encode(x)
     xml.should =~ %r{\A<#{x.class.name} id=\"1\" >}
     xml.should =~ %r{</#{x.class.name}>\Z}
     basic_objs.each do | v |
@@ -88,7 +88,7 @@ describe "ASIR::Coder::XML" do
       xml.should =~ Regexp.new(vx)
       xml.should =~ %r{ >#{v.inspect}</String>}
     end
-    @dec.decode(xml).should == x
+    @dec.prepare.decode(xml).should == x
   end
 
   class ASIR::Coder::XML::Test
@@ -101,10 +101,10 @@ describe "ASIR::Coder::XML" do
     x.h = Hash[ *basic_objs.map{|e| e.inspect}.zip(basic_objs).flatten ]
     x.o = ASIR::Coder::XML::Test.new
     x.o.a = 123
-    xml = @enc.encode(x)
+    xml = @enc.prepare.encode(x)
     xml.should =~ %r{<#{x.class.name.gsub('::', '.')} id=\"1\" >}
     xml.should =~ %r{</#{x.class.name.gsub('::', '.')}>}
-    y = @dec.decode(xml)
+    y = @dec.prepare.decode(xml)
     y.a.should == x.a
     y.h.should == x.h
     y.o.class.should == ASIR::Coder::XML::Test
@@ -117,8 +117,8 @@ describe "ASIR::Coder::XML" do
     x = Hash[ *basic_objs.map{|e| e.inspect}.zip(basic_objs).flatten ]
     y = [ 1, 2 ]
     x = [ x, x, y, y ]
-    xml = @enc.encode(x)
-    y = @dec.decode(xml)
+    xml = @enc.prepare.encode(x)
+    y = @dec.prepare.decode(xml)
     y[0].object_id.should == y[1].object_id
     y[2].object_id.should == y[3].object_id
   end
@@ -126,8 +126,8 @@ describe "ASIR::Coder::XML" do
   it "should handle self-referencing Array." do
     x = [ 1 ]
     x << x
-    xml = @enc.encode(x)
-    y = @dec.decode(xml)
+    xml = @enc.prepare.encode(x)
+    y = @dec.prepare.decode(xml)
     y[0].should == x[0]
     y[1].object_id.should == y.object_id
   end
@@ -135,8 +135,8 @@ describe "ASIR::Coder::XML" do
   it "should handle self-referencing Hash." do
     x = { :a => 1 }
     x[:self] = x
-    xml = @enc.encode(x)
-    y = @dec.decode(xml)
+    xml = @enc.prepare.encode(x)
+    y = @dec.prepare.decode(xml)
     y[:a].should == x[:a]
     y[:self].object_id.should == y.object_id
   end

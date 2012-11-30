@@ -19,9 +19,9 @@ describe "ASIR::Coder::JSON" do
     str = "[#{str}]"
     basic_objs << [ x, str ]
     it "should handle #{x.inspect}" do
-      out = @enc.encode(x)
+      out = @enc.prepare.encode(x)
       out.should == str
-      @dec.decode(out).should == x
+      @dec.prepare.decode(out).should == x
     end
   end
 
@@ -35,9 +35,9 @@ describe "ASIR::Coder::JSON" do
     str = "[#{str}]"
     basic_objs << [ x, str ]
     it "should handle #{x.inspect}" do
-      out = @enc.encode(x)
+      out = @enc.prepare.encode(x)
       out.should == str
-      y = @dec.decode(out)
+      y = @dec.prepare.decode(out)
       y = y.to_sym if Symbol === x
       y.should == x
     end
@@ -51,18 +51,18 @@ describe "ASIR::Coder::JSON" do
     str = "[#{str}]"
     basic_objs << [ x, str ]
     it "should handle #{x.inspect}" do
-      out = @enc.encode(x)
+      out = @enc.prepare.encode(x)
       out.should == str
-      y = @dec.decode(out)
+      y = @dec.prepare.decode(out)
       y.should == x
     end
   end
 
   it "should handle empty Array" do
     x = [ ]
-    out = @enc.encode(x)
+    out = @enc.prepare.encode(x)
     out.should == "[[]]"
-    @dec.decode(out).should == x
+    @dec.prepare.decode(out).should == x
   end
 
   it "should handle Array" do
@@ -82,14 +82,14 @@ describe "ASIR::Coder::JSON" do
 
   it "should handle Hash" do
     x = Hash[ *basic_objs.flatten.reverse ]
-    out = @enc.encode(x)
+    out = @enc.prepare.encode(x)
     out.should =~ %r{\A\[\{}
     out.should =~ %r{\}\]\Z}
     basic_objs.each do | v, str |
       # out.should =~ %r{#{k.inspect}:}
       out.should =~ %r{#{str}}
     end
-    y = @dec.decode(out)
+    y = @dec.prepare.decode(out)
     y.should == x.inject({}){|h, (k, v)| h[k] = Symbol === v ? v.to_s : v; h }
   end
 
@@ -110,7 +110,7 @@ describe "ASIR::Coder::JSON" do
     out.should =~ %r{\A\[\"#<ASIR::Coder::Test::Object:[^>]+>\"\]\Z}
     #out.should =~ %r{<#{x.class.name.gsub('::', '.')} id=\"#{x.object_id}\" >}
     #out.should =~ %r{</#{x.class.name.gsub('::', '.')}>}
-    y = @dec.decode(out)
+    y = @dec.prepare.decode(out)
     (String === y).should == true
 =begin
 FIXME:
