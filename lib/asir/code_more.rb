@@ -32,7 +32,6 @@ module ASIR
       self
     end
 
-    # Returns the receiver name:
     # If receiver is a Module (i.e. class or module message),
     #   Returns [ name of the Module, :'.' ]
     # Otherwise

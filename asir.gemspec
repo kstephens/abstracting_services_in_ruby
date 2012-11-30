@@ -34,6 +34,9 @@ Gem::Specification.new do |s|
   s.add_dependency "zmq", "~> 2.1.4"
   s.add_dependency "json", ">= 1.5.3"
 
+  s.add_dependency "activerecord", '>= 3.0.0'
+  s.add_dependency "pg", '>= 0.14.0'
+
   s.add_development_dependency 'rake', '>= 0.9.0'
   s.add_development_dependency 'rspec', '~> 2.12.0'
   s.add_development_dependency 'simplecov', '>= 0.1'

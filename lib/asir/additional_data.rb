@@ -4,6 +4,7 @@ module ASIR
   #
   # Support additional data attached to any object.
   module AdditionalData
+    def _additional_data; @additional_data; end
     def additional_data
       @additional_data || EMPTY_HASH
     end

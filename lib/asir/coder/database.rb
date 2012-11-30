@@ -18,37 +18,41 @@ module ASIR
       attr_accessor :message_model
       # The model for Result objects.
       attr_accessor :result_model
-      # The model for everything else (rare).
+      # The model for everything else.
       attr_accessor :other_model
 
       # The coder object => object_payload, must code to some binary String.
-      attr_accessor :payload_coder
+      attr_accessor :payload_coder, :additional_data_coder
 
-      # Callback: call(self, obj, attr_Hash)
+      # Callback: attrs = call(self, obj, attrs : Hash)
       attr_accessor :before_model_new
-      # Callback: call(self, obj, model_obj)
+      # Callback: model_obj = call(self, obj, model_obj)
       attr_accessor :after_model_new
 
-      def _encode obj
+      def _encode in_obj
+        obj = in_obj
         case
-        when Message === obj && message_model
-          model = self.message_model
-        when Result === obj  && result_model
-          model = self.result_model
-        else other_model
-          model = self.other_model
+        when Message === in_obj && message_model
+          model = message_model
+        when Result === in_obj  && result_model
+          model = result_model
         else
-          model = nil
+          model = other_model
         end
         if model
-          payload = payload_coder.prepare.encode(obj)
-          if @before_model_new
-            @before_model_new.call(self, obj, attrs)
+          obj = in_obj.encode_more!
+          if AdditionalData === obj and ad = obj._additional_data
+            c = additional_data_coder || payload_coder
+            obj.additional_data = c.prepare.encode(ad)
           end
+          payload = payload_coder.prepare.encode(obj)
           attrs = { :object => obj, :payload => payload }
+          if @before_model_new
+            attr = @before_model_new.call(self, in_obj, attrs)
+          end
           m = model.new(attrs)
           if @after_model_new
-            @after_model_new.call(self, obj, m)
+            m = @after_model_new.call(self, in_obj, m)
           end
           obj = m
         end
@@ -56,11 +60,9 @@ module ASIR
       end
 
       def _decode obj
-        payload_coder.prepare.decode(obj.payload)
+        obj = payload_coder.prepare.decode(obj.payload)
+        obj.decode_more!
       end
-
-      # Completely stateless.
-      def dup; self; end
     end
     # !SLIDE END
   end
