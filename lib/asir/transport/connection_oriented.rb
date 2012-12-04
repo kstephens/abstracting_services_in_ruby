@@ -54,21 +54,21 @@ module ASIR
       # Sends the encoded Message payload String.
       def _send_message message, message_payload
         stream.with_stream! do | io |
-          _write message_payload, io
+          _write message_payload, io, message
         end
       end
 
       # !SLIDE
       # Receives the encoded Message payload String.
       def _receive_message stream, additional_data
-        [ _read(stream), nil ]
+        [ _read(stream, nil), nil ]
       end
 
       # !SLIDE
       # Sends the encoded Result payload String.
       def _send_result message, result, result_payload, stream, message_state
         unless @one_way || message.one_way
-          _write result_payload, stream
+          _write result_payload, stream, message
         end
       end
 
@@ -77,7 +77,7 @@ module ASIR
       def _receive_result message, opaque_result
         unless @one_way || message.one_way
           stream.with_stream! do | io |
-            _read io
+            _read io, message
           end
         end
       end

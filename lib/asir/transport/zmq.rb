@@ -40,13 +40,16 @@ module ASIR
         super
       end
 
-      def _write payload, stream
-        payload.insert(0, queue_) if one_way
+      def _write payload, stream, context
+        if one_way
+          q = context && (context[:queue] || context[:zmq_queue])
+          payload.insert(0, q || queue_)
+        end
         stream.send payload, 0
         stream
       end
 
-      def _read stream
+      def _read stream, context
         stream.recv 0
       end
 

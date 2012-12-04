@@ -16,14 +16,14 @@ module ASIR
 
       # Writes a Message payload String.
       def _send_message message, message_payload
-        _write message_payload, stream
+        _write message_payload, stream, message
       ensure
         close if file && ::File.pipe?(file)
       end
 
       # Returns a Message payload String.
       def _receive_message stream, additional_data
-        [ _read(stream), nil ]
+        [ _read(stream, nil), nil ]
       end
 
       # one-way; no Result.
