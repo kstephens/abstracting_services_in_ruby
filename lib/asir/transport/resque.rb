@@ -49,7 +49,7 @@ module ASIR
 
       def _send_message message, message_payload
         stream.with_stream! do | io |  # Force connect
-          queue = message[:resque_queue] || self.queue
+          queue = message[:resque_queue] || message[:queue] || self.queue
           $stderr.puts "  #{$$} #{self} _send_message #{message_payload.inspect} to queue=#{queue.inspect} as #{self.class} :process_job" if @verbose >= 2
           # Invokes Transport::Resque.perform(metadata, payload)
           metadata = message[:resque_metadata] || message.description
