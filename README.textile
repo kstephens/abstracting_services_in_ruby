@@ -51,4 +51,7 @@ h2. Platform support
 * CRuby 2.0-head
 * JRuby 1.6.x (with JRUBY_OPTS=--1.9) IN-PROGRESS
 
+h2. Dependencies
+
+* Requires install of libxml, libxslt for XML support: rake prereq.
 
