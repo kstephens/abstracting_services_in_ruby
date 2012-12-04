@@ -36,9 +36,6 @@ when :transport
 
   # Setup requested Transport.
   case asir.adjective
-  when :beanstalk
-    require 'asir/transport/beanstalk'
-    transport = ASIR::Transport::Beanstalk.new
   when :http, :webrick
     require 'asir/transport/webrick'
     transport = ASIR::Transport::Webrick.new
@@ -47,10 +44,6 @@ when :transport
     require 'asir/transport/rack'
     transport = ASIR::Transport::Rack.new
     transport.uri = "http://localhost:#{30000 + asir.identifier.to_s.to_i}/asir"
-  when :resque
-    gem 'resque'
-    require 'asir/transport/resque'
-    transport = ASIR::Transport::Resque.new
   else
     raise "Cannot configure Transport for #{asir.adjective}"
   end

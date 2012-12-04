@@ -1,5 +1,10 @@
 2012-12-04  Kurt A. Stephens  <ks.github@kurtstephens.com>
 
+	* v1.1.2: New version.
+	* Resque: Moved Resque support to gem asir_resque.
+
+2012-12-04  Kurt A. Stephens  <ks.github@kurtstephens.com>
+
 	* v1.1.1: New version.
 	* Beanstalk: Moved beanstalkd support to gem asir_beanstalk.
 	* Buffer: Buffer needs Delegation.
