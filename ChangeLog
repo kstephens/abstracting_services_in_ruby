@@ -1,3 +1,8 @@
+2012-12-03  Kurt A. Stephens  <ks.github@kurtstephens.com>
+
+	* Thread: Added ASIR::Transport::Thread.
+	* ThreadPool: Added ASIR::ThreadPool suitable for Thread transport.
+
 2012-11-30  Kurt A. Stephens  <ks.github@kurtstephens.com>
 
 	* v1.0.8: New version.
