@@ -104,8 +104,8 @@ module ASIR
       end
 
       def serve_stream_message! in_stream, out_stream # ignored
-        save = Thread.current[:asir_transport_resque_instance]
-        Thread.current[:asir_transport_resque_instance] = self
+        save = ::Thread.current[:asir_transport_resque_instance]
+        ::Thread.current[:asir_transport_resque_instance] = self
         poll_throttle throttle do
           $stderr.puts "  #{$$} #{self} serve_stream_message!: resque_worker = #{resque_worker} on queues #{resque_worker.queues.inspect}" if @verbose >= 3
           if job = resque_worker.reserve
@@ -116,14 +116,14 @@ module ASIR
         end
         self
       ensure
-        Thread.current[:asir_transport_resque_instance] = save
+        ::Thread.current[:asir_transport_resque_instance] = save
       end
 
       # Class method entry point from Resque::Job.perform.
       def self.perform metadata, payload = nil
         payload ||= metadata # old calling signature (just payload).
         # $stderr.puts "  #{self} process_job payload=#{payload.inspect}"
-        t = Thread.current[:asir_transport_resque_instance]
+        t = ::Thread.current[:asir_transport_resque_instance]
         # Pass payload as in_stream; _receive_message will return it.
         t.serve_message! payload, nil
       end
