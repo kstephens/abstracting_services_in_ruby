@@ -26,12 +26,13 @@ h3. Features
 ** Named Pipe.
 ** TCP.
 ** HTTP under WEBrick or as Rack application.
-** Beanstalkd.
-** ZeroMQ.
-** Resque.
+** Beanstalkd. (gem asir_beanstalk)
+** ZeroMQ. (gem asir_zmq)
+** Resque. (gem asir_resque)
 ** Buffered transports.
 ** Broadcast transports.
 ** Fallback transports.
+** Database transports (e.g.: gem asir_activerecord)
 ** Time-decaying retry and polling logic.
 * Support for multiple encodings:
 ** Marshal.
@@ -50,9 +51,4 @@ h2. Platform support
 * CRuby 2.0-head
 * JRuby 1.6.x (with JRUBY_OPTS=--1.9) IN-PROGRESS
 
-h2. Dependencies
-
-* gem install zmq
-** zmq 2.1.4 needs a zmq 2.x library.
-** On OS X Macports: sudo port install zmq22.
 

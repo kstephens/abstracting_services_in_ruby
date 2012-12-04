@@ -31,7 +31,6 @@ Gem::Specification.new do |s|
   s.add_dependency "httpclient", "~> 2.3.0"
   s.add_dependency "libxml-ruby", "~> 2.3.3"
   s.add_dependency "rack", "~> 1.4.1"
-  s.add_dependency "zmq", "~> 2.1.4"
   s.add_dependency "json", ">= 1.5.3"
 
   s.add_development_dependency 'rake', '>= 0.9.0'

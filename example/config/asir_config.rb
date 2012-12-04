@@ -47,11 +47,6 @@ when :transport
     require 'asir/transport/rack'
     transport = ASIR::Transport::Rack.new
     transport.uri = "http://localhost:#{30000 + asir.identifier.to_s.to_i}/asir"
-  when :zmq
-    reqiore 'asir/transport/zmq'
-    transport = ASIR::Transport::Zmq.new
-    transport.one_way = true
-    transport.uri = "tcp://localhost:#{31000 + asir.identifier.to_s.to_i}" # /asir"
   when :resque
     gem 'resque'
     require 'asir/transport/resque'

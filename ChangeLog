@@ -1,7 +1,10 @@
 2012-12-03  Kurt A. Stephens  <ks.github@kurtstephens.com>
 
-	* Thread: Added ASIR::Transport::Thread.
-	* ThreadPool: Added ASIR::ThreadPool suitable for Thread transport.
+	* v1.1.0: New version.
+	* ZMQ: Moved ZMQ support to gem asir_zmq.
+	* Thread: Preliminary ASIR::Transport::Thread.
+	* ThreadPool: Preliminary ASIR::ThreadPool suitable for Thread transport.
+	* Resque: Support for message[:resque_queue] || message[:queue].
 
 2012-11-30  Kurt A. Stephens  <ks.github@kurtstephens.com>
 
