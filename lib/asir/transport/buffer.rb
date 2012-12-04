@@ -1,4 +1,5 @@
 require 'asir/transport'
+require 'asir/transport/delegation'
 require 'thread'
 
 module ASIR
