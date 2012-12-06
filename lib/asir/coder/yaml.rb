@@ -11,7 +11,7 @@ module ASIR
         when Message, Result
           obj = obj.encode_more!
         end
-        ::YAML::dump(obj)
+        yaml_dump(obj)
       end
 
       def _decode obj
@@ -22,7 +22,35 @@ module ASIR
           obj
         end
       end
+
+      attr_accessor :yaml_options
+      case RUBY_VERSION
+      when /^1\.8/
+        def yaml_dump obj
+          ::YAML::dump obj
+        end
+      else
+        def yaml_dump obj
+          ::YAML::dump(obj, nil, yaml_options || EMPTY_HASH)
+        end
+      end
     end # class
   end # class
 end # module
+
+if defined? ::Psych
+  class Psych::Visitors::YAMLTree
+    alias :binary_without_option? :binary?
+    def binary? string
+      return false if @options[:never_binary]
+      result =
+        string.index("\x00") ||
+        string.count("\x00-\x7F", "^ -~\t\r\n").fdiv(string.length) > 0.3
+      unless @options[:ASCII_8BIT_ok]
+        result ||= string.encoding == Encoding::ASCII_8BIT
+      end
+      result
+    end
+  end
+end
 

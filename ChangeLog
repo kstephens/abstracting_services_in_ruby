@@ -1,3 +1,8 @@
+2012-12-05  Kurt A. Stephens  <ks.github@kurtstephens.com>
+
+	* v1.1.5: New version.
+	* YAML: Support better handling of ASCII-8BIT in Psych.dump.
+
 2012-12-04  Kurt A. Stephens  <ks.github@kurtstephens.com>
 
 	* v1.1.4: New version.
