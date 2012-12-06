@@ -13,7 +13,7 @@ else
     # require 'ruby-debug' # BROKEN in 1.9.3-head
   when /^1\.8/
     gem 'ruby-debug'
-    gem 'rcov'
+    gem 'simplecov'
     require 'ruby-debug'
   end
 end
