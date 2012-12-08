@@ -200,11 +200,17 @@ END
   def _start_worker! type = adjective
     log "start_worker! #{type}"
     type = type.to_s
+    config!(:environment)
+    self.transport = config!(:transport)
+
+    # Get the expected transport class.
+    transport_file = "asir/transport/#{type}"
+    log "loading #{transport_file}"
+    require transport_file
+    transport_class = ASIR::Transport.const_get(type[0..0].upcase + type[1..-1])
+
     fork_server! do
-      transport_file = "asir/transport/#{type}"
-      log "loading #{transport_file}"
-      require transport_file
-      _create_transport ASIR::Transport.const_get(type[0..0].upcase + type[1..-1])
+      _create_transport transport_class
       _run_workers!
     end
   end
