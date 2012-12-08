@@ -111,6 +111,10 @@ module ASIR
     # trans.on_result_exception.call(trans, result)
     attr_accessor :on_result_exception
 
+    # Proc to call after #invoke_message!
+    # trans.after_invoke_message.call(trans, message, result)
+    attr_accessor :after_invoke_message
+
     # Proc to call with exception, if exception occurs within #serve_message!, but outside
     # Message#invoke!.
     #
@@ -142,6 +146,9 @@ module ASIR
         message_ok = true
         result = invoke_message!(message)
         result_ok = true
+        if @after_invoke_message
+          @after_invoke_message.call(self, message, result)
+        end
         self
       else
         nil
