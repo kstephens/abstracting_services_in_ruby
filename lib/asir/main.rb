@@ -34,6 +34,9 @@ class Main
     self.args = args
     until args.empty?
       case args.first
+      when /^--?h(elp)/
+        @help = true
+        return self
       when /^([a-z0-9_]+=)(.*)/i
         k, v = $1.to_sym, $2
         args.shift
@@ -61,6 +64,9 @@ class Main
   end
 
   def run!
+    if @help
+      return usage!
+    end
     unless verb && adjective && object
       self.exit_code = 1
       return usage!
@@ -172,6 +178,7 @@ EXAMPLES:
   asir start zmq worker 1
   asir start zmq worker 2
 END
+    self
   end
 
   def start_beanstalk_conduit!
