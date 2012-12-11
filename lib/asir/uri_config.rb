@@ -11,7 +11,8 @@ module ASIR
     alias :address= :host=
 
     def uri
-      @uri ||= "#{scheme}://#{host}:#{port}"
+      @uri ||=
+        "#{scheme}://#{host}:#{port}#{path}".freeze
     end
 
     def _uri
@@ -22,7 +23,7 @@ module ASIR
     def scheme
       @scheme ||=
         (@uri && _uri.scheme) ||
-        @scheme_default ||
+        scheme_default ||
         S_TCP
     end
     S_TCP = 'tcp'.freeze
@@ -30,7 +31,7 @@ module ASIR
     def host
       @host ||=
         (@uri && _uri.host) ||
-        @host_default ||
+        host_default ||
         S_LOCALHOST
     end
     S_LOCALHOST = '127.0.0.1'.freeze
@@ -38,14 +39,17 @@ module ASIR
     def port
       @port ||=
         (@uri && _uri.port) ||
-        @port_default ||
+        port_default ||
         (raise Error, "#{self.class}: port not set.")
     end
 
     def path
       @path ||=
-        (@uri && _uri.path) ||
-        @path_default
+        (@uri && (
+          p = _uri.path
+          p = nil if p.empty?
+          p)) ||
+        path_default
     end
   end
 end
