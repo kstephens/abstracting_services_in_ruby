@@ -27,7 +27,6 @@ Gem::Specification.new do |s|
     gem.add_dependency "uuid", "~> 2.3.6"
   end
   s.add_dependency "httpclient", "~> 2.3.0"
-  s.add_dependency "libxml-ruby", "~> 2.3.3"
   s.add_dependency "rack", "~> 1.4.1"
   s.add_dependency "json", ">= 1.5.3"
 

@@ -51,17 +51,6 @@ end
 
 ######################################################################
 
-desc "Install system prerequites"
-task :prereq do
-  case RUBY_PLATFORM
-  when /darwin/i
-    sh "sudo port install libxml libxslt"
-  when /linux/i
-    sh "sudo apt-get install libxml2-dev libxslt1-dev"
-  end
-end
-
-######################################################################
 desc "Create slides."
 task :slides => 
   [

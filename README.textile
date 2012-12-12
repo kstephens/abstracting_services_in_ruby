@@ -1,7 +1,7 @@
 h1. Abstracting Services in Ruby
 
 * Kurt Stephens
-* 2010/08/19
+* 2012/12/11
 * Slides -- "http://kurtstephens.com/pub/abstracting_services_in_ruby/asir.slides/":http://kurtstephens.com/pub/abstracting_services_in_ruby/asir.slides/
 * Code -- "http://kurtstephens.com/pub/abstracting_services_in_ruby/":http://kurtstephens.com/pub/abstracting_services_in_ruby/
 * Git -- "http://github.com/kstephens/abstractiing_services_in_ruby":http://github.com/kstephens/abstractiing_services_in_ruby
@@ -36,7 +36,7 @@ h3. Features
 ** Time-decaying retry and polling logic.
 * Support for multiple encodings:
 ** Marshal.
-** XML.
+** XML. (gem asir_xml)
 ** JSON.
 ** YAML.
 ** Base64.
@@ -50,8 +50,4 @@ h2. Platform support
 * CRuby 1.9.3-head
 * CRuby 2.0-head
 * JRuby 1.6.x (with JRUBY_OPTS=--1.9) IN-PROGRESS
-
-h2. Dependencies
-
-* Requires install of libxml, libxslt for XML support: rake prereq.
 
