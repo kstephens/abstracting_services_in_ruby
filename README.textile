@@ -5,6 +5,7 @@ h1. Abstracting Services in Ruby
 * Slides -- "http://kurtstephens.com/pub/abstracting_services_in_ruby/asir.slides/":http://kurtstephens.com/pub/abstracting_services_in_ruby/asir.slides/
 * Code -- "http://kurtstephens.com/pub/abstracting_services_in_ruby/":http://kurtstephens.com/pub/abstracting_services_in_ruby/
 * Git -- "http://github.com/kstephens/abstractiing_services_in_ruby":http://github.com/kstephens/abstractiing_services_in_ruby
+* Status -- "!https://travis-ci.org/kstephens/abstracting_services_in_ruby.png!":https://travis-ci.org/kstephens/abstracting_services_in_ruby
 
 h2. Objectives
 
