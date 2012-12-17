@@ -39,8 +39,11 @@ module ASIR
 end # module
 
 if defined? ::Psych
+  require 'psych/visitors'
   class Psych::Visitors::YAMLTree
-    alias :binary_without_option? :binary?
+    private
+    # alias fails for some environments:
+    # alias :binary_without_option? :binary?
     def binary? string
       return false if @options[:never_binary]
       result =
