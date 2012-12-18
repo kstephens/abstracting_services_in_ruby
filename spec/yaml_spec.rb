@@ -19,6 +19,9 @@ describe "ASIR::Coder::Yaml" do
     [ :Symbol, ':Symbol' ],
   ].each do | x |
     x, str = *x
+    if x == nil and RUBY_VERSION == '1.9.2'
+      str = '!!null '
+    end
     str ||= x.to_s
     str = "--- #{str}\n"
     str << "...\n" if RUBY_VERSION !~ /^1\.8/
@@ -37,6 +40,8 @@ describe "ASIR::Coder::Yaml" do
     case RUBY_VERSION
     when /^1\.8/
       out.should =~ /^  :binary: !binary /m
+    when '1.9.2'
+      out.should =~ /^  :binary: |-\n/m
     else
       out.should =~ /^  :binary: ! "\\x04/m
     end
@@ -80,7 +85,12 @@ describe "ASIR::Coder::Yaml" do
       str.encoding.inspect.should == "#<Encoding:ASCII-8BIT>"
 
       yaml = ::YAML.dump(str)
-      yaml.should == "--- !binary |-\n  IzxFbmNvZGluZzpBU0NJSS04QklUPg==\n"
+      case RUBY_VERSION
+      when '1.9.2'
+        yaml.should == "--- ! '#<Encoding:ASCII-8BIT>'\n"
+      else
+        yaml.should == "--- !binary |-\n  IzxFbmNvZGluZzpBU0NJSS04QklUPg==\n"
+      end
 
       yaml = ::YAML.dump(str, nil, :never_binary => true)
       yaml.should == "--- ! '#<Encoding:ASCII-8BIT>'\n"
@@ -91,7 +101,12 @@ describe "ASIR::Coder::Yaml" do
 
       @enc.yaml_options = @dec.yaml_options = nil
       out = @enc.prepare.encode(str)
-      out.should == "--- !binary |-\n  OGJpdGFzY2lp\n"
+      case RUBY_VERSION
+      when '1.9.2'
+        out.should == "--- 8bitascii\n...\n"
+      else
+        out.should == "--- !binary |-\n  OGJpdGFzY2lp\n"
+      end
       @dec.prepare.decode(str).should == str
 
       @enc.yaml_options = { :never_binary => true }
