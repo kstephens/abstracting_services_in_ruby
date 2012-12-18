@@ -7,6 +7,7 @@ module ASIR
   class ThreadPool
     include Initialization, AdditionalData
     attr_accessor :thread_class, :workers, :n_workers
+    attr_accessor :auto_start_workers
     attr_accessor :work_queue
     attr_accessor :verbose
     attr_accessor :run
