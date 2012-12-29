@@ -5,7 +5,7 @@ module ASIR
     #
     # Never send Message.
     class Null < self
-      def _send_message message_result
+      def _send_message state
         nil
       end
     end

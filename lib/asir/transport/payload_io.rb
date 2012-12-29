@@ -14,7 +14,7 @@ module ASIR
       HEADER = "# asir_payload_size: "
       FOOTER = "\n# asir_payload_end"
 
-      def _write payload, stream, message_result
+      def _write payload, stream, state
         stream.write HEADER
         stream.puts payload.size
         stream.write payload
@@ -23,7 +23,7 @@ module ASIR
         stream
       end
 
-      def _read stream, message_result
+      def _read stream, state
         size = /\d+$/.match(stream.readline.chomp)[0].to_i # HEADER (size)
         payload = stream.read(size)
         stream.readline # FOOTER

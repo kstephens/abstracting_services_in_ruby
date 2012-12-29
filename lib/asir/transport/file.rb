@@ -15,24 +15,24 @@ module ASIR
       def initialize opts = nil; @one_way = true; super; end
 
       # Writes a Message payload String.
-      def _send_message message_result
-        _write(message_result.message_payload, message_result.out_stream || stream, message_result)
+      def _send_message state
+        _write(state.message_payload, state.out_stream || stream, state)
       ensure
         close if file && ::File.pipe?(file)
       end
 
       # Returns a Message payload String.
-      def _receive_message message_result
-        message_result.message_payload = _read(message_result.in_stream || stream, message_result)
+      def _receive_message state
+        state.message_payload = _read(state.in_stream || stream, state)
       end
 
       # one-way; no Result.
-      def _send_result message_result
+      def _send_result state
         nil
       end
 
       # one-way; no Result.
-      def _receive_result message_result
+      def _receive_result state
         nil
       end
 

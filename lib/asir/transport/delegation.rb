@@ -15,7 +15,7 @@ module ASIR
       attr_accessor :on_failed_message
 
       # Return the subTransports' result unmodified from #_send_message.
-      def _receive_result message_result
+      def _receive_result state
         true
       end
 
@@ -35,10 +35,10 @@ module ASIR
       end
 
       # Called from within _send_message rescue.
-      def _handle_send_message_exception! transport, message_result, exc
+      def _handle_send_message_exception! transport, state, exc
         _log { [ :send_message, :transport_failed, exc, exc.backtrace ] }
-        (message_result.message[:transport_exceptions] ||= [ ]) << "#{exc.inspect}: #{exc.backtrace.first}"
-        @on_send_message_exception.call(self, message_result, exc) if @on_send_message_exception
+        (state.message[:transport_exceptions] ||= [ ]) << "#{exc.inspect}: #{exc.backtrace.first}"
+        @on_send_message_exception.call(self, state, exc) if @on_send_message_exception
         self
       end
     end

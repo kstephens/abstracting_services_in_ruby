@@ -7,14 +7,14 @@ module ASIR
     # Requires Identity Coder.
     class Local < self
       # Capture Result object after invoking Message.
-      def _send_message message_result
-        invoke_message!(message_result)
+      def _send_message state
+        invoke_message!(state)
         self
       end
 
       # Result object was captured in #_send_message.
-      def _receive_result message_result
-        message_result.result_payload = message_result.result
+      def _receive_result state
+        state.result_payload = state.result
         self
       end
     end

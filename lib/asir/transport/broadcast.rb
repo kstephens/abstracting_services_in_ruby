@@ -9,21 +9,21 @@ module ASIR
     class Broadcast < self
       include Composite
 
-      def _send_message message_result
+      def _send_message state
         result = first_exception = nil
         transports.each do | transport |
           begin
-            result = transport.send_message(message_result.message)
+            result = transport.send_message(state.message)
           rescue ::Exception => exc
             first_exception ||= exc
-            _handle_send_message_exception! transport, message_result, exc
+            _handle_send_message_exception! transport, state, exc
             raise exc unless @continue_on_exception
           end
         end
         if first_exception && @reraise_first_exception
           raise first_exception
         end
-        message_result.result = Result.new(message_result.message, result)
+        state.result = Result.new(state.message, result)
       end
     end
     # !SLIDE END

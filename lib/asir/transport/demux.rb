@@ -23,8 +23,8 @@ module ASIR
         end
       end
 
-      def _send_message message_result
-        transport.send_message(message_result.message)
+      def _send_message state
+        transport.send_message(state.message)
       end
     end
     # !SLIDE END

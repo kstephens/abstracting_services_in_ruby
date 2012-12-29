@@ -19,26 +19,26 @@ module ASIR
         self.needs_message_identifier = true
       end
 
-      def _send_message message_result
+      def _send_message state
         if @before_message_save
-          @before_message_save.call(self, message_result)
+          @before_message_save.call(self, state)
         end
-        message_result.message_payload.save!
+        state.message_payload.save!
         # message[:database_id] ||= message_payload.database_id
         if @after_message_save
-          @after_message_save.call(self, message_result)
+          @after_message_save.call(self, state)
         end
       end
 
-      def _send_result message_result
-        return if one_way? or message_result.message.one_way?
+      def _send_result state
+        return if one_way? or state.message.one_way?
         if @before_result_save
-          @before_result_save.call(self, message_result)
+          @before_result_save.call(self, state)
         end
-        message_result.result_payload.save!
+        state.result_payload.save!
         result[:database_id] = result_payload.database_id
         if @after_result_save
-          @after_result_save.call(self, message_result)
+          @after_result_save.call(self, state)
         end
       end
     end

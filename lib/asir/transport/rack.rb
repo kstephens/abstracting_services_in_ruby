@@ -7,16 +7,16 @@ module ASIR
     # Rack Transport
     class Rack < HTTP
       # Receive the Message payload String from the Rack::Request object.
-      def _receive_message message_result
-        rack_request = message_result.in_stream
-        message_result.message_payload = rack_request.body.read
+      def _receive_message state
+        rack_request = state.in_stream
+        state.message_payload = rack_request.body.read
       end
 
       # Send the Result payload String in the Rack::Response object as application/binary.
-      def _send_result message_result
-        rack_response = message_result.out_stream
+      def _send_result state
+        rack_response = state.out_stream
         rack_response[CONTENT_TYPE] = APPLICATION_BINARY
-        rack_response.write message_result.result_payload
+        rack_response.write state.result_payload
       end
 
       # Constructs a Rackable App from this Transport.

@@ -52,34 +52,34 @@ module ASIR
 
       # !SLIDE
       # Sends the encoded Message payload String.
-      def _send_message message_result
+      def _send_message state
         stream.with_stream! do | io |
-          message_result.in_stream = io
-          _write(message_result.message_payload, io, message_result)
+          state.in_stream = io
+          _write(state.message_payload, io, state)
         end
       end
 
       # !SLIDE
       # Receives the encoded Message payload String.
-      def _receive_message message_result
-        message_result.message_payload = _read(message_result.in_stream, message_result)
+      def _receive_message state
+        state.message_payload = _read(state.in_stream, state)
       end
 
       # !SLIDE
       # Sends the encoded Result payload String.
-      def _send_result message_result
-        unless @one_way || message_result.message.one_way
-          # $stderr.write "\n  _send_result #{message_result.result_payload.inspect}\n\n"
-          _write(message_result.result_payload, message_result.out_stream, message_result)
+      def _send_result state
+        unless @one_way || state.message.one_way
+          # $stderr.write "\n  _send_result #{state.result_payload.inspect}\n\n"
+          _write(state.result_payload, state.out_stream, state)
           true
         end
       end
 
       # !SLIDE
       # Receives the encoded Result payload String.
-      def _receive_result message_result
-        unless @one_way || message_result.message.one_way
-          message_result.result_payload = _read(message_result.in_stream, message_result)
+      def _receive_result state
+        unless @one_way || state.message.one_way
+          state.result_payload = _read(state.in_stream, state)
           true
         end
       end
