@@ -9,14 +9,14 @@ module ASIR
       # !SLIDE
       # TCP Socket Client
       def _client_connect!
-        sock = TCPSocket.open(host, port)
+        sock = ::TCPSocket.open(host, port)
       end
 
       # !SLIDE
       # TCP Socket Server
       def _server!
-        @server = TCPServer.open(port)
-        @server.setsockopt(Socket::SOL_SOCKET, Socket::SO_KEEPALIVE, false)
+        @server = ::TCPServer.open(port)
+        @server.setsockopt(::Socket::SOL_SOCKET, ::Socket::SO_KEEPALIVE, false)
       end
 
       def _server_accept_connection! server

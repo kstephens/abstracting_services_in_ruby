@@ -25,15 +25,15 @@ module ASIR
 
       # If paused, queue messages,
       # Otherwise delegate immediately to #transport.
-      def _send_message message, message_payload
+      def _send_message message_result
         return nil if @ignore
         if paused?
           @messages_mutex.synchronize do
-            @messages << message
+            @messages << message_result.message
           end
           nil
         else
-          @transport.send_message(message)
+          @transport.send_message(message_result.message)
         end
       end
 

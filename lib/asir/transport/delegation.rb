@@ -14,14 +14,9 @@ module ASIR
       # Proc to call(transport, message) when #send_message fails with no recourse.
       attr_accessor :on_failed_message
 
-      # Return the subTransports#send_message result unmodified from #_send_message.
-      def _receive_result message, opaque_result
-        opaque_result
-      end
-
-      # Return the subTransports#send_message result unmodified from #_send_message.
-      def receive_result message, opaque_result
-        opaque_result
+      # Return the subTransports' result unmodified from #_send_message.
+      def _receive_result message_result
+        true
       end
 
       def needs_message_identifier? message
@@ -40,10 +35,10 @@ module ASIR
       end
 
       # Called from within _send_message rescue.
-      def _handle_send_message_exception! transport, message, exc
-        _log { [ :send_message, :transport_failed, exc ] }
-        (message[:transport_exceptions] ||= [ ]) << "#{exc.inspect}: #{exc.backtrace.first}"
-        @on_send_message_exception.call(self, message, exc) if @on_send_message_exception
+      def _handle_send_message_exception! transport, message_result, exc
+        _log { [ :send_message, :transport_failed, exc, exc.backtrace ] }
+        (message_result.message[:transport_exceptions] ||= [ ]) << "#{exc.inspect}: #{exc.backtrace.first}"
+        @on_send_message_exception.call(self, message_result, exc) if @on_send_message_exception
         self
       end
     end

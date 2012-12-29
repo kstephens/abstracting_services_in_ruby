@@ -40,10 +40,10 @@ describe "ASIR::Transport" do
   end
 
   it 'should handle on_result_exception callbacks' do
-    _transport, _result = nil, nil
-    p = lambda do | transport, result |
+    _transport, _message_result = nil, nil
+    p = lambda do | transport, message_result |
       _transport = transport
-      _result = result
+      _message_result = message_result
     end
     transport.on_result_exception = p
 
@@ -71,12 +71,17 @@ describe "ASIR::Transport" do
 
     _transport.should == object.transport
 
+    _result = _message_result.result
     _result.class.should == ASIR::Result
     _result.object_id.should == result.object_id
 
     _result.message.class.should == ASIR::Message
     _result.message.object_id.should == result.message.object_id
     _result.exception.should == exc
+
+    _message = _message_result.message
+    _message.object_id.should == _message_result.message.object_id
+
   end
 end
 

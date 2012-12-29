@@ -30,18 +30,23 @@ module ASIR
 
       # Send the Message payload String using HTTP POST.
       # Returns the HTTPClient::Request response object.
-      def _send_message message, message_payload
+      def _send_message message_result
         client.with_stream! do | client |
-          client.post(uri, message_payload)
+          message_result.in_stream =
+            client.post(message_uri(message_result), message_result.message_payload)
         end
+      end
+
+      # Subclasses can override.
+      def message_uri message_result
+        message_result.message[:uri] || uri
       end
 
       # Recieve the Result payload String from the opaque
       # HTTPClient::Request response object returned from #_send_message.
-      def _receive_result message, http_result_message
-        # $stderr.puts " ### http_result_message.content.encoding = #{http_result_message.content.encoding.inspect}" rescue nil
-        # $stderr.puts " ### http_result_message.content = #{http_result_message.content.inspect}" rescue nil
-        http_result_message.content.to_s
+      def _receive_result message_result
+        message_result.result_payload =
+          message_result.in_stream.content.to_s
       end
 
       CONTENT_TYPE = 'Content-Type'.freeze

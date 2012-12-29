@@ -1,6 +1,7 @@
 require 'time'
 require 'asir/thread_variable'
 require 'asir/message/delay'
+require 'asir/message_result'
 require 'asir/transport/conduit'
 
 module ASIR
@@ -23,46 +24,43 @@ module ASIR
     # * Send encoded Message.
     # * Receive decoded Result.
     def send_message message
-      @message_count ||= 0; @message_count += 1
+      @message_count ||= 0; @message_count += 1 # NOT THREAD-SAFE
       message.create_timestamp! if needs_message_timestamp? message
       message.create_identifier! if needs_message_identifier? message
-      @before_send_message.call(self, message) if @before_send_message
       relative_message_delay! message
-      message_payload = encoder.prepare.encode(message)
-      opaque_result = _send_message(message, message_payload)
-      receive_result(message, opaque_result)
+      message_result = MessageResult.new(:message => message, :message_payload => encoder.prepare.encode(message))
+      @before_send_message.call(self, message_result) if @before_send_message
+      _send_message(message_result)
+      receive_result(message_result)
     end
 
     # !SLIDE
     # Transport#receive_message
     # Receive Message payload from stream.
-    def receive_message stream
-      # $stderr.puts "  #{$$} #{self} receive_message #{stream}"
-      @message_count ||= 0; @message_count += 1
-      additional_data = { }
-      if req_and_state = _receive_message(stream, additional_data)
-        message = req_and_state[0] = encoder.prepare.decode(req_and_state.first)
-        message.additional_data!.update(additional_data) if message
-        if @after_receive_message
-          @after_receive_message.call(self, message)
+    def receive_message message_result
+      @message_count ||= 0; @message_count += 1 # NOT THREAD-SAFE
+      if received = _receive_message(message_result)
+        if message_result.message = encoder.prepare.decode(message_result.message_payload)
+          @after_receive_message.call(self, message_result) if @after_receive_message
+          self
         end
       end
-      req_and_state
     end
     # !SLIDE END
 
     # !SLIDE
     # Transport#send_result
     # Send Result to stream.
-    def send_result result, stream, message_state
-      message = result.message
+    def send_result message_result
+      result = message_result.result
+      message = message_result.message
       if @one_way && message.block
         message.block.call(result)
       else
-        # avoid sending back entire Message.
+        # Avoid sending back entire Message in Result.
         result.message = nil unless @coder_needs_result_message
-        result_payload = decoder.prepare.encode(result)
-        _send_result(message, result, result_payload, stream, message_state)
+        message_result.result_payload = decoder.prepare.encode(result)
+        _send_result(message_result)
       end
     end
     attr_accessor :coder_needs_result_message
@@ -75,19 +73,24 @@ module ASIR
     # * Receive Result payload
     # * Decode Result.
     # * Extract Result result or exception.
-    def receive_result message, opaque_result
-      result_payload = _receive_result(message, opaque_result)
-      result = decoder.prepare.decode(result_payload)
+    # * Invoke Exception or return Result value.
+    def receive_result message_result
+      value = nil
+      return value unless _receive_result(message_result)
+      result = message_result.result ||= decoder.prepare.decode(message_result.result_payload)
+      message = message_result.message
       if result && ! message.one_way
+        result.message = message
         if exc = result.exception
           invoker.invoke!(exc, self)
         else
           if ! @one_way && message.block
             message.block.call(result)
           end
-          result.result
+          value = result.result
         end
       end
+      value
     end
     # !SLIDE END
 
@@ -118,8 +121,8 @@ module ASIR
     # Proc to call with exception, if exception occurs within #serve_message!, but outside
     # Message#invoke!.
     #
-    # trans.on_exception.call(trans, exception, :message, Message_instance, nil)
-    # trans.on_exception.call(trans, exception, :result, Message_instance, Result_instance)
+    # trans.on_exception.call(trans, exception, :message, MessageResult_instance)
+    # trans.on_exception.call(trans, exception, :result, MessageResult_instance)
     attr_accessor :on_exception
 
     attr_accessor :needs_message_identifier, :needs_message_timestamp
@@ -139,15 +142,15 @@ module ASIR
     # !SLIDE
     # Serve a Message.
     def serve_message! in_stream, out_stream
-      message = message_state = message_ok = result = result_ok = nil
+      message_result = message_ok = result = result_ok = nil
       exception = original_exception = unforwardable_exception = nil
-      message, message_state = receive_message(in_stream)
-      if message
+      message_result = MessageResult.new(:in_stream => in_stream, :out_stream => out_stream)
+      if receive_message(message_result)
         message_ok = true
-        result = invoke_message!(message)
+        invoke_message!(message_result)
         result_ok = true
         if @after_invoke_message
-          @after_invoke_message.call(self, message, result)
+          @after_invoke_message.call(self, message_result)
         end
         self
       else
@@ -156,7 +159,7 @@ module ASIR
     rescue ::Exception => exc
       exception = original_exception = exc
       _log [ :message_error, exc ]
-      @on_exception.call(self, exc, :message, message, nil) if @on_exception
+      @on_exception.call(self, exc, :message, message_result) if @on_exception
     ensure
       begin
         if message_ok
@@ -165,15 +168,15 @@ module ASIR
             when *Error::Unforwardable.unforwardable
               unforwardable_exception = exception = Error::Unforwardable.new(exception)
             end
-            result = Result.new(message, nil, exception)
+            message_result.result = Result.new(message_result.message, nil, exception)
           end
           if out_stream
-            send_result(result, out_stream, message_state)
+            send_result(message_result)
           end
         end
       rescue ::Exception => exc
-        _log [ :result_error, exc ]
-        @on_exception.call(self, exc, :result, message, result) if @on_exception
+        _log [ :result_error, exc, exc.backtrace ]
+        @on_exception.call(self, exc, :result, message_result) if @on_exception
       end
       raise original_exception if unforwardable_exception
     end
@@ -227,21 +230,25 @@ module ASIR
     end
 
     # Invokes the Message object, returns a Result object.
-    def invoke_message! message
-      result = nil
+    def invoke_message! message_result
       Transport.with_attr! :current, self do
-        with_attr! :message, message do
-          wait_for_delay! message
-          result = invoker.invoke!(message, self)
+        with_attr! :message_result, message_result do
+        with_attr! :message, message_result.message do
+          wait_for_delay! message_result.message
+          message_result.result = invoker.invoke!(message_result.message, self)
           # Hook for Exceptions.
-          if @on_result_exception && result.exception
-            @on_result_exception.call(self, result)
+          if @on_result_exception && message_result.result.exception
+            @on_result_exception.call(self, message_result)
           end
         end
       end
-      result
+      end
+      self
     end
-    # The current Message being handled.
+
+    # The current MessageResult being invoked.
+    attr_accessor_thread :message_result
+    # The current Message being invoked.  DEPRECATED.
     attr_accessor_thread :message
 
     # The current active Transport.

@@ -52,33 +52,35 @@ module ASIR
 
       # !SLIDE
       # Sends the encoded Message payload String.
-      def _send_message message, message_payload
+      def _send_message message_result
         stream.with_stream! do | io |
-          _write message_payload, io, message
+          message_result.in_stream = io
+          _write(message_result.message_payload, io, message_result)
         end
       end
 
       # !SLIDE
       # Receives the encoded Message payload String.
-      def _receive_message stream, additional_data
-        [ _read(stream, nil), nil ]
+      def _receive_message message_result
+        message_result.message_payload = _read(message_result.in_stream, message_result)
       end
 
       # !SLIDE
       # Sends the encoded Result payload String.
-      def _send_result message, result, result_payload, stream, message_state
-        unless @one_way || message.one_way
-          _write result_payload, stream, message
+      def _send_result message_result
+        unless @one_way || message_result.message.one_way
+          # $stderr.write "\n  _send_result #{message_result.result_payload.inspect}\n\n"
+          _write(message_result.result_payload, message_result.out_stream, message_result)
+          true
         end
       end
 
       # !SLIDE
       # Receives the encoded Result payload String.
-      def _receive_result message, opaque_result
-        unless @one_way || message.one_way
-          stream.with_stream! do | io |
-            _read io, message
-          end
+      def _receive_result message_result
+        unless @one_way || message_result.message.one_way
+          message_result.result_payload = _read(message_result.in_stream, message_result)
+          true
         end
       end
 
@@ -115,6 +117,7 @@ module ASIR
       end
 
       def serve_connection!
+        _log { "serve_connection!: accepting connection" } if @verbose >= 2
         in_stream, out_stream = _server_accept_connection! @server
         _log { "serve_connection!: connected #{in_stream} #{out_stream}" } if @verbose >= 1
         _server_serve_stream! in_stream, out_stream
