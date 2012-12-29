@@ -7,7 +7,7 @@ begin
   Email.asir.transport = t =
     ASIR::Transport::File.new(:file => service_log)
   t.encoder =
-    ASIR::Coder::Yaml.new
+    ASIR::Coder::Yaml.new(:yaml_options => { :ASCII_8BIT_ok => true })
   pr Email.asir.send_email(:pdf_invoice,
                              :to => "user@email.com",
                              :customer => @customer)
