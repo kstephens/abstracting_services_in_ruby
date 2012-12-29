@@ -24,8 +24,8 @@ module ASIR
         [ socket, socket ] # Use same socket for in_stream and out_stream
       end
 
-      def _server_close_connection! stream, out_stream
-        stream.close rescue nil
+      def _server_close_connection! in_stream, out_stream
+        in_stream.close rescue nil
       end
     end
     # !SLIDE END

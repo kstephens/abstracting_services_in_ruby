@@ -14,8 +14,7 @@ module ASIR
 
     # Creates a timestamp.
     def create_timestamp!
-      @timestamp ||= 
-        ::Time.now.gmtime
+      @timestamp ||= ::Time.now.gmtime
     end
   end
 end

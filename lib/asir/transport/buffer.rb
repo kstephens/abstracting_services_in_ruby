@@ -97,7 +97,7 @@ module ASIR
       # Usually used in worker Thread.
       def process! non_block=false
         @running = true
-        while @running && message = shift(non_block)
+        while @running && (message = shift(non_block))
           @transport.send_message(message)
         end
         message
