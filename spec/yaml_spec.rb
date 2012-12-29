@@ -47,7 +47,7 @@ describe "ASIR::Coder::Yaml" do
     end
   end
 
-  it 'should handle :ascii_8bit_ok.' do
+  it 'should handle :ASCII_8BIT_ok.' do
     @enc.yaml_options = { :ASCII_8BIT_ok => true }
     out = do_message
     out.should =~ /^  :ascii_8bit: hostname/m

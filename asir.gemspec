@@ -33,11 +33,5 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'rake', '>= 0.9.0'
   s.add_development_dependency 'rspec', '~> 2.12.0'
   s.add_development_dependency 'simplecov', '>= 0.1'
-  case RUBY_VERSION
-  when /^1\.8/
-    gem.add_development_dependency 'ruby-debug', '>= 0.1'
-  else
-    gem.add_development_dependency 'ruby-debug19', '>= 0.1'
-  end
 end
 

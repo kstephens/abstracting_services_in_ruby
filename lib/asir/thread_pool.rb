@@ -134,7 +134,7 @@ module ASIR
     def join *args
       until @workers.empty?
         @workers.each do | worker |
-          worker.join(*args)
+          worker && worker.join(*args)
         end
       end
     end

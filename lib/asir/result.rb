@@ -28,7 +28,8 @@ module ASIR
     def initialize exc
       @exception_class     = exc.class.name
       @exception_message   = exc.message
-      @exception_backtrace = exc.backtrace
+      # Map backtrace Location objects to Strings to support RBX.
+      @exception_backtrace = exc.backtrace.map{|x| x.to_s}
     end
 
     def invoke!
