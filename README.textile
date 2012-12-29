@@ -50,5 +50,6 @@ h2. Platform support
 * CRuby 1.8.7
 * CRuby 1.9.3-head
 * CRuby 2.0-head
+* Rubinius 1.8 and 1.9 modes.
 * JRuby 1.6.x (with JRUBY_OPTS=--1.9) IN-PROGRESS
 

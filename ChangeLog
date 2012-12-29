@@ -1,6 +1,7 @@
 2012-12-28  Kurt A. Stephens  <ks.github@kurtstephens.com>
 
 	* v1.2.0: New version: API changes.
+	* Rubinius: Rubinius -Xversion=18 and =19 support.
 	* MessageResult: internal object encapsulates state between #send_message, #receive_message, #send_result, #receive_result.
 	* Callbacks: most callbacks take a MessageResult object instead of Message and/or Result objects.
 	* UUID: Added new_uuid, process_uuid, counter_uuid, thread_uuid as mixin methods.
