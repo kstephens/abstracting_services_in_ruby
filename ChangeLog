@@ -1,3 +1,8 @@
+2012-12-28  Kurt A. Stephens  <ks.github@kurtstephens.com>
+
+	* v1.1.9: New version.
+	* Rubinius: Rubinius -Xversion=18 and =19 support.
+
 2012-12-17  Kurt A. Stephens  <ks.github@kurtstephens.com>
 
 	* Yaml: Fixed yaml_spec.rb on 1.9.2.
