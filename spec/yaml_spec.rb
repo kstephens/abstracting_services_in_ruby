@@ -25,22 +25,13 @@ describe "ASIR::Coder::Yaml" do
       end
     end
     str ||= x.to_s
-    str = "--- #{str}\n"
-    if x == nil and RUBY_ENGINE =~ /jruby/i
-      case RUBY_VERSION
-      when /^1\.8/
-        str = "--- \n"
-      else
-        str = "---\n"
-      end
-    end
-    if RUBY_VERSION !~ /^1\.8/ and RUBY_ENGINE !~ /jruby/i
-      str << "...\n"
+    unless x == nil and RUBY_VERSION !~ /^1\.8/ and RUBY_ENGINE =~ /jruby/i
+      str = " #{str}"
     end
     basic_objs << [ x, str ]
     it "should handle #{x.inspect}" do
       out = @enc.prepare.encode(x)
-      out.should == str
+      out.should =~ /\A---#{str} ?\n(\.\.\.\n)?\Z/
       @dec.prepare.decode(out).should == x
     end
   end
