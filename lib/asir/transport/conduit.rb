@@ -5,10 +5,11 @@ module Asir
     # Conduit service support.
     module Conduit
       attr_accessor :conduit_options, :conduit_pid
+
       def start_conduit! options = nil
-        opts = { :fork => true }
+        opts = @conduit_options ||= {}
+        opts.update(:fork => true)
         opts.update(options) if options
-        @conduit_options = opts
         _log { "start_conduit! #{self}" } if @verbose >= 1
         in_fork = opts[:fork]
         raise "already running #{@conduit_pid} #{@conduit_cmd}" if @conduit_pid
@@ -19,7 +20,7 @@ module Asir
             raise "Could not exec"
           end
           _log { "start_conduit! #{self} started pid=#{@conduit_pid.inspect}" } if @verbose >= 2
-          if pid_file = @conduit_options[:pid_file]
+          if pid_file = (@conduit_options || EMPTY_HASH)[:pid_file]
             File.open(pid_file, "w") { | fh | fh.puts @conduit_pid }
           end
         else
@@ -29,7 +30,7 @@ module Asir
       end
 
       def conduit_pid
-        if ! @conduit_pid and pid_file = @conduit_options[:pid_file]
+        if ! @conduit_pid and pid_file = (@conduit_options || EMPTY_HASH)[:pid_file]
           @conduit_pid = (File.read(pid_file).to_i rescue nil)
         end
         @conduit_pid
@@ -37,10 +38,11 @@ module Asir
 
       def stop_conduit! opts = nil
         if conduit_pid
-          pid_file = @conduit_options[:pid_file]
           _log { "stop_conduit! #{self} pid=#{@conduit_pid.inspect}" } if @verbose >= 1
           ::Process.kill( (opts && opts[:signal]) || 'TERM', @conduit_pid)
-          ::File.unlink(pid_file) rescue nil if pid_file
+          if pid_file = (@conduit_options || EMPTY_HASH)[:pid_file]
+            ::File.unlink(pid_file) rescue nil
+          end
           ::Process.waitpid @conduit_pid
         end
         self
