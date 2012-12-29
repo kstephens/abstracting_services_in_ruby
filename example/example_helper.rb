@@ -48,7 +48,12 @@ def server_process &blk
     if ENV['ASIR_JRUBY_SPAWNED']
       $stderr.puts "  spawned server at #{__FILE__}:#{__LINE__}"
       puts "*** #{$$}: server process"; $stdout.flush
-      yield
+      begin
+        yield
+      rescue ::Exception => exc
+        $stderr.puts "*** #{$$}: service ERROR: #{exc.inspect}\n  #{exc.backtrace * "  \n"}"
+        raise exc
+      end
       Process.exit!(0)
       # dont do client, client is our parent process.
     else
@@ -64,7 +69,12 @@ def server_process &blk
     # $stderr.puts "  at #{__FILE__}:#{__LINE__}"
     $server_pid = Process.fork do
       puts "*** #{$$}: server process"; $stdout.flush
-      yield
+      begin
+        yield
+      rescue ::Exception => exc
+        $stderr.puts "*** #{$$}: service ERROR: #{exc.inspect}\n  #{exc.backtrace * "  \n"}"
+        raise exc
+      end
     end
   end
   sleep 1 # wait for server to be ready.
