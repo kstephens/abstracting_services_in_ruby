@@ -1,7 +1,8 @@
 2012-12-28  Kurt A. Stephens  <ks.github@kurtstephens.com>
 
-	* v1.1.9: New version.
+	* v1.1.10: New version.
 	* Rubinius: Rubinius -Xversion=18 and =19 support.
+	* XML: Really removed Coder::XML.
 
 2012-12-17  Kurt A. Stephens  <ks.github@kurtstephens.com>
 
