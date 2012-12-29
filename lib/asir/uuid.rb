@@ -56,8 +56,8 @@ module UUID
   # thr defaults to Thread.current.
   def thread_uuid thr = nil
     thr ||= Thread.current
-    thr[:'ASIR::UUID.thread_uuid'] || @@thread_uuid_mutex.synchronize do
-      thr[:'ASIR::UUID.thread_uuid'] = counter_uuid
+    @@thread_uuid_mutex.synchronize do
+      thr[:'ASIR::UUID.thread_uuid'] ||= counter_uuid
     end
   end
   @@thread_uuid_mutex = Mutex.new
