@@ -28,6 +28,9 @@ Gem::Specification.new do |s|
   end
   s.add_dependency "httpclient", "~> 2.3.0"
   s.add_dependency "rack", "~> 1.4.1"
+  if (RUBY_ENGINE rescue 'UNKNOWN') !~ /jruby/i
+    gem.add_dependency "mkfifo", ">= 0.0.1"
+  end
 
   s.add_development_dependency 'rake', '>= 0.9.0'
   s.add_development_dependency 'rspec', '~> 2.12.0'

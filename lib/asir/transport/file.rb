@@ -1,39 +1,79 @@
 require 'asir/transport/stream'
 require 'asir/transport/payload_io'
+require 'asir/fifo'
 
 module ASIR
   class Transport
     # !SLIDE
     # File Transport
     #
-    # Send Message one-way to a file.
+    # Send Message to a file.
     # Can be used as a log or named pipe service.
     class File < Stream
       include PayloadIO # _write, _read
       attr_accessor :file, :mode, :perms, :stream
+      attr_accessor :result_file, :result_fifo
 
       def initialize opts = nil; @one_way = true; super; end
 
-      # Writes a Message payload String.
+      # If not one_way, create a result_file fifo.
+      def send_message message
+        unless one_way || message.one_way
+          result_file =
+            message[:result_file] ||=
+            self.result_file ||
+            begin
+              message.create_identifier!
+              "#{self.file}-result-#{message.identifier}"
+            end
+          unless ::File.exist?(result_file) and result_fifo
+            ::ASIR::Fifo.mkfifo(result_file, perms)
+            message[:result_file_created] = true
+          end
+        end
+        super
+      ensure
+        if message[:result_file_created]
+          ::File.unlink(result_file) rescue nil
+        end
+      end
+
       def _send_message state
         _write(state.message_payload, state.out_stream || stream, state)
       ensure
         close if file && ::File.pipe?(file)
       end
 
-      # Returns a Message payload String.
       def _receive_message state
         state.message_payload = _read(state.in_stream || stream, state)
       end
 
-      # one-way; no Result.
+      # Send result to result_file.
       def _send_result state
-        nil
+        unless one_way || (message = state.message).one_way
+          if result_file = message[:result_file] || self.result_file
+            ::File.open(result_file, "a+") do | stream |
+              _write(state.result_payload, stream, state)
+            end
+          end
+        end
       end
 
-      # one-way; no Result.
+      # Receive result from result_file.
       def _receive_result state
-        nil
+        message = state.message
+        result_file = message[:result_file] || self.result_file
+        unless one_way || message.one_way
+          if result_file
+            ::File.open(result_file, "r") do | stream |
+              state.result_payload = _read(stream, state)
+            end
+          end
+        end
+      end
+
+      def needs_message_identifier? m
+        @needs_message_identifier || ! one_way || ! m.one_way
       end
 
       # !SLIDE
@@ -55,7 +95,7 @@ module ASIR
       def serve_file!
         ::File.open(file, "r") do | stream |
           @running = true
-          _serve_stream! stream, nil # One-way: no result stream.
+          _serve_stream! stream, ! one_way
         end
       end
 
@@ -64,8 +104,7 @@ module ASIR
 
       def prepare_server!
         unless ::File.exist? file
-          system(cmd = "mkfifo #{file.inspect}") or raise "cannot run #{cmd.inspect}"
-          ::File.chmod(perms, file) rescue nil if perms
+          ::ASIR::Fifo.mkfifo(file, perms)
         end
       end
       alias :prepare_pipe_server! :prepare_server!

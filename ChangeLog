@@ -1,5 +1,9 @@
 2012-12-29  Kurt A. Stephens  <ks.github@kurtstephens.com>
 
+	* File: Support for two-way named fifo services.
+
+2012-12-29  Kurt A. Stephens  <ks.github@kurtstephens.com>
+
 	* v1.2.1: New version: API changes.
 	* Message::State: internal object encapsulates state between #send_message, #receive_message, #send_result, #receive_result.
 	* Callbacks: most callbacks take a MessageResult object instead of Message and/or Result objects.
