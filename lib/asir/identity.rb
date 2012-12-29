@@ -1,5 +1,4 @@
 require 'asir/uuid'
-require 'thread' # Mutex
 
 module ASIR
   # !SLIDE
@@ -16,16 +15,8 @@ module ASIR
 
     # Creates a thread-safe unique identifier.
     def create_identifier!
-      @identifier ||= 
-        @@identifier_mutex.synchronize do
-          if @@uuid_pid != $$
-            @@uuid_pid = $$
-            @@uuid = nil
-          end
-          "#{@@counter += 1}-#{@@uuid ||= ::ASIR::UUID.generate}".freeze
-        end
+      @identifier ||= ::ASIR::UUID.counter_uuid
     end
-    @@counter ||= 0; @@uuid ||= nil; @@uuid_pid = nil; @@identifier_mutex ||= Mutex.new
 
     # Creates a timestamp.
     def create_timestamp!
