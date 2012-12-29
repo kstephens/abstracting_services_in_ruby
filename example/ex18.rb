@@ -6,7 +6,7 @@ require 'asir/transport/retry'
 begin
   File.unlink(service_log = "#{__FILE__}.service.log") rescue nil
   file = ASIR::Transport::File.new(:file => service_log,
-                               :encoder => ASIR::Coder::Yaml.new(:yaml_options => { :ASCII_8BIT_ok => true }))
+                                   :encoder => ASIR::Coder::Yaml.new(:yaml_options => { :ASCII_8BIT_ok => true }))
   tcp = ASIR::Transport::TcpSocket.new(:port => 31918,
                                        :encoder => ASIR::Coder::Marshal.new)
   start_server_proc = lambda do | transport, message_result |
