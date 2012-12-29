@@ -1,19 +1,24 @@
 module ASIR
   # Module to create FIFO/Named Pipes.
   module Fifo
-    case (RUBY_ENGINE rescue 'UNKNOWN')
-    when /jruby/i
+    begin
+      require 'ffi'
+      module LIBC
+        extend FFI::Library
+        ffi_lib FFI::Library::LIBC
+        attach_function :mkfifo, [ :string, :long ], :int
+      end
       def mkfifo file, perms = nil
-        mode ||= 0644
-        system(cmd = "mkfifo #{file.inspect}") or raise "cannot run #{cmd.inspect}"
-        ::File.chmod(perms, file) rescue nil if perms
+        perms ||= 0644
+        if LIBC.mkfifo(file, perms) < 0
+          raise "mkfifo(#{file.inspect}, #{'0%o' % perms}) failed"
+        end
         true
       end
-    else
-      require "mkfifo"
+    rescue ::Exception => exc
       def mkfifo file, perms = nil
-        mode ||= 0644
-        ::File.mkfifo(file)
+        perms ||= 0644
+        system(cmd = "mkfifo #{file.inspect}") or raise "cannot run #{cmd.inspect}"
         ::File.chmod(perms, file) rescue nil if perms
         true
       end
