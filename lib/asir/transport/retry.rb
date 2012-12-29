@@ -13,19 +13,20 @@ module ASIR
       # Proc to call(transport, message) before retry.
       attr_accessor :before_retry
 
-      def _send_message message, message_payload
+      def _send_message state
         first_exception = nil
         with_retry do | action, data |
           case action
           when :try
-            transport.send_message(message)
+            result = transport.send_message(state.message)
+            state.result = Result.new(state.message, result)
           when :rescue #, exc
             first_exception ||= data
-            _handle_send_message_exception! transport, message, data
+            _handle_send_message_exception! transport, state, data
           when :retry #, exc
-            before_retry.call(self, message) if before_retry
+            before_retry.call(self, state) if before_retry
           when :failed
-            @on_failed_message.call(self, message) if @on_failed_message
+            @on_failed_message.call(self, state) if @on_failed_message
             if first_exception && @reraise_first_exception
               $! = first_exception
               raise

@@ -6,14 +6,16 @@ module ASIR
     # Send Message to same process.
     # Requires Identity Coder.
     class Local < self
-      # Returns Result object after invoking Message.
-      def _send_message message, message_payload
-        invoke_message!(message)
+      # Capture Result object after invoking Message.
+      def _send_message state
+        invoke_message!(state)
+        self
       end
 
-      # Returns Result object from #send_message.
-      def _receive_result message, opaque_result
-        opaque_result
+      # Result object was captured in #_send_message.
+      def _receive_result state
+        state.result_payload = state.result
+        self
       end
     end
     # !SLIDE END

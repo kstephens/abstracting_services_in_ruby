@@ -25,15 +25,15 @@ module ASIR
 
       # If paused, queue messages,
       # Otherwise delegate immediately to #transport.
-      def _send_message message, message_payload
+      def _send_message state
         return nil if @ignore
         if paused?
           @messages_mutex.synchronize do
-            @messages << message
+            @messages << state.message
           end
           nil
         else
-          @transport.send_message(message)
+          @transport.send_message(state.message)
         end
       end
 
@@ -97,7 +97,7 @@ module ASIR
       # Usually used in worker Thread.
       def process! non_block=false
         @running = true
-        while @running && message = shift(non_block)
+        while @running && (message = shift(non_block))
           @transport.send_message(message)
         end
         message

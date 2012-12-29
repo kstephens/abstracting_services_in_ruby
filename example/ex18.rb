@@ -9,8 +9,9 @@ begin
                                    :encoder => ASIR::Coder::Yaml.new(:yaml_options => { :ASCII_8BIT_ok => true }))
   tcp = ASIR::Transport::TcpSocket.new(:port => 31918,
                                        :encoder => ASIR::Coder::Marshal.new)
-  start_server_proc = lambda do | transport, message |
-    $stderr.puts "message = #{message.inspect}"
+  start_server_proc = lambda do | transport, message_result |
+    message = message_result.message
+    # $stderr.puts "message = #{message.inspect}"
     file.send_message(message)
     server_process do
       tcp.prepare_server!

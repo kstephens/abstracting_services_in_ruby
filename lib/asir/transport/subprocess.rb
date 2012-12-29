@@ -11,18 +11,19 @@ module ASIR
         @one_way = true; super
       end
 
-      def _send_message message, message_payload
+      def _send_message state
         Process.fork do
-          send_result(super, nil, nil)
+          super
+          send_result(state)
         end
       end
 
       # one-way; no Result
-      def _receive_result message, opaque_result
+      def _receive_result state
       end
 
       # one-way; no Result
-      def _send_result message, result, result_payload, stream, message_state
+      def _send_result state
       end
     end
     # !SLIDE END

@@ -4,7 +4,7 @@ module ASIR
     # !SLIDE
     # A Transport composed of other Transports.
     #
-    # Classes that mix this in should define #_send_message(message, message_payload).
+    # Classes that mix this in should define #_send_message.
     module Composite
       include Delegation
 

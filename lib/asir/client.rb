@@ -54,8 +54,7 @@ module ASIR
         message = Message.new(@receiver, selector, arguments, block, self)
         message = @before_send_message.call(message) if @before_send_message
         @__configure.call(message, self) if @__configure
-        result = transport.send_message(message)
-        result
+        transport.send_message(message) # => result
       end
       # Accept all other messages to be encoded and transported to a service.
       alias :method_missing :send

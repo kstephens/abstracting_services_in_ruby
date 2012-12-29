@@ -15,24 +15,24 @@ module ASIR
       def initialize opts = nil; @one_way = true; super; end
 
       # Writes a Message payload String.
-      def _send_message message, message_payload
-        _write message_payload, stream, message
+      def _send_message state
+        _write(state.message_payload, state.out_stream || stream, state)
       ensure
         close if file && ::File.pipe?(file)
       end
 
       # Returns a Message payload String.
-      def _receive_message stream, additional_data
-        [ _read(stream, nil), nil ]
+      def _receive_message state
+        state.message_payload = _read(state.in_stream || stream, state)
       end
 
       # one-way; no Result.
-      def _send_result message, result, result_payload, stream, message_state
+      def _send_result state
         nil
       end
 
       # one-way; no Result.
-      def _receive_result message, opaque_result
+      def _receive_result state
         nil
       end
 
@@ -63,7 +63,6 @@ module ASIR
       # Named Pipe Server
 
       def prepare_server!
-        # _log [ :prepare_pipe_server!, file ]
         unless ::File.exist? file
           system(cmd = "mkfifo #{file.inspect}") or raise "cannot run #{cmd.inspect}"
           ::File.chmod(perms, file) rescue nil if perms
@@ -72,7 +71,6 @@ module ASIR
       alias :prepare_pipe_server! :prepare_server!
 
       def run_server!
-        # _log [ :run_pipe_server!, file ]
         with_server_signals! do
           @running = true
           while @running

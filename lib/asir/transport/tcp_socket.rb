@@ -9,14 +9,14 @@ module ASIR
       # !SLIDE
       # TCP Socket Client
       def _client_connect!
-        sock = TCPSocket.open(host, port)
+        sock = ::TCPSocket.open(host, port)
       end
 
       # !SLIDE
       # TCP Socket Server
       def _server!
-        @server = TCPServer.open(port)
-        @server.setsockopt(Socket::SOL_SOCKET, Socket::SO_KEEPALIVE, false)
+        @server = ::TCPServer.open(port)
+        @server.setsockopt(::Socket::SOL_SOCKET, ::Socket::SO_KEEPALIVE, false)
       end
 
       def _server_accept_connection! server
@@ -24,8 +24,8 @@ module ASIR
         [ socket, socket ] # Use same socket for in_stream and out_stream
       end
 
-      def _server_close_connection! stream, out_stream
-        stream.close rescue nil
+      def _server_close_connection! in_stream, out_stream
+        in_stream.close rescue nil
       end
     end
     # !SLIDE END

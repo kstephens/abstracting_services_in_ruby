@@ -7,16 +7,16 @@ module ASIR
     class Fallback < self
       include Composite
 
-      def _send_message message, message_payload
+      def _send_message state
         result = sent = first_exception = nil
         transports.each do | transport |
           begin
-            result = transport.send_message(message)
+            result = transport.send_message(state.message)
             sent = true
             break
           rescue ::Exception => exc
             first_exception ||= exc
-            _handle_send_message_exception! transport, message, exc
+            _handle_send_message_exception! transport, state, exc
           end
         end
         unless sent
@@ -25,7 +25,7 @@ module ASIR
           end
           raise FallbackError, "fallback failed"
         end
-        result
+        state.result = Result.new(state.message, result)
       end
       class FallbackError < Error; end
     end

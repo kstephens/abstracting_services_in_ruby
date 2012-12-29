@@ -9,16 +9,18 @@ module ASIR
 
       # Server-side: WEBrick
 
-      # Receive the Message payload String from the HTTP Message object.
-      # Returns the original http_message as the message_state.
-      def _receive_message http_message, additional_data
-        [ http_message.body, http_message ]
+      # Receive the Message payload from the HTTP Message body.
+      def _receive_message state
+        http_message = state.in_stream
+        state.message_payload = http_message.body
+        state.message_opaque  = http_message
       end
 
-      # Send the Result payload String in the HTTP Response object as application/binary.
-      def _send_result message, result, result_payload, http_result, message_state
+      # Send the Result payload in the HTTP Response body as application/binary.
+      def _send_result state
+        http_result = state.out_stream
         http_result[CONTENT_TYPE] = APPLICATION_BINARY
-        http_result.body = result_payload
+        http_result.body = state.result_payload
       end
 
       def prepare_server! opts = { }
