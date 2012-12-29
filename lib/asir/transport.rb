@@ -1,7 +1,7 @@
 require 'time'
 require 'asir/thread_variable'
 require 'asir/message/delay'
-require 'asir/message_result'
+require 'asir/message/state'
 require 'asir/transport/conduit'
 
 module ASIR
@@ -28,7 +28,7 @@ module ASIR
       message.create_timestamp! if needs_message_timestamp? message
       message.create_identifier! if needs_message_identifier? message
       relative_message_delay! message
-      message_result = MessageResult.new(:message => message, :message_payload => encoder.prepare.encode(message))
+      message_result = Message::State.new(:message => message, :message_payload => encoder.prepare.encode(message))
       @before_send_message.call(self, message_result) if @before_send_message
       _send_message(message_result)
       receive_result(message_result)
@@ -121,8 +121,8 @@ module ASIR
     # Proc to call with exception, if exception occurs within #serve_message!, but outside
     # Message#invoke!.
     #
-    # trans.on_exception.call(trans, exception, :message, MessageResult_instance)
-    # trans.on_exception.call(trans, exception, :result, MessageResult_instance)
+    # trans.on_exception.call(trans, exception, :message, message_state)
+    # trans.on_exception.call(trans, exception, :result, message_state)
     attr_accessor :on_exception
 
     attr_accessor :needs_message_identifier, :needs_message_timestamp
@@ -144,7 +144,7 @@ module ASIR
     def serve_message! in_stream, out_stream
       message_result = message_ok = result = result_ok = nil
       exception = original_exception = unforwardable_exception = nil
-      message_result = MessageResult.new(:in_stream => in_stream, :out_stream => out_stream)
+      message_result = Message::State.new(:in_stream => in_stream, :out_stream => out_stream)
       if receive_message(message_result)
         message_ok = true
         invoke_message!(message_result)
@@ -232,7 +232,7 @@ module ASIR
     # Invokes the Message object, returns a Result object.
     def invoke_message! message_result
       Transport.with_attr! :current, self do
-        with_attr! :message_result, message_result do
+        with_attr! :message_state, message_result do
         with_attr! :message, message_result.message do
           wait_for_delay! message_result.message
           message_result.result = invoker.invoke!(message_result.message, self)
@@ -246,8 +246,8 @@ module ASIR
       self
     end
 
-    # The current MessageResult being invoked.
-    attr_accessor_thread :message_result
+    # The current Message::State.
+    attr_accessor_thread :message_state
     # The current Message being invoked.  DEPRECATED.
     attr_accessor_thread :message
 
