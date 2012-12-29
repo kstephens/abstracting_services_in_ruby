@@ -38,7 +38,7 @@ h3. Features
 * Support for multiple encodings:
 ** Marshal.
 ** XML. (gem asir_xml)
-** JSON.
+** JSON. (gem asir_json)
 ** YAML.
 ** Base64.
 ** ZLib.
