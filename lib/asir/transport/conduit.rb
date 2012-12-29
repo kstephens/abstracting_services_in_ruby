@@ -37,6 +37,7 @@ module Asir
 
       def stop_conduit! opts = nil
         if conduit_pid
+          pid_file = @conduit_options[:pid_file]
           _log { "stop_conduit! #{self} pid=#{@conduit_pid.inspect}" } if @verbose >= 1
           ::Process.kill( (opts && opts[:signal]) || 'TERM', @conduit_pid)
           ::File.unlink(pid_file) rescue nil if pid_file
