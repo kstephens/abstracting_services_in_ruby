@@ -19,12 +19,24 @@ describe "ASIR::Coder::Yaml" do
     [ :Symbol, ':Symbol' ],
   ].each do | x |
     x, str = *x
-    if x == nil and RUBY_VERSION == '1.9.2'
-      str = '!!null '
+    if x == nil
+      if RUBY_VERSION == '1.9.2'
+        str = '!!null '
+      end
     end
     str ||= x.to_s
     str = "--- #{str}\n"
-    str << "...\n" if RUBY_VERSION !~ /^1\.8/
+    if x == nil and RUBY_ENGINE =~ /jruby/i
+      case RUBY_VERSION
+      when /^1\.8/
+        str = "--- \n"
+      else
+        str = "---\n"
+      end
+    end
+    if RUBY_VERSION !~ /^1\.8/ and RUBY_ENGINE !~ /jruby/i
+      str << "...\n"
+    end
     basic_objs << [ x, str ]
     it "should handle #{x.inspect}" do
       out = @enc.prepare.encode(x)
@@ -78,6 +90,10 @@ describe "ASIR::Coder::Yaml" do
       require 'socket'
       hostname = Socket.gethostname
       enc = hostname.encoding
+      if enc.inspect != "#<Encoding:ASCII-8BIT>" # JRUBY?
+        hostname.force_encoding('ASCII-8BIT')
+        enc = hostname.encoding
+      end
       enc.inspect.should == "#<Encoding:ASCII-8BIT>"
 
       str = enc.inspect
@@ -103,7 +119,12 @@ describe "ASIR::Coder::Yaml" do
       out = @enc.prepare.encode(str)
       case RUBY_VERSION
       when '1.9.2'
-        out.should == "--- 8bitascii\n...\n"
+        case RUBY_ENGINE
+        when /jruby/i
+          out.should == "--- 8bitascii\n"
+        else
+          out.should == "--- 8bitascii\n...\n"
+        end
       else
         out.should == "--- !binary |-\n  OGJpdGFzY2lp\n"
       end
@@ -112,7 +133,12 @@ describe "ASIR::Coder::Yaml" do
       @enc.yaml_options = { :never_binary => true }
       @dec.yaml_options = @enc.yaml_options
       out = @enc.prepare.encode(str)
-      out.should == "--- 8bitascii\n...\n"
+      case RUBY_ENGINE
+      when /jruby/i
+        out.should == "--- 8bitascii\n"
+      else
+        out.should == "--- 8bitascii\n...\n"
+      end
       inp = @dec.prepare.decode(str)
       inp.should == str
       inp.encoding.inspect.should == "#<Encoding:UTF-8>"
