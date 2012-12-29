@@ -9,7 +9,7 @@ module ASIR
         attach_function :mkfifo, [ :string, :long ], :int
       end
       def mkfifo file, perms = nil
-        perms ||= 0644
+        perms ||= 0600
         if LIBC.mkfifo(file, perms) < 0
           raise "mkfifo(#{file.inspect}, #{'0%o' % perms}) failed"
         end
@@ -17,7 +17,7 @@ module ASIR
       end
     rescue ::Exception => exc
       def mkfifo file, perms = nil
-        perms ||= 0644
+        perms ||= 0600
         system(cmd = "mkfifo #{file.inspect}") or raise "cannot run #{cmd.inspect}"
         ::File.chmod(perms, file) rescue nil if perms
         true
