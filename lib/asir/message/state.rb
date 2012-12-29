@@ -11,6 +11,7 @@ module ASIR
     attr_accessor :message_payload, :result_payload
     attr_accessor :message_opaque, :result_opaque
     attr_accessor :in_stream, :out_stream
+    attr_accessor :additional_data
   end
   end
 end

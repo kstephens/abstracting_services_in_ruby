@@ -40,7 +40,8 @@ module ASIR
     def receive_message state
       @message_count ||= 0; @message_count += 1 # NOT THREAD-SAFE
       if received = _receive_message(state)
-        if state.message = encoder.prepare.decode(state.message_payload)
+        if message = state.message = encoder.prepare.decode(state.message_payload)
+          message.additional_data!.update(state.additional_data) if state.additional_data
           @after_receive_message.call(self, state) if @after_receive_message
           self
         end
