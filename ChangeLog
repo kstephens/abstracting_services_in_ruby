@@ -1,6 +1,6 @@
 2012-12-28  Kurt A. Stephens  <ks.github@kurtstephens.com>
 
-	* v1.1.11: New version.
+	* v1.1.12: New version.
 	* Rubinius: Rubinius -Xversion=18 and =19 support.
 	* XML: Really removed Coder::XML.
 	* Conduit: fixed pid_file error in stop_conduit!
