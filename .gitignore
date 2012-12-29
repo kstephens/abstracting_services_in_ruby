@@ -8,4 +8,5 @@ example/*.out
 coverage
 tmp.*
 cabar.yml
+.rbx
 
