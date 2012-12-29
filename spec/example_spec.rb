@@ -2,6 +2,8 @@ require File.expand_path('../spec_helper', __FILE__)
 
 $:.unshift File.expand_path('../../example', __FILE__)
 
+require 'timeout'
+
 describe "ASIR Example" do
   attr_accessor :file, :expects
 
@@ -47,6 +49,7 @@ describe "ASIR Example" do
     progname_save, stdout_save, stderr_save = $0, $stdout, $stderr
     exc = system_exit = nil; exit_code = 0
     begin
+      Timeout.timeout(20) do
       if true
         cmd = "ASIR_EXAMPLE_SILENT=1 ruby -I example -I lib #{file}"
         $stderr.puts "\n   Running #{cmd}:" if ENV['SPEC_VERBOSE']
@@ -58,6 +61,7 @@ describe "ASIR Example" do
         $0 = file
         Kernel.load(file, true)
         output = output.string if StringIO === output
+      end
       end
     rescue ::SystemExit => system_exit
       exit_code = 1 # ???
