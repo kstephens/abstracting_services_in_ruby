@@ -21,6 +21,7 @@ ensure
 end
 
 # !SLIDE END
+# PENDING: RUBY_PLATFORM =~ /java/i
 # EXPECT: : client process
 # EXPECT: : server process
 # EXPECT: : Email.send_mail :pdf_invoice

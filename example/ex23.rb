@@ -10,9 +10,12 @@ begin
                              :to => "user@email.com",
                              :customer => @customer) { | resp |
      pr [ :in_block, resp.result ] })
+ensure
+  sleep 1
 end
 
 # !SLIDE END
+# PENDING: RUBY_PLATFORM =~ /java/i
 # EXPECT: : client process
 # EXPECT: : Email.send_mail :pdf_invoice
 # EXPECT: : pr: nil

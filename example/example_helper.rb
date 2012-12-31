@@ -1,5 +1,6 @@
 # Sample client support
 #
+
 require 'rubygems'
 case RUBY_PLATFORM
 when /java/i
@@ -25,6 +26,7 @@ require 'delayed_service'
 require 'unsafe_service'
 
 require 'pp'
+require 'timeout'
 require File.expand_path('../../spec/debug_helper', __FILE__)
 
 @customer = 123
@@ -35,63 +37,47 @@ def pr result
   $stdout.puts "*** #{$$}: pr: #{PP.pp(result, '')}"
 end
 
+# Work-around lack of fork in JRuby.
+require 'asir/application'
+$asir_app = ASIR::Application.new
+$asir_app.inc = [ 'example', 'lib' ]
+$asir_server = nil
+
 def server_process &blk
-  # $stderr.puts "  at #{__FILE__}:#{__LINE__}"
-  case RUBY_PLATFORM
-  when /java/i
-    # JRuby cannot fork.
-    # So we must prevent spawn a new jruby and
-    # instruct it to only run the server blk, and not
-    # the subsequent client code.
-    # In other words, we cannot rely on how Process.fork
-    # terminates within the block.
-    if ENV['ASIR_JRUBY_SPAWNED']
-      $stderr.puts "  spawned server at #{__FILE__}:#{__LINE__}"
-      puts "*** #{$$}: server process"; $stdout.flush
-      begin
+  $asir_server = $asir_app.spawn :server do
+    puts "*** #{$$}: server process"; $stdout.flush
+    begin
+      Timeout.timeout(20, ASIR::Error::Fatal) do
         yield
-      rescue ::Exception => exc
-        $stderr.puts "*** #{$$}: service ERROR: #{exc.inspect}\n  #{exc.backtrace * "  \n"}"
-        raise exc
       end
-      Process.exit!(0)
-      # dont do client, client is our parent process.
-    else
-      $stderr.puts "  spawning at #{__FILE__}:#{__LINE__}"
-      ENV['ASIR_JRUBY_SPAWNED'] = "1"
-      cmd = "ruby -I #{File.dirname(__FILE__)} -I #{File.expand_path('../../lib', __FILE__)} #{$0} #{ARGV * ' '}"
-      $stderr.puts "  cmd = #{cmd}"
-      $server_pid = Spoon.spawnp(cmd)
-      ENV.delete('ASIR_JRUBY_SPAWNED')
-      $stderr.puts "  spawned #{$server_pid} at #{__FILE__}:#{__LINE__}"
-    end
-  else
-    # $stderr.puts "  at #{__FILE__}:#{__LINE__}"
-    $server_pid = Process.fork do
-      puts "*** #{$$}: server process"; $stdout.flush
-      begin
-        yield
-      rescue ::Exception => exc
-        $stderr.puts "*** #{$$}: service ERROR: #{exc.inspect}\n  #{exc.backtrace * "  \n"}"
-        raise exc
-      end
+    rescue ::Exception => exc
+      $stderr.puts "*** #{$$}: service ERROR: #{exc.inspect}\n  #{exc.backtrace * "  \n"}"
+      raise exc
     end
   end
-  sleep 1 # wait for server to be ready.
+  $asir_app.main do
+    $asir_server.go!
+    $server_pid = $asir_server.pid
+    sleep 1 # wait for server to be ready.
+  end
   return false # do client.
 end
 
 def server_kill
   if $server_pid
-    Process.kill 9, $server_pid
-    Process.waitpid($server_pid)
+    $asir_server.kill
   end
-rescue Errno::ESRCH
 ensure
   $server_pid = nil
 end
 
+end # class Object
+
+module Process
+  include ASIR::Client
 end
 
-puts "*** #{$$}: client process"; $stdout.flush
+unless $asir_app.in_spawn?
+  puts "*** #{$$}: client process"; $stdout.flush
+end
 
