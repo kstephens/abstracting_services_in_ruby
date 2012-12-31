@@ -1,6 +1,8 @@
-2012-12-29  Kurt A. Stephens  <ks.github@kurtstephens.com>
+2012-12-31  Kurt A. Stephens  <ks.github@kurtstephens.com>
 
+	* v1.2.2: New Version: JRuby support.
 	* File: Support for two-way named fifo services.
+	* JRuby: JRuby tests pass.
 
 2012-12-29  Kurt A. Stephens  <ks.github@kurtstephens.com>
 
