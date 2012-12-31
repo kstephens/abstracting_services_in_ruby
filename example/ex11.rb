@@ -11,7 +11,7 @@ begin
       ASIR::Transport::Broadcast.new(:transports => [
         file = ASIR::Transport::File.new(:file => service_log,
                                          :encoder => ASIR::Coder::Yaml.new(:yaml_options => { :ASCII_8BIT_ok => true })),
-        ASIR::Transport::Subprocess.new,
+        ASIR::Transport::Local.new,
       ]),
     ])
   pr Email.asir.send_email(:pdf_invoice,
