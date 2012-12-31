@@ -50,7 +50,7 @@ module UUID
   end
   @@counter ||= 0
   @@counter_mutex = Mutex.new
-  COUNTER_UUID_REGEX = /\A[0-9]+-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\Z/i
+  COUNTER_UUID_REGEX = /\A([0-9]+)-([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\Z/i
 
   # Returns a unique counter_uuid for a Thread.
   # thr defaults to Thread.current.
