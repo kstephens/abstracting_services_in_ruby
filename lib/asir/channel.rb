@@ -1,5 +1,6 @@
 require 'asir'
 require 'asir/retry_behavior'
+require 'thread'
 
 module ASIR
   # Generic I/O Channel abstraction.
@@ -20,6 +21,7 @@ module ASIR
     end
 
     def initialize opts = nil
+      @mutex = Mutex.new
       @on_close = ON_CLOSE
       @on_error = ON_ERROR
       # @on_retry = ON_RETRY
@@ -57,7 +59,7 @@ module ASIR
         end
       end
     end
-    
+
     # Invokes @on_close.call(self, stream).
     # On Exception, invokes @on_error.call(self, exc, :close, stream).
     def close
@@ -100,6 +102,7 @@ module ASIR
     # Returns a Thread-specific mapping, unique to this process id. 
     # Maps from Channel objects to actual stream.
     def _streams
+      @mutex.synchronize do
       streams = Thread.current[:'ASIR::Channel._streams'] ||= { }
       if  @owning_process != $$ || # child process?
           @owning_process > $$     # PIDs wrapped around?
@@ -107,6 +110,7 @@ module ASIR
         streams.clear
       end
       streams
+      end
     end
     
     # Returns the stream for this Channel, or nil.
