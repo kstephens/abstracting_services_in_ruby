@@ -24,7 +24,9 @@ module ASIR
         n_try += 1
         result = yield :try, n_try
         done = true
-      rescue *Error::Unforwardable.unforwardable => exc
+      rescue *Error::Unrecoverable.modules
+        raise
+      rescue *Error::Unforwardable.unforwardable
         raise
       rescue ::Exception => exc
         last_exception = exc

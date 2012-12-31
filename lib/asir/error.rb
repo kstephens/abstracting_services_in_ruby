@@ -7,11 +7,21 @@ module ASIR
     # Unsupported Feature.
     class Unsupported < self; end
 
-    # Unimplemented Feature
+    # Unimplemented Feature.
     class Unimplemented < self; end
 
     # Requested Stop.
     class Terminate < self; end
+
+    # Unrecoverable Errors.
+    class Unrecoverable < self
+      def self.modules;    @@modules; end
+      def self.modules= x; @@modules = x; end
+      @@modules ||= [ self ]
+    end
+
+    # Fatal Errors.
+    class Fatal < Unrecoverable; end
 
     # Unforwardable Exception.
     #
@@ -38,6 +48,7 @@ module ASIR
         ::Interrupt,
         ::SignalException,
         Error::Terminate,
+        Error::Unrecoverable,
       ]
     end
   end

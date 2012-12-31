@@ -20,6 +20,8 @@ module ASIR
         while @running && ! stream_eof?(in_stream)
           begin
             serve_stream_message! in_stream, out_stream
+          rescue *Error::Unrecoverable.modules
+            raise
           rescue Error::Terminate => err
             @running = false
             _log [ :serve_stream_terminate, err ]

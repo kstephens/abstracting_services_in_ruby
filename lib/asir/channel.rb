@@ -50,6 +50,10 @@ module ASIR
           @on_connect.call(self)
         when :retry #, exc
           exc = data
+          case exc
+          when *Error::Unrecoverable.modules
+            raise exc
+          end
           $stderr.puts "RETRY: #{n_try}: ERROR : #{data.inspect}"
           @on_retry.call(self, exc, :connect) if @on_retry
         when :failed
@@ -67,6 +71,8 @@ module ASIR
         self.stream = nil
         @on_close.call(self, stream) if @on_close
       end
+    rescue *Error::Unrecoverable.modules
+      raise
     rescue ::Exception => exc
       handle_error!(exc, :close, stream)
     end
@@ -77,6 +83,8 @@ module ASIR
       x = stream
       begin
         yield x
+      rescue *Error::Unrecoverable.modules
+        raise
       rescue ::Exception => exc
         handle_error!(exc, :with_stream, x)
       end

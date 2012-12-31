@@ -60,9 +60,6 @@ module ASIR
               @workers << worker
             end
             worker.run!
-#          rescue ::Exception => exc
-#            log! "ERROR: #{exc.inspect}\n#{exc.backtrace * "\n"}"
-#            raise exc
           ensure
             @workers_mutex.synchronize do
               @workers.delete(worker)

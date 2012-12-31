@@ -33,6 +33,8 @@ module ASIR
           serve_message! rq, rs
         }
         self
+      rescue *Error::Unrecoverable.modules
+        raise
       rescue ::Exception => exc
         raise Error, "Webrick Server #{uri.inspect}: #{exc.inspect}", exc.backtrace
       end

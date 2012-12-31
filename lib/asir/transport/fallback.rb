@@ -14,6 +14,8 @@ module ASIR
             result = transport.send_message(state.message)
             sent = true
             break
+          rescue *Error::Unrecoverable.modules
+            raise
           rescue ::Exception => exc
             first_exception ||= exc
             _handle_send_message_exception! transport, state, exc

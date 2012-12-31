@@ -157,6 +157,8 @@ module ASIR
       else
         nil
       end
+    rescue *Error::Unrecoverable.modules
+      raise
     rescue ::Exception => exc
       exception = original_exception = exc
       _log [ :message_error, exc ]
@@ -175,6 +177,8 @@ module ASIR
             send_result(state)
           end
         end
+      rescue *Error::Unrecoverable.modules
+        raise
       rescue ::Exception => exc
         _log [ :result_error, exc, exc.backtrace ]
         @on_exception.call(self, exc, :result, state) if @on_exception
