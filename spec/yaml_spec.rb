@@ -46,7 +46,7 @@ describe "ASIR::Coder::Yaml" do
     when '1.9.2'
       out.should =~ /^  :binary: |-\n/m
     else
-      out.should =~ /^  :binary: ! "\\x04/m
+      out.should =~ /^  :binary: (! )?"\\x04/m
     end
   end
 
@@ -100,7 +100,7 @@ describe "ASIR::Coder::Yaml" do
       end
 
       yaml = ::YAML.dump(str, nil, :never_binary => true)
-      yaml.should == "--- ! '#<Encoding:ASCII-8BIT>'\n"
+      yaml.should == "--- (! )?['"]#<Encoding:ASCII-8BIT>['"]\n"
     end
 
     it 'should handle :never_binary options.' do
