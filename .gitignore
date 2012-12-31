@@ -1,7 +1,8 @@
 .DS_Store
 *.slides*
 .riterate
-service.fifo
+*.fifo
+*.pipe
 service.log
 example/*service.log
 example/*.out
