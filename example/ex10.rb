@@ -7,8 +7,8 @@ begin
     ASIR::Transport::TcpSocket.new(:port => 30910)
   t.encoder =
     ASIR::Coder::Marshal.new
-  t.prepare_server!
   server_process do
+    t.prepare_server!
     t.run_server!
   end
   pr Email.asir.do_raise("Raise Me!")
