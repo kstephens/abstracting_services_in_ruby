@@ -40,7 +40,9 @@ module ASIR
             ruby = ASIR.ruby_path
             # ruby = "/usr/bin/ruby"
             inc = app.inc.map{|x| "-I#{x}"}
-            @cmd = [ ruby, *inc, $0, "--asir-spawn=#{name}", @tmp ]
+            @cmd = [ ruby ]
+            @cmd.concat(inc)
+            @cmd.concat([ $0, "--asir-spawn=#{name}", @tmp ])
             $stderr.puts "#{self} cmd #{cmd * ' '}" if verbose
             @pid = Spoon.spawnp(*cmd)
             # Wait until started.
