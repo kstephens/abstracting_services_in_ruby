@@ -7,6 +7,8 @@ require 'asir/transport/subprocess'
 require 'math_service'
 MathService.send(:include, ASIR::Client)
 
+Process.exit!(0) if RUBY_PLATFORM =~ /java/i
+
 ######################################################################
 # Driver:
 
