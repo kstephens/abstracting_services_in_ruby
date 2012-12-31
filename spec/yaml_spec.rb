@@ -100,7 +100,7 @@ describe "ASIR::Coder::Yaml" do
       end
 
       yaml = ::YAML.dump(str, nil, :never_binary => true)
-      yaml.should == "--- (! )?['"]#<Encoding:ASCII-8BIT>['"]\n"
+      yaml.should =~ /\A--- (! )?['"]\#<Encoding:ASCII-8BIT>['"]\n/
     end
 
     it 'should handle :never_binary options.' do
