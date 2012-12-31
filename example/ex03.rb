@@ -10,6 +10,7 @@ begin
   pr Email.asir.send_email(:pdf_invoice,
                              :to => "user@email.com",
                              :customer => @customer)
+  sleep 1
 end
 
 # !SLIDE END
