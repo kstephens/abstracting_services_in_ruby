@@ -9,6 +9,8 @@ require 'asir/coder/chain'
 require 'math_service'
 MathService.send(:include, ASIR::Client)
 
+Process.exit!(0) if RUBY_PLATFORM =~ /java/i
+
 port = 3001
 begin
   t = ASIR::Transport::Webrick.new(:uri => "http://localhost:#{port}/")
