@@ -18,22 +18,21 @@ module ASIR
 
       # If not one_way, create a result_file fifo.
       def send_message message
+        result_file_created = false
         unless one_way || message.one_way
-          result_file =
-            message[:result_file] ||=
-            self.result_file ||
+          result_file = message[:result_file] ||= self.result_file ||
             begin
               message.create_identifier!
               "#{self.file}-result-#{message.identifier}"
             end
           unless ::File.exist?(result_file) and result_fifo
             ::ASIR::Fifo.mkfifo(result_file, perms)
-            message[:result_file_created] = true
+            result_file_created = true
           end
         end
         super
       ensure
-        if message[:result_file_created]
+        if result_file_created
           ::File.unlink(result_file) rescue nil
         end
       end
@@ -50,24 +49,26 @@ module ASIR
 
       # Send result to result_file.
       def _send_result state
-        unless one_way || (message = state.message).one_way
-          if result_file = message[:result_file] || self.result_file
-            ::File.open(result_file, "a+") do | stream |
-              _write(state.result_payload, stream, state)
-            end
+        with_result_file state do | result_file |
+          ::File.open(result_file, "a+") do | stream |
+            _write(state.result_payload, stream, state)
           end
         end
       end
 
       # Receive result from result_file.
       def _receive_result state
-        message = state.message
-        result_file = message[:result_file] || self.result_file
-        unless one_way || message.one_way
-          if result_file
-            ::File.open(result_file, "r") do | stream |
-              state.result_payload = _read(stream, state)
-            end
+        with_result_file state do | result_file |
+          ::File.open(result_file, "r") do | stream |
+            state.result_payload = _read(stream, state)
+          end
+        end
+      end
+
+      def with_result_file state
+        unless one_way || (message = state.message).one_way
+          if result_file = message[:result_file] || self.result_file
+            yield result_file
           end
         end
       end
