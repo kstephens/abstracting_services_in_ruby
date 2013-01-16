@@ -338,8 +338,9 @@ END
     config!(:start)
     $0 += " #{wid} #{transport.uri rescue nil}"
     old_arg0 = $0.dup
-    after_receive_message = transport.after_receive_message || lambda { | transport, message | nil }
-    transport.after_receive_message = lambda do | transport, message |
+    after_receive_message = transport.after_receive_message || lambda { | transport, state | nil }
+    transport.after_receive_message = lambda do | transport, state |
+      message = state.message
       $0 = "#{old_arg0} #{transport.message_count} #{message.identifier}"
       after_receive_message.call(transport, message)
     end
