@@ -150,9 +150,6 @@ module ASIR
         message_ok = true
         invoke_message!(state)
         result_ok = true
-        if @after_invoke_message
-          @after_invoke_message.call(self, state)
-        end
         self
       else
         nil
@@ -256,7 +253,14 @@ module ASIR
         end
       end
       end
+      _after_invoke_message state
+      if @after_invoke_message
+        @after_invoke_message.call(self, state)
+      end
       self
+    end
+
+    def _after_invoke_message state
     end
 
     # The current Message::State.
