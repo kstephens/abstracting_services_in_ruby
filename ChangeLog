@@ -1,3 +1,12 @@
+2013-01-16  Kurt A. Stephens  <ks.github@kurtstephens.com>
+
+	* v1.2.3: New Version: Bug fixes.
+	* bin/asir: asir start * worker will check for existing processes, use force=true to forcefully start.
+	* bin/asir: Fixed after_receive_message callback.
+	* Transport: _after_invoke_message.
+	* Transport: Use with_force_stop! during blocked I/O.
+	* Conduit: ::File not Transport::File.
+
 2012-12-31  Kurt A. Stephens  <ks.github@kurtstephens.com>
 
 	* v1.2.2: New Version: JRuby support.
