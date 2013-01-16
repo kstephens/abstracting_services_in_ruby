@@ -31,8 +31,13 @@ module ASIR
         payload
       end
 
-      def _read_line_and_expect! stream, regexp
-        line = stream.readline
+      def _read_line_and_expect! stream, regexp, consume = nil
+        ok = false
+        until ok
+          line = stream.readline
+          _log { "_read_line_and_expect! #{stream} #{line.inspect}" }
+          ok = consume && consume.match(line) ? false : true
+        end
         unless match = regexp.match(line)
           _log { "_read_line_and_expect! #{stream} #{regexp.inspect} !~ #{line.inspect}" }
           raise UnexpectedResponse, "expected #{regexp.inspect}, received #{line.inspect}"
