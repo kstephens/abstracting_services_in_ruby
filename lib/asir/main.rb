@@ -247,13 +247,18 @@ END
 
   def run_server! cmd = nil
     lf = File.open(log_file, "a+")
+    lf.sync = true
     File.chmod(0666, log_file) rescue nil
     $stdin.close rescue nil
     STDIN.close rescue nil
     STDOUT.reopen(lf)
+    STDOUT.sync = true
     $stdout.reopen(lf) if $stdout.object_id != STDOUT.object_id
+    $stdout.sync = true
     STDERR.reopen(lf)
+    STDERR.sync = true
     $stderr.reopen(lf) if $stderr.object_id != STDERR.object_id
+    $stderr.sync = true
     # Process.daemon rescue nil # Ruby 1.9.x only.
     lf.puts "#{log_str} starting pid #{$$}"
     begin
