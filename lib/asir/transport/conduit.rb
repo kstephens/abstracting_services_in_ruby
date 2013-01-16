@@ -21,7 +21,7 @@ module Asir
           end
           _log { "start_conduit! #{self} started pid=#{@conduit_pid.inspect}" } if @verbose >= 2
           if pid_file = (@conduit_options || EMPTY_HASH)[:pid_file]
-            File.open(pid_file, "w") { | fh | fh.puts @conduit_pid }
+            ::File.open(pid_file, "w") { | fh | fh.puts @conduit_pid }
           end
         else
           _start_conduit!
@@ -31,7 +31,7 @@ module Asir
 
       def conduit_pid
         if ! @conduit_pid and pid_file = (@conduit_options || EMPTY_HASH)[:pid_file]
-          @conduit_pid = (File.read(pid_file).to_i rescue nil)
+          @conduit_pid = (::File.read(pid_file).to_i rescue nil)
         end
         @conduit_pid
       end
