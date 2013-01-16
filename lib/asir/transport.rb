@@ -158,7 +158,7 @@ module ASIR
       raise
     rescue ::Exception => exc
       exception = original_exception = exc
-      _log [ :message_error, exc ]
+      _log [ :message_error, exc, exc.backtrace ]
       @on_exception.call(self, exc, :message, state) if @on_exception
     ensure
       begin
