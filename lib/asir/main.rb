@@ -119,12 +119,10 @@ class Main
     when /^taillog_([^_]+)_([^_]+)!$/
       exec "tail -f #{log_file.inspect}"
     when /^pid_([^_]+)_([^_]+)!$/
-      pid = server_pid rescue nil
-      alive = process_running? pid
+      pid = _alive?
       puts "#{pid_file} #{pid || :NA} #{alive}"
     when /^alive_([^_]+)_([^_]+)!$/
-      pid = server_pid rescue nil
-      alive = process_running? pid
+      pid = _alive?
       puts "#{pid_file} #{pid || :NA} #{alive}" if @verbose
       self.exit_code += 1 unless alive
     when /^stop_([^_]+)_([^_]+)!$/
@@ -132,6 +130,11 @@ class Main
     else
       super
     end
+  end
+
+  def _alive?
+    pid = server_pid rescue nil
+    process_running? pid
   end
 
   def usage!
@@ -189,7 +192,12 @@ END
     _start_conduit!
   end
 
-  def _start_conduit!
+  def _start_conduit! type = adjective
+    if (pid = _alive?) && ! force
+      log "already-running pid #{pid}", :stderr
+      return
+    end
+    log "start_conduit! #{type}"
     config!(:environment)
     self.transport = config!(:transport)
     fork_server! do
@@ -198,6 +206,10 @@ END
   end
 
   def _start_worker! type = adjective
+    if (pid = _alive?) && ! force
+      log "already-running pid #{pid}", :stderr
+      return
+    end
     log "start_worker! #{type}"
     type = type.to_s
     config!(:environment)
@@ -371,13 +383,12 @@ END
   def process_running? pid
     case pid
     when false, nil
-      pid
     when Integer
       Process.kill(0, pid)
     else
       raise TypeError, "expected false, nil, Integer; given #{pid.inspect}"
     end
-    true
+    pid
   rescue ::Errno::ESRCH
     false
   rescue ::Exception => exc
