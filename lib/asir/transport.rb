@@ -195,8 +195,16 @@ module ASIR
     def stop! force = false
       @running = false
       stop_server! if respond_to?(:stop_server!)
-      raise Error::Terminate if force
+      raise Error::Terminate if force || @force_stop
       self
+    end
+
+    def with_force_stop!
+      force_stop_save = @force_stop
+      @force_stop = true
+      yield
+    ensure
+      @force_stop = force_stop_save
     end
 
     def with_server_signals!
