@@ -104,19 +104,19 @@ module ASIR
     attr_accessor :message_count
 
     # A Proc to call within #receive_message, after #_receive_message.
-    # trans.after_receive_message(trans, message)
+    # trans.after_receive_message(trans, state)
     attr_accessor :after_receive_message
 
     # A Proc to call within #send_message, before #_send_message.
-    # trans.before_send_message(trans, message)
+    # trans.before_send_message(trans, state)
     attr_accessor :before_send_message
 
-    # Proc to call with #invoke_message! if result.exception.
-    # trans.on_result_exception.call(trans, result)
+    # Proc to call with #invoke_message! if state.result.exception.
+    # trans.on_result_exception.call(trans, state)
     attr_accessor :on_result_exception
 
     # Proc to call after #invoke_message!
-    # trans.after_invoke_message.call(trans, message, result)
+    # trans.after_invoke_message.call(trans, state)
     attr_accessor :after_invoke_message
 
     # Proc to call with exception, if exception occurs within #serve_message!, but outside
