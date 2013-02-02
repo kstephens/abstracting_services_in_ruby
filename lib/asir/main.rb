@@ -246,11 +246,17 @@ END
   end
 
   def run_server! cmd = nil
+    nf = File.open("/dev/null")
+    nf.sync = true
+    STDIN.reopen(nf)
+    STDIN.sync = true
+    $stdin.reopen(nf) if $stdin.object_id != STDIN.object_id
+    $stdin.sync = true
+
     lf = File.open(log_file, "a+")
     lf.sync = true
     File.chmod(0666, log_file) rescue nil
-    $stdin.close rescue nil
-    STDIN.close rescue nil
+
     STDOUT.reopen(lf)
     STDOUT.sync = true
     $stdout.reopen(lf) if $stdout.object_id != STDOUT.object_id
@@ -259,6 +265,7 @@ END
     STDERR.sync = true
     $stderr.reopen(lf) if $stderr.object_id != STDERR.object_id
     $stderr.sync = true
+
     # Process.daemon rescue nil # Ruby 1.9.x only.
     lf.puts "#{log_str} starting pid #{$$}"
     begin
@@ -290,7 +297,7 @@ END
 
   def log msg, to_stderr = false
     if to_stderr
-      $stderr.puts "#{log_str_no_time} #{msg}"
+      $stderr.puts "#{log_str_no_time} #{msg}" rescue nil
     end
     File.open(log_file, "a+") do | log |
       log.puts "#{log_str} #{msg}"

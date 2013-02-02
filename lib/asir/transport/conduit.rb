@@ -15,7 +15,8 @@ module Asir
         raise "already running #{@conduit_pid} #{@conduit_cmd}" if @conduit_pid
         if in_fork
           @conduit_pid = ::Process.fork do
-          _log { "start_conduit! #{self} starting pid=#{$$.inspect}" } if @verbose >= 2
+            _log { "start_conduit! #{self} starting pid=#{$$.inspect}" } if @verbose >= 2
+            _close_stdio!
             _start_conduit!
             raise "Could not exec"
           end
@@ -24,10 +25,18 @@ module Asir
             ::File.open(pid_file, "w") { | fh | fh.puts @conduit_pid }
           end
         else
+          _close_stdio!
           _start_conduit!
         end
         self
       end
+
+      def _close_stdio!
+        n = ::File.open("/dev/null", "w+")
+        [ STDIN, STDOUT, STDERR, $stdin, $stdout, $stderr ].each do | io |
+          io.reopen(n) rescue nil
+        end
+      end	
 
       def conduit_pid
         if ! @conduit_pid and pid_file = (@conduit_options || EMPTY_HASH)[:pid_file]

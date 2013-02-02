@@ -1,3 +1,8 @@
+2012-02-01  Kurt A. Stephens  <ks.github@kurtstephens.com>
+
+	* v1.2.4: New Version: Bug fixes.
+	* Handle STDIO properly in potentially daemonized processes.
+
 2013-01-16  Kurt A. Stephens  <ks.github@kurtstephens.com>
 
 	* v1.2.3: New Version: Bug fixes.
