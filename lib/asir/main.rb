@@ -289,7 +289,10 @@ END
   def kill_server!
     log "#{log_str} kill"
     pid = server_pid
-    stop_pid! pid
+    case stop_pid! pid
+    when :not_running
+      File.unlink(pid_file) rescue nil
+    end
   rescue ::Exception => exc
     log "#{log_str} ERROR\n#{exc.inspect}\n  #{exc.backtrace * "\n  "}", :stderr
     raise
@@ -387,9 +390,11 @@ END
       end
       if process_running? pid
         log "cant-stop pid #{pid}", :stderr
+        :cant_stop
       end
     else
       log "not-running? pid #{pid}", :stderr
+      :not_running
     end
   end
 
