@@ -10,12 +10,14 @@ when :configure
 when :environment
   require 'rubygems'
 
+  $:.unshift File.expand_path('../..', __FILE__)
+  $:.unshift File.expand_path('../../../lib', __FILE__)
+
   require 'asir'
   require 'asir/transport/file'
   require 'asir/coder/marshal'
   require 'asir/coder/yaml'
 
-  $:.unshift File.expand_path('..')
   require 'example_helper'
   require 'sample_service'
   require 'unsafe_service'
