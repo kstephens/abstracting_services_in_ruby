@@ -1,3 +1,12 @@
+2012-03-12  Kurt A. Stephens  <ks.github@kurtstephens.com>
+
+	* v1.2.5: New Version: bin/asir.
+	* Do not log error if pid_file does not exist.
+	* Handle fork_process= option.
+	* export ASIR_WORKER=instance:wid for asir start KIND worker.
+	* export ASIR_CONDUIT=1 for asir start KIND conduit.
+	* Remove pid_file if process is not running after asir stop.
+
 2012-02-01  Kurt A. Stephens  <ks.github@kurtstephens.com>
 
 	* v1.2.4: New Version: Bug fixes.
