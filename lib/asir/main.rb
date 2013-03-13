@@ -113,16 +113,18 @@ class Main
     when /^status_([^_]+)_([^_]+)!$/
       pid = server_pid
       puts "#{log_str} pid #{pid}"
-      system("ps -fw -p #{pid}")
+      system("ps -fw -p #{pid}") if pid
     when /^log_([^_]+)_([^_]+)!$/
       puts log_file
     when /^taillog_([^_]+)_([^_]+)!$/
       exec "tail -f #{log_file.inspect}"
     when /^pid_([^_]+)_([^_]+)!$/
-      pid = _alive?
+      pid = server_pid
+      alive = !! _alive?
       puts "#{pid_file} #{pid || :NA} #{alive}"
     when /^alive_([^_]+)_([^_]+)!$/
-      pid = _alive?
+      pid = server_pid
+      alive = !! _alive?
       puts "#{pid_file} #{pid || :NA} #{alive}" if @verbose
       self.exit_code += 1 unless alive
     when /^stop_([^_]+)_([^_]+)!$/
@@ -325,8 +327,8 @@ END
   end
 
   def server_pid
-    pid = File.read(pid_file).chomp!
-    pid.to_i
+    File.exist?(pid_file) &&
+      File.read(pid_file).chomp!.to_i
   end
 
   def _create_transport default_class
