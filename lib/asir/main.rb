@@ -204,6 +204,7 @@ END
     config!(:environment)
     self.transport = config!(:transport)
     fork_server! do
+      ENV['ASIR_CONDUIT'] = '1'
       transport.start_conduit! :fork => false
     end
   end
