@@ -347,7 +347,6 @@ END
 
   def _run_workers!
     $0 = "#{progname} #{adjective} #{object} #{identifier}"
-
     worker_id = 0
     transport.prepare_server!
     worker_processes = transport[:worker_processes] || 1
@@ -361,13 +360,14 @@ END
       log "forked #{wid} pid #{pid}"
     end
 
-    _run_transport_server!
+    _run_transport_server! 0
   ensure
     log "worker 0 stopped"
     _stop_workers!
   end
 
   def _run_transport_server! wid = 0
+    ENV['ASIR_WORKER'] = "#{identifier}:#{wid}"
     log "running transport worker #{transport.class} #{wid}"
     config!(:start)
     $0 += " #{wid} #{transport.uri rescue nil}"
