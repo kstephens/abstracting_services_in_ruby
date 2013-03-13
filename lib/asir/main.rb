@@ -9,7 +9,7 @@ class Main
   [ :verb, :adjective, :object, :identifier,
     :config_rb,
     :verbose,
-    :options,
+    :options, :fork_process,
     :log_dir, :log_file,
     :pid_dir, :pid_file,
   ].
@@ -147,6 +147,7 @@ OPTIONS:
   pid_dir=dir/      ($ASIR_PID_DIR)
   log_dir=dir/      ($ASIR_LOG_DIR)
   verbose=[0-9]
+  fork_process=[01] ($ASIR_FORK_PROCESS)
 
 VERBS:
   start
@@ -228,21 +229,37 @@ END
   end
 
   def fork_server! cmd = nil, &blk
-    pid = Process.fork do
+    fork_process! do
       run_server! cmd, &blk
-    end
-    log "forked pid #{pid}"
-    Process.detach(pid) # Forks a Thread?  We are gonna exit anyway.
-    File.open(pid_file, "w+") { | o | o.puts pid }
-    File.chmod(0666, pid_file) rescue nil
-
-    # Wait and check if process still exists.
-    sleep 3
-    unless process_running? pid
-      raise "Server process #{pid} died to soon?"
     end
 
     self
+  end
+
+  def fork_process! &blk
+    if fork_process
+      pid = Process.fork &blk
+      log "forked pid #{pid}"
+      Process.detach(pid) # Forks a Thread?  We are gonna exit anyway.
+      write_pid_file! pid
+
+      # Wait and check if process still exists.
+      sleep 3
+      unless process_running? pid
+        raise "Server process #{pid} died to soon?"
+      end
+    else
+      pid = $$
+      log "running pid #{pid}"
+      write_pid_file! pid
+      yield
+    end
+    pid
+  end
+
+  def write_pid_file! pid
+    File.open(pid_file, "w+") { | o | o.puts pid }
+    File.chmod(0666, pid_file) rescue nil
   end
 
   def run_server! cmd = nil

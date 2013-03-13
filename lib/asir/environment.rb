@@ -5,6 +5,7 @@ module ASIR; class Environment
   attr_accessor :verb, :adjective, :object, :identifier
   attr_accessor :config_rb, :config
   attr_accessor :log_dir, :log_file, :pid_dir
+  attr_accessor :fork_process
   attr_accessor :options
   attr_accessor :verbose
 
@@ -28,6 +29,14 @@ module ASIR; class Environment
       '/var/run/asir',
       '~/asir/run',
       '/tmp'
+  end
+
+  def fork_process
+    case @fork_process
+    when nil, String, Integer
+      @fork_process = (@fork_process || ENV['ASIR_FORK_PROCESS'] || '1').to_i > 0
+    end
+    @fork_process
   end
 
   def find_writable_directory kind, *list
