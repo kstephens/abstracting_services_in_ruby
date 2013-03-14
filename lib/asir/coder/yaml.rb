@@ -25,7 +25,7 @@ module ASIR
 
       attr_accessor :yaml_options
       case RUBY_VERSION
-      when /^1\.8/
+      when /^1\.8|^1\.9\.2/
         def yaml_dump obj
           ::YAML::dump obj
         end

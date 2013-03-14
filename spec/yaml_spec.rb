@@ -2,7 +2,7 @@ require File.expand_path('../spec_helper', __FILE__)
 require 'asir/coder/yaml'
 
 describe "ASIR::Coder::Yaml" do
-  before(:each) do 
+  before(:each) do
     @enc = ASIR::Coder::Yaml.new
     @dec = @enc.dup
   end
@@ -20,9 +20,6 @@ describe "ASIR::Coder::Yaml" do
   ].each do | x |
     x, str = *x
     if x == nil
-      if RUBY_VERSION == '1.9.2'
-        str = '!!null '
-      end
     end
     str ||= x.to_s
     unless x == nil and RUBY_VERSION !~ /^1\.8/ and RUBY_ENGINE =~ /jruby/i
@@ -94,12 +91,17 @@ describe "ASIR::Coder::Yaml" do
       yaml = ::YAML.dump(str)
       case RUBY_VERSION
       when '1.9.2'
-        yaml.should == "--- ! '#<Encoding:ASCII-8BIT>'\n"
+        yaml.should == "--- \"#<Encoding:ASCII-8BIT>\"\n"
       else
         yaml.should == "--- !binary |-\n  IzxFbmNvZGluZzpBU0NJSS04QklUPg==\n"
       end
 
-      yaml = ::YAML.dump(str, nil, :never_binary => true)
+      case RUBY_VERSION
+      when '1.9.2'
+        yaml = ::YAML.dump(str)
+      else
+        yaml = ::YAML.dump(str, nil, :never_binary => true)
+      end
       yaml.should =~ /\A--- (! )?['"]\#<Encoding:ASCII-8BIT>['"]\n/
     end
 
@@ -114,7 +116,7 @@ describe "ASIR::Coder::Yaml" do
         when /jruby/i
           out.should == "--- 8bitascii\n"
         else
-          out.should == "--- 8bitascii\n...\n"
+          out.should == "--- 8bitascii\n"
         end
       else
         out.should == "--- !binary |-\n  OGJpdGFzY2lp\n"
@@ -128,7 +130,7 @@ describe "ASIR::Coder::Yaml" do
       when /jruby/i
         out.should == "--- 8bitascii\n"
       else
-        out.should == "--- 8bitascii\n...\n"
+        out.should == "--- 8bitascii\n"
       end
       inp = @dec.prepare.decode(str)
       inp.should == str

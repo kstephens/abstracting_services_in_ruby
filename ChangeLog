@@ -1,3 +1,8 @@
+2012-03-14  Kurt A. Stephens  <ks.github@kurtstephens.com>
+
+	* v1.2.7: New Version: Fixed for 1.9.2-p320.
+	* YAML/Syck protocol changes.
+
 2012-03-13  Kurt A. Stephens  <ks.github@kurtstephens.com>
 
 	* v1.2.6: New Version: additional functionality.
