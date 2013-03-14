@@ -130,7 +130,12 @@ describe "ASIR::Coder::Yaml" do
       when /jruby/i
         out.should == "--- 8bitascii\n"
       else
-        out.should == "--- 8bitascii\n"
+        case RUBY_VERSION
+        when /^1\.8|^1\.9\.2/
+          out.should == "--- 8bitascii\n"
+        else
+          out.should == "--- 8bitascii\n...\n"
+        end
       end
       inp = @dec.prepare.decode(str)
       inp.should == str
