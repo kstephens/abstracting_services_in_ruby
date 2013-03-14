@@ -1,3 +1,8 @@
+2012-03-13  Kurt A. Stephens  <ks.github@kurtstephens.com>
+
+	* v1.2.6: New Version: additional functionality.
+	* PayloadIO::UnexpectedResponse has #expected, #received attributes.
+
 2012-03-12  Kurt A. Stephens  <ks.github@kurtstephens.com>
 
 	* v1.2.5: New Version: bin/asir.

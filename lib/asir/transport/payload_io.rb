@@ -9,7 +9,9 @@ module ASIR
     # * Blank line.
     # * Footer.
     module PayloadIO
-      class UnexpectedResponse < Error; end
+      class UnexpectedResponse < Error;
+        attr_accessor :expected, :received
+      end
 
       HEADER = "# asir_payload_size: "
       FOOTER = "\n# asir_payload_end"
@@ -40,7 +42,10 @@ module ASIR
         end
         unless match = regexp.match(line)
           _log { "_read_line_and_expect! #{stream} #{regexp.inspect} !~ #{line.inspect}" }
-          raise UnexpectedResponse, "expected #{regexp.inspect}, received #{line.inspect}"
+          exc = UnexpectedResponse.new("expected #{regexp.inspect}, received #{line.inspect}")
+          exc.expected = regexp
+          exc.received = line
+          raise exc
         end
         match
       end
