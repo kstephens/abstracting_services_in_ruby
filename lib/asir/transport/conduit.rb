@@ -62,6 +62,10 @@ module Asir
       def _start_conduit!
         raise Error::SubclassResponsibility
       end
+
+      def conduit_status
+        nil
+      end
     end
   end
 end
