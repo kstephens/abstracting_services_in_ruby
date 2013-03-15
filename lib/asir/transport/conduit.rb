@@ -4,7 +4,7 @@ module Asir
   class Transport
     # Conduit service support.
     module Conduit
-      attr_accessor :conduit_options, :conduit_pid
+      attr_accessor :conduit_options, :conduit_pid, :conduit_host
 
       def start_conduit! options = nil
         opts = @conduit_options ||= {}
@@ -36,7 +36,11 @@ module Asir
         [ STDIN, STDOUT, STDERR, $stdin, $stdout, $stderr ].each do | io |
           io.reopen(n) rescue nil
         end
-      end	
+      end
+
+      def conduit_host
+        @conduit_host || (@conduit_options || EMPTY_HASH)[:bind_host] || host
+      end
 
       def conduit_pid
         if ! @conduit_pid and pid_file = (@conduit_options || EMPTY_HASH)[:pid_file]
