@@ -12,10 +12,10 @@ module ASIR
     attr_accessor :try_sleep_max
 
     # Yields:
-    #   :try, n_try
-    #   :rescue, exc
-    #   :retry, exc
-    #   :failed, nil
+    #   :try, n_try - for each attempt.
+    #   :rescue, exc - for any rescued exception.
+    #   :retry, exc - before each retry.
+    #   :failed, last_exc - when too many retrys occurred.
     def with_retry
       n_try = 0
       sleep_secs = try_sleep
@@ -29,7 +29,7 @@ module ASIR
       rescue *Error::Unforwardable.modules
         raise
       rescue ::Exception => exc
-        last_exception = exc
+        last_exc = exc
         yield :rescue, exc
         if ! try_max || try_max > n_try
           yield :retry, exc
@@ -42,8 +42,8 @@ module ASIR
         end
       end
       unless done
-        unless yield :failed, last_exception
-          exc = last_exception
+        unless yield :failed, last_exc
+          exc = last_exc
           raise RetryError, "Retry failed: #{exc.inspect}", exc.backtrace
         end
       end
