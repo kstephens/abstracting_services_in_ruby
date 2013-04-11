@@ -18,7 +18,7 @@ module ASIR
 
     def invoke!
       @result = Result.new(self, @receiver.__send__(@selector, *@arguments))
-    rescue *Error::Unforwardable.unforwardable => exc
+    rescue *Error::Unforwardable.modules => exc
       @result = Result.new(self, nil, Error::Unforwardable.new(exc))
     rescue ::Exception => exc
       @result = Result.new(self, nil, exc)

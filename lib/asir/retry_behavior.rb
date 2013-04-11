@@ -26,7 +26,7 @@ module ASIR
         done = true
       rescue *Error::Unrecoverable.modules
         raise
-      rescue *Error::Unforwardable.unforwardable
+      rescue *Error::Unforwardable.modules
         raise
       rescue ::Exception => exc
         last_exception = exc

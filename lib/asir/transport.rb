@@ -165,7 +165,7 @@ module ASIR
         if message_ok
           if exception && ! result_ok
             case exception
-            when *Error::Unforwardable.unforwardable
+            when *Error::Unforwardable.modules
               unforwardable_exception = exception = Error::Unforwardable.new(exception)
             end
             state.result = Result.new(state.message, nil, exception)
