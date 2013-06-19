@@ -2,6 +2,7 @@
 
 	* v1.2.9: New Version: ???
 	* ASIR::Error::Unforwardable.unforwardable is deprecated; use .modules.
+	* ASIR::AdaptiveValue: refactor ASIR::RetryBehavior sleep values.
 
 2012-03-14  Kurt A. Stephens  <ks.github@kurtstephens.com>
 
