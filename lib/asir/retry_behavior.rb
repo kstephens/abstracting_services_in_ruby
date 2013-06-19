@@ -1,4 +1,4 @@
-
+require 'asir/error'
 require 'asir/adaptive_value'
 
 module ASIR
@@ -21,7 +21,9 @@ module ASIR
     #   :failed, last_exc - when too many retrys occurred.
     def with_retry
       n_try = 0
-      @try_sleep_value ||= ::ASIR::AdaptiveValue.new(:init => try_sleep)
+      @try_sleep_value ||= ::ASIR::AdaptiveValue.new
+      @try_sleep_value.init = try_sleep
+      @try_sleep_value.reset!
       result = done = last_exception = nil
       begin
         n_try += 1
