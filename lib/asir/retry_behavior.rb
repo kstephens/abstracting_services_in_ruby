@@ -1,3 +1,6 @@
+
+require 'asir/adaptive_value'
+
 module ASIR
   # !SLIDE
   # Generic retry behavior
@@ -18,7 +21,7 @@ module ASIR
     #   :failed, last_exc - when too many retrys occurred.
     def with_retry
       n_try = 0
-      sleep_secs = try_sleep
+      @try_sleep_value ||= ::ASIR::AdaptiveValue.new(:init => try_sleep)
       result = done = last_exception = nil
       begin
         n_try += 1
@@ -33,10 +36,13 @@ module ASIR
         yield :rescue, exc
         if ! try_max || try_max > n_try
           yield :retry, exc
-          if sleep_secs
+          if try_sleep
+            sleep_secs = @try_sleep_value.value
             sleep sleep_secs if sleep_secs > 0
-            sleep_secs += try_sleep_increment if try_sleep_increment
-            sleep_secs = try_sleep_max if try_sleep_max && sleep_secs > try_sleep_max
+            @try_sleep_value.init = try_sleep
+            @try_sleep_value.add  = try_sleep_increment
+            @try_sleep_value.max  = try_sleep_max
+            @try_sleep_value.adapt!
           end
           retry
         end
