@@ -39,8 +39,8 @@ module ASIR
         super(msg)
         self.set_backtrace original && original.backtrace
       end
-      def self.modules;    @@modules; end; alias :unforwardable :modules
-      def self.modules= x; @@modules = x; end; alias :unforwardable= :modules=
+      def self.modules;    @@modules; end
+      def self.modules= x; @@modules = x; end
       @@modules ||= [
         ::SystemExit,
         ::SystemStackError,

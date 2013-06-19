@@ -47,7 +47,7 @@ describe "ASIR::Message" do
   end
 
   it 'should capture Unforwardable exceptions.' do
-    cls = ::ASIR::Error::Unforwardable.unforwardable.first
+    cls = ::ASIR::Error::Unforwardable.modules.first
     cls.should_not == nil
     msg = "This message".freeze
     message.selector = :raise_exception!
