@@ -44,10 +44,6 @@ describe ASIR::RetryBehavior do
       subject.with_retry(&blk)
     end.should raise_error(ASIR::RetryBehavior::RetryError)
     subject.sleeps.should == [10, 12, 14, 16, 18, 20, 22, 24, 26]
-    subject.yields.select{|x| x[0] == :try}.map{|x| x[1]}.should == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    subject.yields.select{|x| x[0] == :rescue}.map{|x| x[1]}.size.should == 10
-    subject.yields.select{|x| x[0] == :retry}.map{|x| x[1]}.size.should == 9
-    subject.yields.select{|x| x[0] == :failed}.map{|x| x[1]}.size.should == 1
 
     subject.sleeps.clear
     subject.yields.clear
