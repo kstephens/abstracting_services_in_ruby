@@ -47,6 +47,18 @@ module ASIR
       self
     end
 
+    def to_i
+      x = value.to_i
+      adapt!
+      x
+    end
+
+    def to_f
+      x = value.to_f
+      adapt!
+      x
+    end
+
     # Increments value by #add, if #add is set.
     # Multiplies value by #mult, if #mult is set.
     # Limits value by #min and #max.

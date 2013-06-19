@@ -64,6 +64,15 @@ describe ASIR::AdaptiveValue do
     av.value!.to_i.should == 12
   end
 
+  it "should have an adapting #to_i and #to_f value." do
+    av = ASIR::AdaptiveValue.new(:init => 10, :mult => 1.2)
+    av.to_i.should == 10
+    av.to_f.should be_within(0.1).of(12.0)
+    av.to_f.should be_within(0.1).of(14.4)
+    av.to_f.should be_within(0.01).of(17.28)
+    av.to_i.should == 20
+  end
+
   it "should have a #value adjusted by #rand_factor." do
     av = ASIR::AdaptiveValue.new(:init => 10, :rand_factor => 0.5)
     def av._ri
