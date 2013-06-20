@@ -1,8 +1,9 @@
-2012-05-11  Kurt A. Stephens  <ks.github@kurtstephens.com>
+2012-06-19  Kurt A. Stephens  <ks.github@kurtstephens.com>
 
-	* v1.2.9: New Version: ???
+	* v1.2.9: New Version: Fixes, New Functionality.
 	* ASIR::Error::Unforwardable.unforwardable is deprecated; use .modules.
 	* ASIR::AdaptiveValue: refactor ASIR::RetryBehavior sleep values.
+	* BUG: Transport#after_receive_message.call takes a Message::State.
 
 2012-03-14  Kurt A. Stephens  <ks.github@kurtstephens.com>
 
