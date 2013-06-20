@@ -146,6 +146,8 @@ module ASIR
       state = message_ok = result = result_ok = nil
       exception = original_exception = unforwardable_exception = nil
       state = Message::State.new(:in_stream => in_stream, :out_stream => out_stream)
+      around_serve_message!(state) do
+        begin
       if receive_message(state)
         message_ok = true
         invoke_message!(state)
@@ -181,9 +183,26 @@ module ASIR
         @on_exception.call(self, exc, :result, state) if @on_exception
       end
       raise original_exception if unforwardable_exception
+
+        end # begin
+      end # around_serve_message!
     end
 
     # !SLIDE pause
+
+    def around_serve_message! state, &blk
+      if @around_serve_message
+        @around_serve_message.call(self, state, &blk)
+      else
+        yield
+      end
+    end
+
+    # A Proc to call around #serve_message!.
+    # trans.around_serve_message(trans, state)
+    # Should yield and return yield result.
+    # May be used to setup/teardown global resources during Message processing.
+    attr_accessor :around_serve_message
 
     # !SLIDE 
     # Transport Server Support

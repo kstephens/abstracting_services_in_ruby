@@ -13,6 +13,14 @@ begin
                            [ASIR::Coder::Marshal.new,
                             ASIR::Coder::Base64.new, ])
   server_process do
+    t.around_serve_message = lambda do | trans, state, &blk |
+      begin
+        $stderr.puts "### Before message #{trans.message_count.inspect}"
+        blk.call
+      ensure
+        $stderr.puts "### After message #{trans.message_count.inspect}"
+      end
+    end
     t.prepare_server!
     t.run_server!
   end
@@ -32,4 +40,6 @@ end
 # EXPECT: : server process
 # EXPECT: : Email.send_mail :pdf_invoice
 # EXPECT: : pr: :ok
+# EXPECT: ### Before message nil
+# EXPECT: ### After message 1
 
