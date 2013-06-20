@@ -377,7 +377,7 @@ END
     transport.after_receive_message = lambda do | transport, state |
       message = state.message
       $0 = "#{old_arg0} #{transport.message_count} #{message.identifier}"
-      after_receive_message.call(transport, message)
+      after_receive_message.call(transport, state)
     end
     transport.run_server!
     self
