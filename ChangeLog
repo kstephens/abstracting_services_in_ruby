@@ -1,32 +1,32 @@
-2012-06-20  Kurt A. Stephens  <ks.github@kurtstephens.com>
+2013-06-20  Kurt A. Stephens  <ks.github@kurtstephens.com>
 
 	* v1.2.10: New Version: New Functionality.
 	* Transport#around_serve_message callback.
 
-2012-06-19  Kurt A. Stephens  <ks.github@kurtstephens.com>
+2013-06-19  Kurt A. Stephens  <ks.github@kurtstephens.com>
 
 	* v1.2.9: New Version: Fixes, New Functionality.
 	* ASIR::Error::Unforwardable.unforwardable is deprecated; use .modules.
 	* ASIR::AdaptiveValue: refactor ASIR::RetryBehavior sleep values.
 	* BUG: Transport#after_receive_message.call takes a Message::State.
 
-2012-03-14  Kurt A. Stephens  <ks.github@kurtstephens.com>
+2013-03-14  Kurt A. Stephens  <ks.github@kurtstephens.com>
 
 	* v1.2.8: New Version: Additional functionality.
 	* Support #conduit_host.
 
-2012-03-14  Kurt A. Stephens  <ks.github@kurtstephens.com>
+2013-03-14  Kurt A. Stephens  <ks.github@kurtstephens.com>
 
 	* v1.2.7: New Version: Fixed for 1.9.2-p320.
 	* YAML/Syck protocol changes.
 	* New API: Transport#conduit_status.
 
-2012-03-13  Kurt A. Stephens  <ks.github@kurtstephens.com>
+2013-03-13  Kurt A. Stephens  <ks.github@kurtstephens.com>
 
 	* v1.2.6: New Version: additional functionality.
 	* PayloadIO::UnexpectedResponse has #expected, #received attributes.
 
-2012-03-12  Kurt A. Stephens  <ks.github@kurtstephens.com>
+2013-03-12  Kurt A. Stephens  <ks.github@kurtstephens.com>
 
 	* v1.2.5: New Version: bin/asir.
 	* Do not log error if pid_file does not exist.
@@ -35,7 +35,7 @@
 	* export ASIR_CONDUIT=1 for asir start KIND conduit.
 	* Remove pid_file if process is not running after asir stop.
 
-2012-02-01  Kurt A. Stephens  <ks.github@kurtstephens.com>
+2013-02-01  Kurt A. Stephens  <ks.github@kurtstephens.com>
 
 	* v1.2.4: New Version: Bug fixes.
 	* Handle STDIO properly in potentially daemonized processes.
