@@ -261,6 +261,7 @@ END
   end
 
   def write_pid_file! pid
+    log "pid_file #{pid_file}"
     File.open(pid_file, "w+") { | o | o.puts pid }
     File.chmod(0666, pid_file) rescue nil
   end
@@ -307,8 +308,9 @@ END
   end
 
   def kill_server!
-    log "#{log_str} kill"
     pid = server_pid
+    log "#{log_str} pid_file #{pid_file}"
+    log "#{log_str} kill pid #{pid}"
     case stop_pid! pid
     when :not_running
       File.unlink(pid_file) rescue nil
