@@ -211,24 +211,31 @@ module ASIR
     def stop! force = false
       @running = false
       stop_server! if respond_to?(:stop_server!)
-      raise Error::Terminate if force || @force_stop
+      if force || @force_stop
+        exc = @signal_exception || Error::Terminate.new("#{self} stop!")
+        @signal_exception = nil
+        raise exc
+      end
       self
     end
 
     def with_force_stop!
       force_stop_save = @force_stop
-      @force_stop = true
-      yield
-    ensure
-      @force_stop = force_stop_save
+      begin
+        @force_stop = true
+        yield
+      ensure
+        @force_stop = force_stop_save
+      end
     end
 
     def with_server_signals!
       old_trap = { }
       [ "TERM", "HUP" ].each do | sig |
         trap = proc do | *args |
+          @signal_exception = ::ASIR::Error::Terminate.
+                new("#{self} SIG#{sig} #{args.inspect} in #{__FILE__}:#{__LINE__}")
           stop!
-          @signal_exception = ::ASIR::Error::Terminate.new("#{self} by SIG#{sig} #{args.inspect} in #{__FILE__}:#{__LINE__}")
         end
         old_trap[sig] = Signal.trap(sig, trap)
       end
