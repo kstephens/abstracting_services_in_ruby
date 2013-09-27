@@ -424,12 +424,12 @@ END
   def process_running? pid
     case pid
     when false, nil
+      pid
     when Integer
-      Process.kill(0, pid)
+      pid > 1 && Process.kill(0, pid) && pid
     else
       raise TypeError, "expected false, nil, Integer; given #{pid.inspect}"
     end
-    pid
   rescue ::Errno::ESRCH
     false
   rescue ::Exception => exc
