@@ -40,5 +40,5 @@ require 'rspec/mocks'
 
 RSpec.configure do |config|
   config.mock_with :rspec
-  config.order = "random"
+  # config.order = "random" # ex04.rb before ex05.rb
 end
