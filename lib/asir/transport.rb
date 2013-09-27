@@ -231,32 +231,32 @@ module ASIR
 
     def with_server_signals!
       old_trap = { }
-    begin
-      in_with_server_signals = @in_with_server_signals
-      unless in_with_server_signals
-      @in_with_server_signals = true
-      [ "TERM", "HUP" ].each do | sig |
-        trap = proc do | *args |
-          @signal_exception = ::ASIR::Error::Terminate.
+      begin
+        in_with_server_signals = @in_with_server_signals
+        unless in_with_server_signals
+          @in_with_server_signals = true
+          [ "TERM", "HUP" ].each do | sig |
+            trap = proc do | *args |
+              @signal_exception = ::ASIR::Error::Terminate.
                 new("#{self} SIG#{sig} #{args.inspect} in #{__FILE__}:#{__LINE__}")
-          stop!
+              stop!
+            end
+            old_trap[sig] = Signal.trap(sig, trap)
+          end
         end
-        old_trap[sig] = Signal.trap(sig, trap)
+        yield
+        unless in_with_server_signals
+          if exc = @signal_exception
+            @signal_exception = nil
+            raise exc
+          end
+        end
+      ensure
+        # $stderr.puts "old_trap = #{old_trap.inspect}"
+        old_trap.each do | sig, trap |
+          Signal.trap(sig, trap) rescue nil
+        end
       end
-      end
-      yield
-      unless in_with_server_signals
-      if exc = @signal_exception
-        @signal_exception = nil
-        raise exc
-      end
-      end
-    ensure
-      # $stderr.puts "old_trap = #{old_trap.inspect}"
-      old_trap.each do | sig, trap |
-        Signal.trap(sig, trap) rescue nil
-      end
-    end
     end
 
     # !SLIDE
