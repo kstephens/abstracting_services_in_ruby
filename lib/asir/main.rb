@@ -328,8 +328,11 @@ END
   end
 
   def server_pid
-    File.exist?(pid_file) &&
-      File.read(pid_file).chomp!.to_i
+    File.exist?(pid_file) and
+      pid = File.read(pid_file).chomp! and
+      pid = pid.to_i and
+      pid > 1 and
+      pid
   end
 
   def _create_transport default_class
