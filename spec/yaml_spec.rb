@@ -1,4 +1,4 @@
-require File.expand_path('../spec_helper', __FILE__)
+require 'spec_helper'
 require 'asir/coder/yaml'
 
 describe "ASIR::Coder::Yaml" do
