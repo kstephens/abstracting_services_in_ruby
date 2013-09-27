@@ -27,10 +27,12 @@ Gem::Specification.new do |s|
   s.add_dependency "rack", "~> 1.4.1"
 
   s.add_development_dependency 'rake', '>= 0.9.0'
-  s.add_development_dependency 'rspec', '~> 2.12.0'
+  s.add_development_dependency 'rspec', '~> 2.13.0'
   s.add_development_dependency 'simplecov', '>= 0.1'
   s.add_development_dependency 'minitest', '>= 5.0'
   s.add_development_dependency 'mocha', '~> 0.14'
+  s.add_development_dependency 'guard', '~> 1.8'
+  s.add_development_dependency 'guard-rspec', '~> 3.1'
   if (RUBY_ENGINE rescue 'UNKNOWN') =~ /jruby/i
     s.add_development_dependency 'spoon', '>= 0.0.1'
   end
