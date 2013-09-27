@@ -98,7 +98,7 @@ class Main
       $stderr.puts "  sel       = #{sel.inspect}"
     end
     send(sel)
-  rescue ::Exception => exc
+  rescue ::StandardError => exc
     $stderr.puts "#{log_str} ERROR\n#{exc.inspect}\n  #{exc.backtrace * "\n  "}"
     self.exit_code += 1
     raise
@@ -300,7 +300,7 @@ END
       File.unlink(pid_file) rescue nil
     end
     self
-  rescue ::Exception => exc
+  rescue ::StandardError => exc
     msg = "ERROR pid #{$$}\n#{exc.inspect}\n  #{exc.backtrace * "\n  "}"
     log msg, :stderr
     raise
