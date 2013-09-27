@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 require 'asir/main'
 
 describe ASIR::Main do
@@ -9,10 +7,10 @@ describe ASIR::Main do
     let(:pid_file) do
       pid_file = "/tmp/#{$$}.#{rand(10000)}.pid"
       File.exist?(pid_file).should == false
-      main.stubs(:pid_file).returns pid_file
       pid_file
     end
-    after(:each) { File.unlink(pid_file) rescue nil }
+    before(:each) { allow(main).to receive(:pid_file).and_return(pid_file) }
+    after(:each)  { File.unlink(pid_file) rescue nil }
 
     it "should return non-true if pid_file does not exist" do
       main.server_pid.should == false
