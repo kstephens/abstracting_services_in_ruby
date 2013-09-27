@@ -14,18 +14,19 @@ describe "ASIR Performance" do
     object.class.asir.transport = transport
   end
 
-  it 'Raw message time' do
+  it 'Message time using Transport::Local, Coder::Identity' do
+    @desc = 'Raw messaging'
     run! do
       object.return_argument :this_value
     end
-    $raw_t = @t # FIXME!
-  end
+    $raw_t = @t
 
-  it 'Message time using Transport::Local, Coder::Identity' do
+    @desc = 'Message using Transport::Local, Coder::Identity'
     run! do
       object.asir.return_argument :this_value
     end
-    that_t = $raw_t # FIXME!
+
+    that_t = $raw_t
     this_t = @t
     $stderr.puts "\nThis .vs. Raw: #{this_t[:ms_per_n] / that_t[:ms_per_n]} ms/msg / ms/msg"
   end
