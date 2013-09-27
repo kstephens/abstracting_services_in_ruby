@@ -1,3 +1,9 @@
+2013-09-26  Kurt A. Stephens  <ks.github@kurtstephens.com>
+
+	* v1.2.11: New Version: Bug Fixes.
+	* bin/asir: Wrap Transport#run_server! with signal handlers.
+	* bin/asir: Fix handling of pid files.
+
 2013-06-20  Kurt A. Stephens  <ks.github@kurtstephens.com>
 
 	* v1.2.10: New Version: New Functionality.
