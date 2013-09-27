@@ -35,3 +35,11 @@ module ASIR
   end
 end
 
+require 'minitest'
+gem 'mocha'
+require 'mocha/setup'
+
+RSpec.configure do |config|
+  config.mock_with :mocha
+  config.order = "random"
+end
