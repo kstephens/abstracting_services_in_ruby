@@ -384,7 +384,9 @@ END
       $0 = "#{old_arg0} #{transport.message_count} #{message.identifier}"
       after_receive_message.call(transport, state)
     end
-    transport.run_server!
+    transport.with_server_signals! do
+      transport.run_server!
+    end
     self
   end
 
