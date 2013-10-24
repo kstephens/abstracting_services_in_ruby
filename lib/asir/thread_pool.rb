@@ -111,7 +111,7 @@ module ASIR
     end
 
     def stop!
-      log! "stop!"
+      log! :stop!
       @run = false
       # Ask each current worker to :stop!
       @workers_mutex.synchronize do
@@ -125,7 +125,7 @@ module ASIR
     end
 
     def kill! *args
-      log! "kill!"
+      log! :kill!
       @run = false
       @workers_mutex.synchronize do
         @workers.dup.each do | worker |
