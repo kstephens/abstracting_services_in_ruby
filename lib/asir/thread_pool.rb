@@ -48,6 +48,13 @@ module ASIR
       return unless start_n > 0
       log! { "start_workers! #{start_n}" }
       start_n.times do
+        start_worker!
+      end
+      self
+    end
+
+    def start_worker!
+      worker = nil
         thread_class.new do
           worker_id = @workers_mutex.synchronize do
             @worker_id += 1
@@ -68,7 +75,7 @@ module ASIR
           end
         end
       end
-      self
+      worker
     end
 
     def worker_created! worker
