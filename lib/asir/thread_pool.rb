@@ -108,7 +108,7 @@ module ASIR
       @run = false
       # Ask each current worker to :stop!
       @workers_mutex.synchronize do
-        @workers.each do | w |
+        @workers.dup.each do | w |
           @work_queue.enq :stop!
         end
       end
@@ -121,7 +121,7 @@ module ASIR
       log! "kill!"
       @run = false
       @workers_mutex.synchronize do
-        @workers.each do | worker |
+        @workers.dup.each do | worker |
           worker.kill! *args
         end
       end
@@ -130,7 +130,7 @@ module ASIR
 
     def join *args
       until @workers.empty?
-        @workers.each do | worker |
+        @workers.dup.each do | worker |
           worker && worker.join(*args)
         end
       end
