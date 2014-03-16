@@ -55,24 +55,23 @@ module ASIR
 
     def start_worker!
       worker = nil
-        thread_class.new do
-          worker_id = @workers_mutex.synchronize do
-            @worker_id += 1
+      thread_class.new do
+        worker_id = @workers_mutex.synchronize do
+          @worker_id += 1
+        end
+        worker = Worker.new(:thread_pool => self, :worker_id => worker_id)
+        worker_created! worker
+        begin
+          worker_starting! worker
+          @workers_mutex.synchronize do
+            @workers << worker
           end
-          worker = Worker.new(:thread_pool => self, :worker_id => worker_id)
-          worker_created! worker
-          begin
-            worker_starting! worker
-            @workers_mutex.synchronize do
-              @workers << worker
-            end
-            worker.run!
-          ensure
-            @workers_mutex.synchronize do
-              @workers.delete(worker)
-            end
-            worker_stopping! worker
+          worker.run!
+        ensure
+          @workers_mutex.synchronize do
+            @workers.delete(worker)
           end
+          worker_stopping! worker
         end
       end
       worker
